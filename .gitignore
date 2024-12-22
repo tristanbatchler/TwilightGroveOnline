@@ -1,3 +1,4 @@
 server/.env
 server/cmd/debug_executable.exe
 client/export/
+*.sqlite

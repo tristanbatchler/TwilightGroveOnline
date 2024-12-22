@@ -1,9 +1,10 @@
 package states
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"math/rand/v2"
+	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
@@ -30,10 +31,6 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 }
 
 func (g *InGame) OnEnter() {
-	// Initialize the player object
-	g.player.X = rand.Int32N(32)
-	g.player.Y = rand.Int32N(32)
-
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
 	ourPlayerInfo := packets.NewActorInfo(g.player)
@@ -80,8 +77,9 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 		return
 	}
 
-	g.player.X += message.ActorMove.Dx
-	g.player.Y += message.ActorMove.Dy
+	g.player.X += int64(message.ActorMove.Dx)
+	g.player.Y += int64(message.ActorMove.Dy)
+	go g.syncPlayerPosition(500 * time.Millisecond)
 
 	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
@@ -119,4 +117,20 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 func (g *InGame) OnExit() {
 	g.client.Broadcast(packets.NewLogout())
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
+	g.syncPlayerPosition(5 * time.Second)
+}
+
+func (g *InGame) syncPlayerPosition(timeout time.Duration) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	err := g.queries.UpdateActorPosition(ctx, db.UpdateActorPositionParams{
+		X:  g.player.X,
+		Y:  g.player.Y,
+		ID: g.player.DbId,
+	})
+
+	if err != nil {
+		g.logger.Printf("Failed to update actor position: %v", err)
+	}
 }

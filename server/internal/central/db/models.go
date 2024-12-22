@@ -4,6 +4,14 @@
 
 package db
 
+type Actor struct {
+	ID     int64
+	UserID int64
+	Name   string
+	X      int64
+	Y      int64
+}
+
 type User struct {
 	ID           int64
 	Username     string

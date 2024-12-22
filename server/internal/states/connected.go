@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
@@ -77,12 +78,22 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 		return
 	}
 
+	actor, err := c.queries.GetActorByUserId(ctx, user.ID)
+	if err != nil {
+		c.logger.Printf("Failed to get actor for user %s: %v", user.Username, err)
+		c.client.SocketSend(packets.NewLoginResponse(false, genericError))
+		return
+	}
+
 	c.logger.Println("Login successful")
 	c.client.SocketSend(packets.NewLoginResponse(true, nil))
 
 	c.client.SetState(&InGame{
 		player: &objs.Actor{
 			Name: message.LoginRequest.Username,
+			X:    actor.X,
+			Y:    actor.Y,
+			DbId: actor.ID,
 		},
 	})
 }
@@ -92,7 +103,7 @@ func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_Regi
 	defer cancel()
 
 	username := strings.ToLower(message.RegisterRequest.Username)
-	err := validateUsername(message.RegisterRequest.Username)
+	err := validateUsername(username)
 	if err != nil {
 		reason := fmt.Sprintf("invalid username: %v", err)
 		c.logger.Println(reason)
@@ -117,13 +128,26 @@ func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_Regi
 		return
 	}
 
-	_, err = c.queries.CreateUser(ctx, db.CreateUserParams{
+	user, err := c.queries.CreateUser(ctx, db.CreateUserParams{
 		Username:     username,
 		PasswordHash: string(passwordHash),
 	})
 
 	if err != nil {
 		c.logger.Printf("Failed to create user %s: %v", username, err)
+		c.client.SocketSend(genericFailMessage)
+		return
+	}
+
+	_, err = c.queries.CreateActor(ctx, db.CreateActorParams{
+		X:      rand.Int64N(32),
+		Y:      rand.Int64N(32),
+		Name:   message.RegisterRequest.Username,
+		UserID: user.ID,
+	})
+
+	if err != nil {
+		c.logger.Printf("Failed to create actor for user %s: %v", username, err)
 		c.client.SocketSend(genericFailMessage)
 		return
 	}
