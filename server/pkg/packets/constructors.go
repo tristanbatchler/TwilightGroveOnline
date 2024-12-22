@@ -91,3 +91,14 @@ func NewSqlResponse(success bool, err error, columns []string, rows []*SqlRow) M
 		},
 	}
 }
+
+func NewLevelUploadResponse(success bool, err error) Msg {
+	return &Packet_LevelUploadResponse{
+		LevelUploadResponse: &LevelUploadResponse{
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}

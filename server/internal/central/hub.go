@@ -53,7 +53,8 @@ type SharedGameObjects struct {
 
 // A collection of static data for the game
 type GameData struct {
-	MotdPath string
+	MotdPath  string
+	LevelPath string
 }
 
 // A structure for the connected client to interface with the hub
@@ -137,7 +138,8 @@ func NewHub(dataDirPath string) *Hub {
 			Actors: ds.NewSharedCollection[*objs.Actor](),
 		},
 		GameData: &GameData{
-			MotdPath: path.Join(dataDirPath, "motd.txt"),
+			MotdPath:  path.Join(dataDirPath, "motd.txt"),
+			LevelPath: path.Join(dataDirPath, "level.tscn"),
 		},
 	}
 }

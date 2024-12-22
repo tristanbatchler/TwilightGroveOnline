@@ -3,6 +3,7 @@ package states
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
@@ -93,7 +94,17 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 
 	a.logger.Println("Received request to upload level")
-	a.logger.Println(string(message.LevelUpload.Data))
+
+	levelPath := a.client.GameData().LevelPath
+	err := os.WriteFile(levelPath, message.LevelUpload.Data, 0644)
+	if err != nil {
+		a.logger.Printf("Error writing level file: %v", err)
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+		return
+	}
+
+	a.logger.Println("Level uploaded successfully")
+	a.client.SocketSend(packets.NewLevelUploadResponse(true, nil))
 }
 
 func (a *Admin) OnExit() {

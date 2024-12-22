@@ -75,6 +75,10 @@ message LevelUpload {
     bytes data = 1;
 }
 
+message LevelUploadResponse {
+    Response response = 1;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -93,5 +97,6 @@ message Packet {
         SqlQuery sql_query = 14;
         SqlResponse sql_response = 15;
         LevelUpload level_upload = 16;
+        LevelUploadResponse level_upload_response = 17;
     }
 }

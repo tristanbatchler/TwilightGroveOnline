@@ -53,6 +53,8 @@ func _on_sql_run_requested(query: String) -> void:
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	if packet.has_sql_response():
 		_handle_sql_response(packet.get_sql_response())
+	elif packet.has_level_upload_response():
+		_handle_level_upload_response(packet.get_level_upload_response())
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
@@ -65,8 +67,21 @@ func _handle_sql_response(sql_response: Packets.SqlResponse) -> void:
 			_log.error("SQL failed to run: %s" % response.get_msg())
 		else :
 			_log.error("Unknown SQL failure")
-	
+		return
+		
 	_sql_console.add_response_row(sql_response.get_columns())
 	
 	for row: Packets.SqlRow in sql_response.get_rows():
 		_sql_console.add_response_row(row.get_values())
+
+func _handle_level_upload_response(level_upload_response: Packets.LevelUploadResponse) -> void:
+	var response := level_upload_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error("Server failed to process level upload: %s" % response.get_msg())
+		else:
+			_log.error("Unknown server failure while processing level file")
+		return
+	
+	_log.success("Server successfully saved the new level!")
+	
