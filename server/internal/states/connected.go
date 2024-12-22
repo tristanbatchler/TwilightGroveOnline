@@ -1,6 +1,7 @@
 package states
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -29,6 +30,22 @@ func (c *Connected) OnEnter() {
 }
 
 func (c *Connected) HandleMessage(senderId uint64, message packets.Msg) {
+	switch message := message.(type) {
+	case *packets.Packet_LoginRequest:
+		c.handleLoginRequest(senderId, message)
+	case *packets.Packet_RegisterRequest:
+		c.handleRegisterRequest(senderId, message)
+	}
+}
+
+func (c *Connected) handleLoginRequest(_ uint64, _ *packets.Packet_LoginRequest) {
+	c.logger.Println("Received login request")
+	c.client.SocketSend(packets.NewLoginResponse(false, errors.New("Not implemented")))
+}
+
+func (c *Connected) handleRegisterRequest(_ uint64, _ *packets.Packet_RegisterRequest) {
+	c.logger.Println("Received register request")
+	c.client.SocketSend(packets.NewRegisterResponse(false, errors.New("Not implemented")))
 }
 
 func (c *Connected) OnExit() {

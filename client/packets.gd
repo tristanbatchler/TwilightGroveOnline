@@ -687,12 +687,15 @@ class Response:
 		_success.value = value
 	
 	var _msg: PBField
+	func has_msg() -> bool:
+		return data[2].state == PB_SERVICE_STATE.FILLED
 	func get_msg() -> String:
 		return _msg.value
 	func clear_msg() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_msg.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_msg(value : String) -> void:
+		data[2].state = PB_SERVICE_STATE.FILLED
 		_msg.value = value
 	
 	func _to_string() -> String:

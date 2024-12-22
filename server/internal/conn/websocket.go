@@ -57,6 +57,7 @@ func (c *WebSocketClient) Initialize(id uint64) {
 }
 
 func (c *WebSocketClient) ProcessMessage(senderId uint64, message packets.Msg) {
+	c.state.HandleMessage(senderId, message)
 }
 
 func (c *WebSocketClient) SocketSend(message packets.Msg) {

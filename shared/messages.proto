@@ -4,7 +4,9 @@ option go_package = "pkg/packets";
 
 message Response {
     bool success = 1;
-    string msg = 2;
+    oneof optional_msg {
+        string msg = 2;
+    }
 }
 
 message ClientId {
