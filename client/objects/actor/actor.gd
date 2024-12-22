@@ -73,5 +73,6 @@ func _input(event: InputEvent) -> void:
 		WS.send(packet)
 
 func move(dx: int, dy: int) -> void:
+	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy

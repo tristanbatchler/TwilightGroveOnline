@@ -156,6 +156,10 @@ func (c *WebSocketClient) SharedGameObjects() *central.SharedGameObjects {
 	return c.hub.SharedGameObjects
 }
 
+func (c *WebSocketClient) GameData() *central.GameData {
+	return c.hub.GameData
+}
+
 func (c *WebSocketClient) SetState(state central.ClientStateHandler) {
 	prevStateName := "None"
 	if c.state != nil {

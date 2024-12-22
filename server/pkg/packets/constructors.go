@@ -60,3 +60,11 @@ func NewDisconnect() Msg {
 func NewLogout() Msg {
 	return &Packet_Logout{}
 }
+
+func NewMotd(msg string) Msg {
+	return &Packet_Motd{
+		Motd: &Motd{
+			Msg: msg,
+		},
+	}
+}

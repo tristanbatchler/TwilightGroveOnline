@@ -49,6 +49,10 @@ message ActorMove {
     int32 dy = 3;
 }
 
+message Motd {
+    string msg = 1;
+}
+
 message Disconnect { }
 
 message Packet {
@@ -63,6 +67,7 @@ message Packet {
         Chat chat = 8;
         ActorInfo actor_info = 9;
         ActorMove actor_move = 10;
-        Disconnect disconnect = 11;
+        Motd motd = 11;
+        Disconnect disconnect = 12;
     }
 }

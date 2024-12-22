@@ -52,6 +52,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_login_response(packet.get_login_response())
 	elif packet.has_register_response():
 		_handle_register_response(packet.get_register_response())
+	elif packet.has_motd():
+		_log.info(packet.get_motd().get_msg())
 
 func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 	var response := login_response.get_response()

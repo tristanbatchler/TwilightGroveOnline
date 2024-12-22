@@ -48,6 +48,11 @@ type SharedGameObjects struct {
 	Actors *ds.SharedCollection[*objs.Actor]
 }
 
+// A collection of static data for the game
+type GameData struct {
+	MotdPath string
+}
+
 // A structure for the connected client to interface with the hub
 type ClientInterfacer interface {
 	Id() uint64
@@ -80,6 +85,7 @@ type ClientInterfacer interface {
 	SetState(newState ClientStateHandler)
 
 	SharedGameObjects() *SharedGameObjects
+	GameData() *GameData
 
 	// Close the client's connections and cleanup
 	Close(reason string)
@@ -103,6 +109,9 @@ type Hub struct {
 
 	// Shared game objects
 	SharedGameObjects *SharedGameObjects
+
+	// Static game data
+	GameData *GameData
 }
 
 func NewHub(dataDirPath string) *Hub {
@@ -122,6 +131,9 @@ func NewHub(dataDirPath string) *Hub {
 		dbPool:         dbPool,
 		SharedGameObjects: &SharedGameObjects{
 			Actors: ds.NewSharedCollection[*objs.Actor](),
+		},
+		GameData: &GameData{
+			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
 	}
 }

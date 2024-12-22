@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -35,6 +36,16 @@ func (c *Connected) SetClient(client central.ClientInterfacer) {
 func (c *Connected) OnEnter() {
 	// A newly connected client will want to know its own ID first
 	c.client.SocketSend(packets.NewClientId(c.client.Id()))
+
+	// Load the MOTD
+	motdPath := c.client.GameData().MotdPath
+	motd, err := os.ReadFile(motdPath)
+	if err != nil {
+		c.logger.Printf("Failed to load MOTD: %v", err)
+	} else {
+		c.client.SocketSend(packets.NewMotd(string(motd)))
+	}
+
 }
 
 func (c *Connected) HandleMessage(senderId uint64, message packets.Msg) {
