@@ -12,7 +12,7 @@
                 "--config", "${workspaceFolder}/server/.env"
             ],
             "cwd": "${workspaceFolder}/server",
-            "preLaunchTask": "syncServer",
+            "preLaunchTask": "syncAll",
         }
     ]
 }

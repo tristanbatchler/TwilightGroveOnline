@@ -2,8 +2,13 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "compileProtobuf",
+            "label": "compileProtobufGo",
             "command": "$HOME/go/bin/protoc -I=\"${workspaceFolder}/shared\" --go_out=\"${workspaceFolder}/server\" --plugin=protoc-gen-go=\"$HOME/go/bin/protoc-gen-go\" \"${workspaceFolder}/shared/messages.proto\"",
+            "type": "shell"
+        },
+        {
+            "label": "compileProtobufGodot",
+            "command": "cd \"${workspaceFolder}/client\" && ./godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=../shared/messages.proto --output=packets.gd && cd ..",
             "type": "shell"
         },
         {
@@ -13,9 +18,15 @@
         },
         {
             "label": "syncServer",
-            "command": "cd ${workspaceFolder}/server && /usr/local/go/bin/go mod tidy && cd ..",
+            "command": "cd \"${workspaceFolder}/server\" && /usr/local/go/bin/go mod tidy && cd ..",
             "type": "shell",
-            "dependsOn": ["compileProtobuf", "compileSql"],
+            "dependsOn": ["compileProtobufGo", "compileSql"],
+        },
+        {
+            "label": "syncAll",
+            "command": "echo \"Syncing all...\"",
+            "type": "shell",
+            "dependsOn": ["syncServer", "compileProtobufGodot"],
         }
     ]
 }

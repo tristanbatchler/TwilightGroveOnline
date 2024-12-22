@@ -4,3 +4,4 @@ client/export/
 *.sqlite
 server/main
 server/nohup.out
+client/godot
