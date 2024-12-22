@@ -80,8 +80,10 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 		return
 	}
 
-	g.player.X = message.ActorMove.Dx
-	g.player.Y = message.ActorMove.Dy
+	g.player.X += message.ActorMove.Dx
+	g.player.Y += message.ActorMove.Dy
+
+	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
 	g.client.Broadcast(packets.NewActorInfo(g.player))
 }

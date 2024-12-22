@@ -28,6 +28,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_logout(sender_id)
 	elif packet.has_disconnect():
 		_handle_disconnect(sender_id)
+	elif packet.has_actor_move():
+		_handle_actor_move(sender_id, packet.get_actor_move())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -62,16 +64,24 @@ func _handle_actor_info(sender_id: int, actor_info: Packets.ActorInfo) -> void:
 	else:
 		_add_new_actor(sender_id, x, y, actor_name)
 		
-func _update_actor(actor_id, x, y) -> void:
+func _update_actor(actor_id: int, x: int, y: int) -> void:
 	var actor := _actors[actor_id]
-	actor.position = Vector2(x, y)
+	var dx := x - actor.x
+	var dy := y - actor.y
+	actor.move(dx, dy)
 	
-func _add_new_actor(actor_id, x, y, actor_name) -> void:
-	var actor := Actor.instantiate(x, y, actor_name)
+func _add_new_actor(actor_id: int, x: int, y: int, actor_name) -> void:
+	var actor := Actor.instantiate(x, y, actor_name, actor_id == GameManager.client_id)
 	_actors[actor_id] = actor
 	actor.place(_world)
 	
-func _remove_actor(actor_id) -> void:
+func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
+	if actor_id in _actors:
+		var dx := actor_move.get_dx()
+		var dy := actor_move.get_dy()
+		_actors[actor_id].move(dx, dy)
+
+func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
 		_actors[actor_id].queue_free()
 		_actors.erase(actor_id)

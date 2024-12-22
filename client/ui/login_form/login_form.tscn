@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dkweaj281ywfm"]
 
-[ext_resource type="Script" path="res://classes/login_form/login_form.gd" id="1_s4l84"]
+[ext_resource type="Script" path="res://ui/login_form/login_form.gd" id="1_s4l84"]
 
 [node name="LoginForm" type="VBoxContainer"]
 anchors_preset = 15

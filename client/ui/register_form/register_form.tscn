@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ck54gpx76tecr"]
 
-[ext_resource type="Script" path="res://classes/register_form/register_form.gd" id="1_8nq2r"]
+[ext_resource type="Script" path="res://ui/register_form/register_form.gd" id="1_8nq2r"]
 
 [node name="RegisterForm" type="VBoxContainer"]
 anchors_preset = 15

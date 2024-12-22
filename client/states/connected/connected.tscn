@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://states/connected/connected.gd" id="1_whc4w"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="1_xi3ng"]
-[ext_resource type="Script" path="res://classes/log/log.gd" id="2_1p833"]
-[ext_resource type="PackedScene" uid="uid://dkweaj281ywfm" path="res://classes/login_form/login_form.tscn" id="2_vvt47"]
-[ext_resource type="PackedScene" uid="uid://ck54gpx76tecr" path="res://classes/register_form/register_form.tscn" id="3_enitm"]
+[ext_resource type="Script" path="res://ui/log/log.gd" id="2_1p833"]
+[ext_resource type="PackedScene" uid="uid://dkweaj281ywfm" path="res://ui/login_form/login_form.tscn" id="2_vvt47"]
+[ext_resource type="PackedScene" uid="uid://ck54gpx76tecr" path="res://ui/register_form/register_form.tscn" id="3_enitm"]
 
 [node name="Connected" type="Node"]
 script = ExtResource("1_whc4w")
