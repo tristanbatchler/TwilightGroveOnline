@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3 uid="uid://iclenkh4oour"]
+
+[ext_resource type="Script" path="res://ui/sql_console/sql_console.gd" id="1_eqd4h"]
+[ext_resource type="Script" path="res://ui/log/log.gd" id="1_iyx8f"]
+
+[node name="SqlConsole" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_eqd4h")
+
+[node name="CloseButton" type="Button" parent="."]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Close"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CodeEdit" type="CodeEdit" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 3
+draw_tabs = true
+draw_spaces = true
+
+[node name="RunButton" type="Button" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "Run"
+
+[node name="Log" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+fit_content = true
+scroll_following = true
+script = ExtResource("1_iyx8f")

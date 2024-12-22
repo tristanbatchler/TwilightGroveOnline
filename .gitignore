@@ -2,3 +2,5 @@ server/.env
 server/cmd/debug_executable.exe
 client/export/
 *.sqlite
+server/main
+server/nohup.out

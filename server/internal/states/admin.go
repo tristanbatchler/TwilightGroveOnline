@@ -33,6 +33,8 @@ func (a *Admin) HandleMessage(senderId uint64, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_SqlQuery:
 		a.handleSqlQuery(senderId, message)
+	case *packets.Packet_LevelUpload:
+		a.handleLevelUpload(senderId, message)
 	}
 }
 
@@ -82,6 +84,16 @@ func (a *Admin) handleSqlQuery(senderId uint64, message *packets.Packet_SqlQuery
 	}
 
 	a.client.SocketSend(packets.NewSqlResponse(true, nil, columns, rowMessages))
+}
+
+func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_LevelUpload) {
+	if senderId != a.client.Id() {
+		a.logger.Printf("Received request to upload level from another client (%d)", senderId)
+		return
+	}
+
+	a.logger.Println("Received request to upload level")
+	a.logger.Println(string(message.LevelUpload.Data))
 }
 
 func (a *Admin) OnExit() {

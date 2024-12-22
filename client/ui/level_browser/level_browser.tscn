@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bn1mqtxr8ohag"]
+
+[node name="LevelBrowser" type="FileDialog"]
+title = "Open a File"
+ok_button_text = "Open"
+file_mode = 0
+filters = PackedStringArray("*.tscn")
