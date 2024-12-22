@@ -4,6 +4,7 @@ const Packets := preload("res://packets.gd")
 
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _nav: HBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/Nav
+@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/LogoutButton
 
 @onready var _show_sql_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/ShowSqlButton
 @onready var _sql_console: SqlConsole = $CanvasLayer/MarginContainer/VBoxContainer/SqlConsole
@@ -12,6 +13,7 @@ const Packets := preload("res://packets.gd")
 @onready var _level_browser: FileDialog = $CanvasLayer/MarginContainer/VBoxContainer/LevelBrowser
 
 func _ready() -> void:
+	_logout_button.pressed.connect(_on_logout_button_pressed)
 	_upload_level_button.pressed.connect(_on_upload_level_button_pressed)
 	_show_sql_button.pressed.connect(_on_show_sql_button_pressed)
 	_sql_console.run_requested.connect(_on_sql_run_requested)
@@ -19,6 +21,12 @@ func _ready() -> void:
 	_level_browser.file_selected.connect(_on_level_browser_file_selected)
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
+	
+func _on_logout_button_pressed():
+	var packet := Packets.Packet.new()
+	packet.new_logout()
+	WS.send(packet)
+	GameManager.set_state(GameManager.State.CONNECTED)
 	
 func _on_sql_console_closed():
 	_sql_console.hide()
@@ -36,6 +44,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 	var packet := Packets.Packet.new()
 	var level_upload := packet.new_level_upload()
 	level_upload.set_data(file.get_buffer(file.get_length()))
+	file.close()
 	
 	var err := WS.send(packet)
 	if err:

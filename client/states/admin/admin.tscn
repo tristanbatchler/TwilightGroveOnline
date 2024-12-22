@@ -29,6 +29,10 @@ layout_mode = 2
 [node name="Nav" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
+[node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
+layout_mode = 2
+text = "Logout"
+
 [node name="ShowSqlButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
 size_flags_horizontal = 0

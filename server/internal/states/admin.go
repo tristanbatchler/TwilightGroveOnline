@@ -36,6 +36,8 @@ func (a *Admin) HandleMessage(senderId uint64, message packets.Msg) {
 		a.handleSqlQuery(senderId, message)
 	case *packets.Packet_LevelUpload:
 		a.handleLevelUpload(senderId, message)
+	case *packets.Packet_Logout:
+		a.client.SetState(&Connected{})
 	}
 }
 

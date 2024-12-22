@@ -4,11 +4,13 @@ const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
 
+@export var download_destination_scene_path: String
+
 @onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/LogoutButton
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/SendButton
-@onready var _world: TileMapLayer = $World
+@onready var _world: TileMapLayer
 
 var _actors: Dictionary[int, Actor]
 var _trees: Dictionary[int, Tree]
@@ -22,7 +24,9 @@ func _ready() -> void:
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	var sender_id := packet.get_sender_id()
-	if packet.has_chat():
+	if packet.has_level_download():
+		_handle_level_download(packet.get_level_download())
+	elif packet.has_chat():
 		_handle_chat(sender_id, packet.get_chat())
 	elif packet.has_actor_info():
 		_handle_actor_info(sender_id, packet.get_actor_info())
@@ -51,6 +55,16 @@ func _on_send_button_pressed() -> void:
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
 	GameManager.set_state(GameManager.State.ENTERED)
+
+func _handle_level_download(level_download: Packets.LevelDownload) -> void:
+	var data := level_download.get_data()
+	var file := FileAccess.open(download_destination_scene_path, FileAccess.WRITE)
+	file.store_buffer(data)
+	file.close()
+	var scene := ResourceLoader.load(download_destination_scene_path) as PackedScene
+	var tilemap_layer := scene.instantiate() as TileMapLayer
+	_world = tilemap_layer
+	add_child(_world)
 
 func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 	if sender_id in _actors: 

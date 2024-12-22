@@ -102,3 +102,11 @@ func NewLevelUploadResponse(success bool, err error) Msg {
 		},
 	}
 }
+
+func NewLevelDownload(data []byte) Msg {
+	return &Packet_LevelDownload{
+		LevelDownload: &LevelDownload{
+			Data: data,
+		},
+	}
+}

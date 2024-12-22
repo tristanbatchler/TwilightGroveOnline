@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
@@ -31,6 +32,8 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 }
 
 func (g *InGame) OnEnter() {
+	g.sendLevel()
+
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
 	ourPlayerInfo := packets.NewActorInfo(g.player)
@@ -133,4 +136,16 @@ func (g *InGame) syncPlayerPosition(timeout time.Duration) {
 	if err != nil {
 		g.logger.Printf("Failed to update actor position: %v", err)
 	}
+}
+
+func (g *InGame) sendLevel() {
+	levelPath := g.client.GameData().LevelPath
+	levelData, err := os.ReadFile(levelPath)
+	if err != nil {
+		g.logger.Printf("Failed to read level data: %v", err)
+		return
+	}
+
+	g.logger.Printf("Sending level data (%d bytes)", len(levelData))
+	g.client.SocketSend(packets.NewLevelDownload(levelData))
 }
