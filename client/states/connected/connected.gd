@@ -1,6 +1,6 @@
 extends Node
 
-const packets := preload("res://packets.gd")
+const Packets := preload("res://packets.gd")
 
 @onready var _login_form: LoginForm = $CanvasLayer/MarginContainer/VBoxContainer/LoginForm
 @onready var _register_form: RegisterForm = $CanvasLayer/MarginContainer/VBoxContainer/RegisterForm
@@ -29,7 +29,7 @@ func _on_register_prompt_meta_clicked(meta) -> void:
 
 func _on_login_form_submitted(username: String, password: String) -> void:
 	_log.info("Sending login...")
-	var packet := packets.Packet.new()
+	var packet := Packets.Packet.new()
 	var login_request := packet.new_login_request()
 	login_request.set_username(username)
 	login_request.set_password(password)
@@ -41,26 +41,27 @@ func _on_register_form_submitted(username: String, password: String, confirm_pas
 		return
 	
 	_log.info("Sending registration...")
-	var packet := packets.Packet.new()
+	var packet := Packets.Packet.new()
 	var register_request := packet.new_register_request()
 	register_request.set_username(username)
 	register_request.set_password(password)
 	WS.send(packet)
 
-func _on_ws_packet_received(packet: packets.Packet) -> void:
+func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	if packet.has_login_response():
 		_handle_login_response(packet.get_login_response())
 	elif packet.has_register_response():
 		_handle_register_response(packet.get_register_response())
 
-func _handle_login_response(login_response: packets.LoginResponse) -> void:
+func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 	var response := login_response.get_response()
 	if response.get_success():
 		_log.success("Login successful")
+		GameManager.set_state(GameManager.State.INGAME)
 	elif response.has_msg():
 		_log.error("Login failed: %s" % response.get_msg())
 
-func _handle_register_response(register_response: packets.RegisterResponse) -> void:
+func _handle_register_response(register_response: Packets.RegisterResponse) -> void:
 	var response := register_response.get_response()
 	if response.get_success():
 		_log.success("Registration successful")

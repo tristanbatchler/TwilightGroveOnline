@@ -37,6 +37,18 @@ message Chat {
     string msg = 1;
 }
 
+message ActorInfo {
+    uint64 id = 1;
+    int32 x = 2;
+    int32 y = 3;
+    string name = 4;
+}
+
+message ActorMove {
+    int32 dx = 2;
+    int32 dy = 3;
+}
+
 message Disconnect { }
 
 message Packet {
@@ -49,6 +61,8 @@ message Packet {
         RegisterResponse register_response = 6;
         Logout logout = 7;
         Chat chat = 8;
-        Disconnect disconnect = 9;
+        ActorInfo actor_info = 9;
+        ActorMove actor_move = 10;
+        Disconnect disconnect = 11;
     }
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -67,6 +68,12 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 
 	c.logger.Println("Login successful")
 	c.client.SocketSend(packets.NewLoginResponse(true, nil))
+
+	c.client.SetState(&InGame{
+		player: &objs.Actor{
+			Name: message.LoginRequest.Username,
+		},
+	})
 }
 
 func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_RegisterRequest) {

@@ -152,6 +152,10 @@ func (c *WebSocketClient) DbTx() *central.DbTx {
 	return c.dbTx
 }
 
+func (c *WebSocketClient) SharedGameObjects() *central.SharedGameObjects {
+	return c.hub.SharedGameObjects
+}
+
 func (c *WebSocketClient) SetState(state central.ClientStateHandler) {
 	prevStateName := "None"
 	if c.state != nil {
@@ -176,6 +180,8 @@ func (c *WebSocketClient) SetState(state central.ClientStateHandler) {
 
 func (c *WebSocketClient) Close(reason string) {
 	c.logger.Printf("Closing client connection because: %s", reason)
+
+	c.SetState(nil)
 
 	c.hub.UnregisterChan <- c
 	c.conn.Close()

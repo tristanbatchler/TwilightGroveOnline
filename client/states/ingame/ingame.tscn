@@ -1,0 +1,54 @@
+[gd_scene load_steps=5 format=3 uid="uid://cn3josm57s4u"]
+
+[ext_resource type="Script" path="res://states/ingame/ingame.gd" id="1_5whee"]
+[ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_mm4dv"]
+[ext_resource type="Script" path="res://classes/log/log.gd" id="5_perjg"]
+
+[sub_resource type="TileSet" id="TileSet_hdcpp"]
+
+[node name="InGame" type="Node"]
+script = ExtResource("1_5whee")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_mm4dv")
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer"]
+layout_mode = 2
+
+[node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Exit"
+
+[node name="Log" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 10
+bbcode_enabled = true
+scroll_following = true
+script = ExtResource("5_perjg")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SendButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Send"
+
+[node name="World" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_hdcpp")

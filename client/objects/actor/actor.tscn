@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://beqknrh5ha0dd"]
+
+[ext_resource type="Script" path="res://objects/actor/actor.gd" id="1_v10g4"]
+[ext_resource type="Texture2D" uid="uid://d2b81x6mrnlyp" path="res://icon.svg" id="1_xevmv"]
+[ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_r0emk"]
+
+[node name="Actor" type="Node2D"]
+script = ExtResource("1_v10g4")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_xevmv")
+
+[node name="NamePlate" type="Label" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = 61.0
+offset_right = 20.0
+offset_bottom = 84.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_vertical = 8
+theme = ExtResource("2_r0emk")
+text = "Test"
+horizontal_alignment = 1
+vertical_alignment = 2

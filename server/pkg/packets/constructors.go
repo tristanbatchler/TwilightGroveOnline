@@ -1,5 +1,7 @@
 package packets
 
+import "github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+
 func NewClientId(id uint64) Msg {
 	return &Packet_ClientId{
 		ClientId: &ClientId{
@@ -39,4 +41,22 @@ func NewRegisterResponse(success bool, err error) Msg {
 			},
 		},
 	}
+}
+
+func NewActorInfo(actor *objs.Actor) Msg {
+	return &Packet_ActorInfo{
+		ActorInfo: &ActorInfo{
+			X:    actor.X,
+			Y:    actor.Y,
+			Name: actor.Name,
+		},
+	}
+}
+
+func NewDisconnect() Msg {
+	return &Packet_Disconnect{}
+}
+
+func NewLogout() Msg {
+	return &Packet_Logout{}
 }

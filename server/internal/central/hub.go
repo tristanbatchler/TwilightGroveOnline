@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	_ "modernc.org/sqlite"
@@ -42,6 +43,11 @@ type ClientStateHandler interface {
 	OnExit()
 }
 
+type SharedGameObjects struct {
+	// The ID of the actor is the client ID of the client that owns it
+	Actors *ds.SharedCollection[*objs.Actor]
+}
+
 // A structure for the connected client to interface with the hub
 type ClientInterfacer interface {
 	Id() uint64
@@ -73,6 +79,8 @@ type ClientInterfacer interface {
 
 	SetState(newState ClientStateHandler)
 
+	SharedGameObjects() *SharedGameObjects
+
 	// Close the client's connections and cleanup
 	Close(reason string)
 }
@@ -92,6 +100,9 @@ type Hub struct {
 
 	// Database connection pool
 	dbPool *sql.DB
+
+	// Shared game objects
+	SharedGameObjects *SharedGameObjects
 }
 
 func NewHub(dataDirPath string) *Hub {
@@ -109,6 +120,9 @@ func NewHub(dataDirPath string) *Hub {
 		RegisterChan:   make(chan ClientInterfacer),
 		UnregisterChan: make(chan ClientInterfacer),
 		dbPool:         dbPool,
+		SharedGameObjects: &SharedGameObjects{
+			Actors: ds.NewSharedCollection[*objs.Actor](),
+		},
 	}
 }
 
