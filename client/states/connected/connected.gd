@@ -64,6 +64,7 @@ func _handle_register_response(register_response: packets.RegisterResponse) -> v
 	var response := register_response.get_response()
 	if response.get_success():
 		_log.success("Registration successful")
+		_on_register_form_canceled() # Go back to login
 	elif response.has_msg():
 		_log.error("Registration failed: %s" % response.get_msg())
 

@@ -135,14 +135,14 @@ func (c *WebSocketClient) WritePump() {
 		_, writeErr := writer.Write(data)
 
 		if writeErr != nil {
-			c.logger.Printf("error writing %T packet: %v", packet.Msg, err)
+			c.logger.Printf("error writing %T packet: %v", packet.Msg, writeErr)
 			continue
 		}
 
 		writer.Write([]byte{'\n'})
 
 		if closeErr := writer.Close(); closeErr != nil {
-			c.logger.Printf("error closing writer, dropping %T packet: %v", packet.Msg, err)
+			c.logger.Printf("error closing writer, dropping %T packet: %v", packet.Msg, closeErr)
 			continue
 		}
 	}

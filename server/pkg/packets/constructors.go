@@ -8,14 +8,23 @@ func NewClientId(id uint64) Msg {
 	}
 }
 
+func newOptionalResponse(err error) *Response_Msg {
+	var responseMsg *Response_Msg = nil
+	if err != nil {
+		responseMsg = &Response_Msg{
+			Msg: err.Error(),
+		}
+	}
+
+	return responseMsg
+}
+
 func NewLoginResponse(success bool, err error) Msg {
 	return &Packet_LoginResponse{
 		LoginResponse: &LoginResponse{
 			Response: &Response{
-				Success: success,
-				OptionalMsg: &Response_Msg{
-					Msg: err.Error(),
-				},
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
 			},
 		},
 	}
@@ -25,10 +34,8 @@ func NewRegisterResponse(success bool, err error) Msg {
 	return &Packet_RegisterResponse{
 		RegisterResponse: &RegisterResponse{
 			Response: &Response{
-				Success: success,
-				OptionalMsg: &Response_Msg{
-					Msg: err.Error(),
-				},
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
 			},
 		},
 	}

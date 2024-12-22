@@ -1,6 +1,7 @@
 package central
 
 import (
+	"context"
 	"database/sql"
 	_ "embed"
 	"log"
@@ -112,6 +113,11 @@ func NewHub(dataDirPath string) *Hub {
 }
 
 func (h *Hub) Run() {
+	log.Println("Initializing database...")
+	if _, err := h.dbPool.ExecContext(context.Background(), schemaGenSql); err != nil {
+		log.Fatal(err)
+	}
+
 	log.Println("Awaiting client registrations...")
 	for {
 		select {
