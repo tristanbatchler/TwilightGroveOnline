@@ -1,0 +1,52 @@
+syntax = "proto3";
+package messages;
+option go_package = "pkg/packets";
+
+message Response {
+    bool success = 1;
+    string msg = 2;
+}
+
+message ClientId {
+    uint64 id = 1;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    Response response = 1;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message RegisterResponse {
+    Response response = 1;
+}
+
+message Logout { }
+
+message Chat {
+    string msg = 1;
+}
+
+message Disconnect { }
+
+message Packet {
+    uint64 sender_id = 1;
+    oneof msg {
+        ClientId client_id = 2;
+        LoginRequest login_request = 3;
+        LoginResponse login_response = 4;
+        RegisterRequest register_request = 5;
+        RegisterResponse register_response = 6;
+        Logout logout = 7;
+        Chat chat = 8;
+        Disconnect disconnect = 9;
+    }
+}

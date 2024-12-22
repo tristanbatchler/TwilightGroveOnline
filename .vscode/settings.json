@@ -1,0 +1,10 @@
+{
+    "protoc": {
+        "path": "protoc",
+        "compile_on_save": true,
+        "options": [
+            "-I=${workspaceRoot}/shared",
+            "--go_out=server",
+        ]
+    }
+}

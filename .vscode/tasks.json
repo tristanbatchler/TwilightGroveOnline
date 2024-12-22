@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compileProtobuf",
+            "command": "$HOME/go/bin/protoc -I=\"${workspaceFolder}/shared\" --go_out=\"${workspaceFolder}/server\" --plugin=protoc-gen-go=\"$HOME/go/bin/protoc-gen-go\" \"${workspaceFolder}/shared/messages.proto\"",
+            "type": "shell"
+        },
+        {
+            "label": "compileSql",
+            "command": "$HOME/go/bin/sqlc generate -f \"${workspaceFolder}/server/internal/central/db/config/sqlc.yml\"",
+            "type": "shell"
+        },
+        {
+            "label": "syncServer",
+            "command": "cd ${workspaceFolder}/server && /usr/local/go/bin/go mod tidy && cd ..",
+            "type": "shell",
+            "dependsOn": ["compileProtobuf", "compileSql"],
+        }
+    ]
+}
