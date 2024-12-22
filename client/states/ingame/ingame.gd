@@ -2,6 +2,7 @@ extends Node
 
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
+const Shrub := preload("res://objects/shrub/shrub.gd")
 
 @onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/LogoutButton
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
@@ -10,6 +11,7 @@ const Actor := preload("res://objects/actor/actor.gd")
 @onready var _world: TileMapLayer = $World
 
 var _actors: Dictionary[int, Actor]
+var _trees: Dictionary[int, Tree]
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)

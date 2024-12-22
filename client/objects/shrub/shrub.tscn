@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://7lm0b0ei76wc"]
+
+[ext_resource type="Script" path="res://objects/shrub/shrub.gd" id="1_2ha4n"]
+[ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="2_ib15g"]
+
+[node name="Tree" type="Node2D"]
+script = ExtResource("1_2ha4n")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_ib15g")
+centered = false
+region_enabled = true
+region_rect = Rect2(40, 40, 8, 8)

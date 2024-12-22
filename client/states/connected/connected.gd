@@ -54,6 +54,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_register_response(packet.get_register_response())
 	elif packet.has_motd():
 		_log.info(packet.get_motd().get_msg())
+	elif packet.has_admin_login_granted():
+		_handle_admin_login_granted()
 
 func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 	var response := login_response.get_response()
@@ -70,6 +72,10 @@ func _handle_register_response(register_response: Packets.RegisterResponse) -> v
 		_on_register_form_canceled() # Go back to login
 	elif response.has_msg():
 		_log.error("Registration failed: %s" % response.get_msg())
+
+func _handle_admin_login_granted() -> void:
+	_log.success("Admin login granted")
+	GameManager.set_state(GameManager.State.ADMIN)
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")

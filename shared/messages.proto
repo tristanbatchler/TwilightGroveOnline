@@ -55,6 +55,22 @@ message Motd {
 
 message Disconnect { }
 
+message AdminLoginGranted { }
+
+message SqlQuery {
+    string query = 1;
+}
+
+message SqlRow {
+    repeated string values = 1;
+}
+
+message SqlResponse {
+    Response response = 1;
+    repeated string columns = 2;
+    repeated SqlRow rows = 3;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -69,5 +85,8 @@ message Packet {
         ActorMove actor_move = 10;
         Motd motd = 11;
         Disconnect disconnect = 12;
+        AdminLoginGranted admin_login_granted = 13;
+        SqlQuery sql_query = 14;
+        SqlResponse sql_response = 15;
     }
 }

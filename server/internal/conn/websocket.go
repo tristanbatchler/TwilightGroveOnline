@@ -1,6 +1,7 @@
 package conn
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -92,7 +93,9 @@ func (c *WebSocketClient) ReadPump() {
 		_, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.logger.Printf("error: %v", err)
+				c.logger.Printf("unexpected closure: %v", err)
+			} else {
+				c.logger.Printf("normal disconnection: %v", err)
 			}
 			break
 		}
@@ -150,6 +153,10 @@ func (c *WebSocketClient) WritePump() {
 
 func (c *WebSocketClient) DbTx() *central.DbTx {
 	return c.dbTx
+}
+
+func (c *WebSocketClient) RunSql(sql string) (*sql.Rows, error) {
+	return c.hub.RunSql(sql)
 }
 
 func (c *WebSocketClient) SharedGameObjects() *central.SharedGameObjects {

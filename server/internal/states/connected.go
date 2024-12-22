@@ -2,6 +2,7 @@ package states
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -78,10 +79,24 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 		return
 	}
 
+	_, err = c.queries.GetAdminByUserId(ctx, user.ID)
+	if err == nil {
+		c.logger.Printf("Admin login: %s", user.Username)
+		c.client.SocketSend(packets.NewAdminLoginGranted())
+		c.client.SetState(&Admin{})
+		return
+	}
+	if err != sql.ErrNoRows {
+		c.logger.Printf("Failed to get admin for user %s: %v", user.Username, err)
+		// It's OK to send the specific error since this is an admin
+		c.client.SocketSend(packets.NewLoginResponse(false, err))
+		return
+	}
+
 	actor, err := c.queries.GetActorByUserId(ctx, user.ID)
 	if err != nil {
 		c.logger.Printf("Failed to get actor for user %s: %v", user.Username, err)
-		c.client.SocketSend(packets.NewLoginResponse(false, genericError))
+		c.client.SocketSend(packets.NewLoginResponse(false, errors.New("internal server error, please try again later")))
 		return
 	}
 

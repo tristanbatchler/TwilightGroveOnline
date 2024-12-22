@@ -37,6 +37,8 @@ func place(world: TileMapLayer) -> void:
 	world.add_child(self)
 
 func _ready() -> void:
+	if not is_player:
+		_camera.queue_free()
 	position = Vector2(x * _world_tile_size.x, y * _world_tile_size.y)
 	_name_plate.text = actor_name
 

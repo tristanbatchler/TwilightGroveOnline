@@ -5,3 +5,7 @@ type Actor struct {
 	Name string
 	DbId int64
 }
+
+type Shrub struct {
+	X, Y int64
+}

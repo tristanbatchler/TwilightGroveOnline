@@ -12,6 +12,11 @@ type Actor struct {
 	Y      int64
 }
 
+type Admin struct {
+	ID     int64
+	UserID int64
+}
+
 type User struct {
 	ID           int64
 	Username     string

@@ -12,6 +12,8 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/password"
+	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
@@ -46,6 +48,7 @@ type ClientStateHandler interface {
 type SharedGameObjects struct {
 	// The ID of the actor is the client ID of the client that owns it
 	Actors *ds.SharedCollection[*objs.Actor]
+	Shrubs *ds.SharedCollection[*objs.Shrub]
 }
 
 // A collection of static data for the game
@@ -81,6 +84,7 @@ type ClientInterfacer interface {
 
 	// A reference to the database transaction for this client
 	DbTx() *DbTx
+	RunSql(sql string) (*sql.Rows, error)
 
 	SetState(newState ClientStateHandler)
 
@@ -140,9 +144,11 @@ func NewHub(dataDirPath string) *Hub {
 
 func (h *Hub) Run() {
 	log.Println("Initializing database...")
-	if _, err := h.dbPool.ExecContext(context.Background(), schemaGenSql); err != nil {
+	if _, err := h.RunSql(schemaGenSql); err != nil {
 		log.Fatal(err)
 	}
+
+	h.addAdmin()
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -175,4 +181,50 @@ func (h *Hub) Serve(getNewClient func(*Hub, http.ResponseWriter, *http.Request) 
 
 	go client.WritePump()
 	go client.ReadPump()
+}
+
+// Adds an admin user to the database if one does not already exist
+func (h *Hub) addAdmin() {
+	ctx := context.Background()
+
+	adminUsername := "admin"
+	randomPassword := password.Generate(10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(randomPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf("Error hashing admin password: %v", err)
+	}
+
+	user, err := h.NewDbTx().Queries.CreateUserIfNotExists(ctx, db.CreateUserIfNotExistsParams{
+		Username:     adminUsername,
+		PasswordHash: string(hashedPassword),
+	})
+
+	if err == nil {
+		log.Printf("Admin username: %s\nAdmin password: %s", adminUsername, randomPassword)
+	} else if err != sql.ErrNoRows {
+		log.Fatalf("Error creating admin user: %v", err)
+	} else {
+		log.Printf("Admin user already exists")
+		user, err = h.NewDbTx().Queries.GetUserByUsername(ctx, adminUsername)
+		if err != nil {
+			log.Fatalf("Error getting admin user: %v", err)
+		}
+	}
+
+	_, err = h.NewDbTx().Queries.CreateAdminIfNotExists(ctx, user.ID)
+	if err == nil {
+		log.Printf("Admin created")
+	} else if err != sql.ErrNoRows {
+		log.Fatalf("Error creating admin: %v", err)
+	} else {
+		log.Printf("Admin already exists")
+	}
+}
+
+func (h *Hub) RunSql(sql string) (*sql.Rows, error) {
+	result, err := h.dbPool.QueryContext(context.Background(), sql)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

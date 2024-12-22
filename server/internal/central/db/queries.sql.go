@@ -43,6 +43,23 @@ func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor
 	return i, err
 }
 
+const createAdminIfNotExists = `-- name: CreateAdminIfNotExists :one
+INSERT INTO admins (
+    user_id
+) VALUES (
+    ?
+)
+ON CONFLICT (user_id) DO NOTHING
+RETURNING id, user_id
+`
+
+func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Admin, error) {
+	row := q.db.QueryRowContext(ctx, createAdminIfNotExists, userID)
+	var i Admin
+	err := row.Scan(&i.ID, &i.UserID)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username, password_hash
@@ -64,6 +81,28 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createUserIfNotExists = `-- name: CreateUserIfNotExists :one
+INSERT INTO users (
+    username, password_hash
+) VALUES (
+    ?, ?
+)
+ON CONFLICT (username) DO NOTHING
+RETURNING id, username, password_hash
+`
+
+type CreateUserIfNotExistsParams struct {
+	Username     string
+	PasswordHash string
+}
+
+func (q *Queries) CreateUserIfNotExists(ctx context.Context, arg CreateUserIfNotExistsParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUserIfNotExists, arg.Username, arg.PasswordHash)
+	var i User
+	err := row.Scan(&i.ID, &i.Username, &i.PasswordHash)
+	return i, err
+}
+
 const getActorByUserId = `-- name: GetActorByUserId :one
 SELECT id, user_id, name, x, y FROM actors
 WHERE user_id = ? LIMIT 1
@@ -79,6 +118,18 @@ func (q *Queries) GetActorByUserId(ctx context.Context, userID int64) (Actor, er
 		&i.X,
 		&i.Y,
 	)
+	return i, err
+}
+
+const getAdminByUserId = `-- name: GetAdminByUserId :one
+SELECT id, user_id FROM admins
+WHERE user_id = ? LIMIT 1
+`
+
+func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, error) {
+	row := q.db.QueryRowContext(ctx, getAdminByUserId, userID)
+	var i Admin
+	err := row.Scan(&i.ID, &i.UserID)
 	return i, err
 }
 

@@ -68,3 +68,26 @@ func NewMotd(msg string) Msg {
 		},
 	}
 }
+
+func NewAdminLoginGranted() Msg {
+	return &Packet_AdminLoginGranted{}
+}
+
+func NewSqlRow(values []string) *SqlRow {
+	return &SqlRow{
+		Values: values,
+	}
+}
+
+func NewSqlResponse(success bool, err error, columns []string, rows []*SqlRow) Msg {
+	return &Packet_SqlResponse{
+		SqlResponse: &SqlResponse{
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+			Columns: columns,
+			Rows:    rows,
+		},
+	}
+}
