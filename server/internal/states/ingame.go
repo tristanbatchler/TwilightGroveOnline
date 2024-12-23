@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
@@ -73,6 +74,11 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 }
 
 func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
+	if strings.TrimSpace(message.Chat.Msg) == "" {
+		g.logger.Println("Received a chat message with no content, ignoring")
+		return
+	}
+
 	if senderId == g.client.Id() {
 		g.logger.Println("Received a chat message from ourselves, broadcasting")
 		g.client.Broadcast(message)

@@ -49,6 +49,9 @@ bbcode_enabled = true
 scroll_following = true
 script = ExtResource("5_perjg")
 
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat"]
+layout_mode = 2
+
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat"]
 layout_mode = 2
 size_flags_vertical = 10
@@ -56,6 +59,7 @@ size_flags_vertical = 10
 [node name="LineEdit" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+caret_blink = true
 
 [node name="SendButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer"]
 layout_mode = 2

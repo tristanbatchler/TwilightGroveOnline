@@ -38,6 +38,7 @@ static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> 
 func place(world: TileMapLayer) -> void:
 	_world_tile_size = world.tile_set.tile_size
 	world.add_child(self)
+	z_index = 1
 
 func _ready() -> void:
 	if not is_player:

@@ -46,9 +46,12 @@ func _on_logout_button_pressed() -> void:
 	GameManager.set_state(GameManager.State.CONNECTED)
 
 func _on_send_button_pressed() -> void:
+	var entered_text := _line_edit.text
+	if entered_text.strip_edges() == "":
+		return
 	var packet := Packets.Packet.new()
 	var chat := packet.new_chat()
-	var chat_msg := _line_edit.text
+	var chat_msg := entered_text
 	_line_edit.clear()
 	chat.set_msg(chat_msg)
 	if WS.send(packet) == OK:
