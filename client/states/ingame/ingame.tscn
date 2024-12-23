@@ -1,12 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://cn3josm57s4u"]
+[gd_scene load_steps=5 format=3 uid="uid://cn3josm57s4u"]
 
 [ext_resource type="Script" path="res://states/ingame/ingame.gd" id="1_5whee"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_mm4dv"]
+[ext_resource type="PackedScene" uid="uid://b1gqqlouulpyn" path="res://levels/forest.tscn" id="4_bv67e"]
 [ext_resource type="Script" path="res://ui/log/log.gd" id="5_perjg"]
 
 [node name="InGame" type="Node"]
 script = ExtResource("1_5whee")
-download_destination_scene_path = "res://states/ingame/downloaded_level.tscn"
+download_destination_scene_path = "user://ingame_tilemap_scene.tscn"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -48,3 +49,5 @@ size_flags_horizontal = 3
 [node name="SendButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Send"
+
+[node name="Forest" parent="." instance=ExtResource("4_bv67e")]

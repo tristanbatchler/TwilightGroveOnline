@@ -10,10 +10,11 @@ const Shrub := preload("res://objects/shrub/shrub.gd")
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/SendButton
-@onready var _world: TileMapLayer
+
+var _world: Node2D
+var _world_tilemap_layer: TileMapLayer
 
 var _actors: Dictionary[int, Actor]
-var _trees: Dictionary[int, Tree]
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
@@ -62,9 +63,17 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 	file.store_buffer(data)
 	file.close()
 	var scene := ResourceLoader.load(download_destination_scene_path) as PackedScene
-	var tilemap_layer := scene.instantiate() as TileMapLayer
-	_world = tilemap_layer
-	add_child(_world)
+	_world = scene.instantiate() as Node2D
+	
+	for node: Node in _world.get_children():
+		if node is TileMapLayer:
+			_world_tilemap_layer = node
+			break
+	
+	if _world_tilemap_layer == null:
+		_log.error("Invalid world file downloaded, no tilemap layer node. Please report this error.")
+	else:	
+		add_child(_world)
 
 func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 	if sender_id in _actors: 
@@ -89,7 +98,8 @@ func _update_actor(actor_id: int, x: int, y: int) -> void:
 func _add_new_actor(actor_id: int, x: int, y: int, actor_name) -> void:
 	var actor := Actor.instantiate(x, y, actor_name, actor_id == GameManager.client_id)
 	_actors[actor_id] = actor
-	actor.place(_world)
+	if _world_tilemap_layer != null:
+		actor.place(_world_tilemap_layer)
 	
 func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 	if actor_id in _actors:
