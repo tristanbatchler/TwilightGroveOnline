@@ -28,6 +28,7 @@ func _on_register_prompt_meta_clicked(meta) -> void:
 		_register_form.show()
 
 func _on_login_form_submitted(username: String, password: String) -> void:
+	_login_form.disable_form()
 	_log.info("Sending login...")
 	var packet := Packets.Packet.new()
 	var login_request := packet.new_login_request()
@@ -36,6 +37,7 @@ func _on_login_form_submitted(username: String, password: String) -> void:
 	WS.send(packet)
 	
 func _on_register_form_submitted(username: String, password: String, confirm_password: String) -> void:
+	_register_form.disable_form()
 	if password != confirm_password:
 		_log.error("Passwords do not match")
 		return
@@ -58,6 +60,7 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_admin_login_granted()
 
 func _handle_login_response(login_response: Packets.LoginResponse) -> void:
+	_login_form.enable_form()
 	var response := login_response.get_response()
 	if response.get_success():
 		_log.success("Login successful")
@@ -66,6 +69,7 @@ func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 		_log.error("Login failed: %s" % response.get_msg())
 
 func _handle_register_response(register_response: Packets.RegisterResponse) -> void:
+	_register_form.enable_form()
 	var response := register_response.get_response()
 	if response.get_success():
 		_log.success("Registration successful")

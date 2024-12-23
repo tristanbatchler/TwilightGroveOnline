@@ -28,3 +28,7 @@ size_flags_horizontal = 4
 [node name="LoginButton" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 text = "Login"
+
+[node name="RememberCheckBox" type="CheckBox" parent="HBoxContainer"]
+layout_mode = 2
+text = "Remember me"

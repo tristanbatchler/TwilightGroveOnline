@@ -19,3 +19,15 @@ func _ready() -> void:
 	
 func _submit_form() -> void:
 	form_submitted.emit(_username_field.text, _password_field.text, _confirm_password_field.text)
+
+func disable_form() -> void:
+	_username_field.editable = false
+	_password_field.editable = false
+	_confirm_password_field.editable = false
+	_confirm_button.disabled = true
+	
+func enable_form() -> void:
+	_username_field.editable = true
+	_password_field.editable = true
+	_confirm_password_field.editable = false
+	_confirm_button.disabled = false
