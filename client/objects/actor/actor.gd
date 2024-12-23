@@ -5,6 +5,7 @@ const Actor := preload("res://objects/actor/actor.gd")
 const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 
 var target_pos: Vector2
+var _left_click_held: bool = false
 
 var x: int:
 	set(value):
@@ -59,7 +60,7 @@ func _input(event: InputEvent) -> void:
 		_camera.zoom.y = _camera.zoom.x
 	
 	# Movement
-	if position.distance_squared_to(target_pos) > 0.1:
+	if not _at_target():
 		return
 	
 	var input_dir := Vector2i.ZERO
@@ -72,9 +73,19 @@ func _input(event: InputEvent) -> void:
 	move_and_send(input_dir)
 		
 func _unhandled_input(event: InputEvent) -> void:
-	# Handle mouse wheel zoom for PC
 	# Use unhandled input to avoid moving when clicking inside chatbox or buttons, etc.
-	if event.is_action("left_click"):
+	if event.is_action_pressed("left_click"):
+		_left_click_held = true
+		
+func _process(delta: float) -> void:
+	if not is_player:
+		return
+	
+	if Input.is_action_just_released("left_click"):
+		_left_click_held = false
+	
+	if _left_click_held and _at_target():
+		print("Starting move")
 		var mouse_pos := _camera.get_global_mouse_position()
 		var screen_center := _camera.get_screen_center_position()
 		var pos_diff := mouse_pos - screen_center
@@ -85,6 +96,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		)
 		
 		move_and_send(strongest_dir)
+		
+func _at_target() -> bool:
+	return position.distance_squared_to(target_pos) <= 0.1
 		
 func _physics_process(delta: float) -> void:
 	velocity = (target_pos - position) * 20
