@@ -62,27 +62,30 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 
 const createLevel = `-- name: CreateLevel :one
 INSERT INTO levels (
-    name, added_by_user_id
+    name, added_by_user_id, last_updated_by_user_id
 ) VALUES (
-    ?, ?
+    ?, ?, ?
 )
-RETURNING id, name, added_by_user_id, added, last_updated
+RETURNING id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign"
 `
 
 type CreateLevelParams struct {
-	Name          string
-	AddedByUserID int64
+	Name                string
+	AddedByUserID       int64
+	LastUpdatedByUserID int64
 }
 
 func (q *Queries) CreateLevel(ctx context.Context, arg CreateLevelParams) (Level, error) {
-	row := q.db.QueryRowContext(ctx, createLevel, arg.Name, arg.AddedByUserID)
+	row := q.db.QueryRowContext(ctx, createLevel, arg.Name, arg.AddedByUserID, arg.LastUpdatedByUserID)
 	var i Level
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.AddedByUserID,
 		&i.Added,
+		&i.LastUpdatedByUserID,
 		&i.LastUpdated,
+		&i.Foreign,
 	)
 	return i, err
 }
@@ -178,6 +181,26 @@ func (q *Queries) CreateUserIfNotExists(ctx context.Context, arg CreateUserIfNot
 	return i, err
 }
 
+const deleteLevelCollisionPointsByLevelId = `-- name: DeleteLevelCollisionPointsByLevelId :exec
+DELETE FROM levels_collision_points
+WHERE level_id = ?
+`
+
+func (q *Queries) DeleteLevelCollisionPointsByLevelId(ctx context.Context, levelID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelCollisionPointsByLevelId, levelID)
+	return err
+}
+
+const deleteLevelTscnDataByLevelId = `-- name: DeleteLevelTscnDataByLevelId :exec
+DELETE FROM levels_tscn_data
+WHERE level_id = ?
+`
+
+func (q *Queries) DeleteLevelTscnDataByLevelId(ctx context.Context, levelID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelTscnDataByLevelId, levelID)
+	return err
+}
+
 const getActorByUserId = `-- name: GetActorByUserId :one
 SELECT id, user_id, name, x, y FROM actors
 WHERE user_id = ? LIMIT 1
@@ -209,7 +232,7 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 }
 
 const getLevelById = `-- name: GetLevelById :one
-SELECT id, name, added_by_user_id, added, last_updated FROM levels
+SELECT id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
 WHERE id = ? LIMIT 1
 `
 
@@ -221,7 +244,29 @@ func (q *Queries) GetLevelById(ctx context.Context, id int64) (Level, error) {
 		&i.Name,
 		&i.AddedByUserID,
 		&i.Added,
+		&i.LastUpdatedByUserID,
 		&i.LastUpdated,
+		&i.Foreign,
+	)
+	return i, err
+}
+
+const getLevelByName = `-- name: GetLevelByName :one
+SELECT id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
+WHERE name = ? LIMIT 1
+`
+
+func (q *Queries) GetLevelByName(ctx context.Context, name string) (Level, error) {
+	row := q.db.QueryRowContext(ctx, getLevelByName, name)
+	var i Level
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.AddedByUserID,
+		&i.Added,
+		&i.LastUpdatedByUserID,
+		&i.LastUpdated,
+		&i.Foreign,
 	)
 	return i, err
 }
@@ -297,5 +342,22 @@ type UpdateActorPositionParams struct {
 
 func (q *Queries) UpdateActorPosition(ctx context.Context, arg UpdateActorPositionParams) error {
 	_, err := q.db.ExecContext(ctx, updateActorPosition, arg.X, arg.Y, arg.ID)
+	return err
+}
+
+const updateLevelLastUpdated = `-- name: UpdateLevelLastUpdated :exec
+UPDATE levels
+SET last_updated = CURRENT_TIMESTAMP
+AND last_updated_by_user_id = ?
+WHERE id = ?
+`
+
+type UpdateLevelLastUpdatedParams struct {
+	LastUpdatedByUserID int64
+	ID                  int64
+}
+
+func (q *Queries) UpdateLevelLastUpdated(ctx context.Context, arg UpdateLevelLastUpdatedParams) error {
+	_, err := q.db.ExecContext(ctx, updateLevelLastUpdated, arg.LastUpdatedByUserID, arg.ID)
 	return err
 }

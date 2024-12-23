@@ -51,10 +51,13 @@ func _on_level_browser_file_selected(path: String) -> void:
 		if node is TileMapLayer:
 			if node.collision_enabled:
 				for cell_pos in node.get_used_cells():
-					print("Found obstacle at %s" % cell_pos)
-					var collision_point := level_upload.add_collision_point()
-					collision_point.set_x(cell_pos[0])
-					collision_point.set_y(cell_pos[1])
+					var tile_data: TileData = node.get_cell_tile_data(cell_pos)
+					const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
+					if tile_data and tile_data.get_collision_polygons_count(physics_layer):
+						print("Found obstacle at %s" % cell_pos)
+						var collision_point := level_upload.add_collision_point()
+						collision_point.set_x(cell_pos[0])
+						collision_point.set_y(cell_pos[1])
 	
 	var file := FileAccess.open(path, FileAccess.READ)
 	level_upload.set_name(scene.resource_path)

@@ -51,9 +51,9 @@ WHERE user_id = ? LIMIT 1;
 
 -- name: CreateLevel :one
 INSERT INTO levels (
-    name, added_by_user_id
+    name, added_by_user_id, last_updated_by_user_id
 ) VALUES (
-    ?, ?
+    ?, ?, ?
 )
 RETURNING *;
 
@@ -84,3 +84,21 @@ WHERE level_id = ? LIMIT 1;
 -- name: GetLevelCollisionPointsByLevelId :many
 SELECT * FROM levels_collision_points
 WHERE level_id = ?;
+
+-- name: GetLevelByName :one
+SELECT * FROM levels
+WHERE name = ? LIMIT 1;
+
+-- name: DeleteLevelTscnDataByLevelId :exec
+DELETE FROM levels_tscn_data
+WHERE level_id = ?;
+
+-- name: DeleteLevelCollisionPointsByLevelId :exec
+DELETE FROM levels_collision_points
+WHERE level_id = ?;
+
+-- name: UpdateLevelLastUpdated :exec
+UPDATE levels
+SET last_updated = CURRENT_TIMESTAMP
+AND last_updated_by_user_id = ?
+WHERE id = ?;

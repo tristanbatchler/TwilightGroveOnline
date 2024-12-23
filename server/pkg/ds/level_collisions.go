@@ -79,3 +79,11 @@ func (l *LevelCollisionPoints) Contains(levelId int64, point CollisionPoint) boo
 	_, ok := l.levelsMaps[levelId][point]
 	return ok
 }
+
+func (l *LevelCollisionPoints) Clear(levelId int64) {
+	mux := l.getMutex(levelId)
+	mux.Lock()
+	defer mux.Unlock()
+
+	delete(l.levelsMaps, levelId)
+}

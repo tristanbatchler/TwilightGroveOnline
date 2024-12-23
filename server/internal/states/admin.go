@@ -2,6 +2,7 @@ package states
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -103,13 +104,26 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// TODO: Clear out level collisions and data if level already exists and re-upload
-	level, err := a.queries.CreateLevel(ctx, db.CreateLevelParams{
-		Name:          message.LevelUpload.Name,
-		AddedByUserID: a.adminModel.UserID,
-	})
-	if err != nil {
-		a.logger.Printf("Error adding new level: %v", err)
+	uploadedLevelName := message.LevelUpload.Name
+	uploaderUserId := a.adminModel.UserID
+
+	level, err := a.queries.GetLevelByName(ctx, uploadedLevelName)
+	if err == nil {
+		a.clearLevelData(ctx, level.ID, uploadedLevelName, uploaderUserId)
+	} else if err == sql.ErrNoRows {
+		a.logger.Printf("Level does not exist with name %s, creating new level", uploadedLevelName)
+		level, err = a.queries.CreateLevel(ctx, db.CreateLevelParams{
+			Name:                uploadedLevelName,
+			AddedByUserID:       uploaderUserId,
+			LastUpdatedByUserID: uploaderUserId,
+		})
+		if err != nil {
+			a.logger.Printf("Error adding new level: %v", err)
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+			return
+		}
+	} else {
+		a.logger.Printf("Error checking if level exists: %v", err)
 		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
 		return
 	}
@@ -154,4 +168,16 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 }
 
 func (a *Admin) OnExit() {
+}
+
+func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
+	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
+	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
+	a.client.LevelCollisionPoints().Clear(levelId)
+	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
+	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
+		ID:                  levelId,
+		LastUpdatedByUserID: uploaderUserId,
+	})
+	a.logger.Printf("Cleared out old data for level %s", levelName)
 }

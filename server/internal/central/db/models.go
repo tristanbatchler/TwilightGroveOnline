@@ -22,11 +22,13 @@ type Admin struct {
 }
 
 type Level struct {
-	ID            int64
-	Name          string
-	AddedByUserID int64
-	Added         sql.NullTime
-	LastUpdated   sql.NullTime
+	ID                  int64
+	Name                string
+	AddedByUserID       int64
+	Added               sql.NullTime
+	LastUpdatedByUserID int64
+	LastUpdated         int64
+	Foreign             interface{}
 }
 
 type LevelsCollisionPoint struct {
