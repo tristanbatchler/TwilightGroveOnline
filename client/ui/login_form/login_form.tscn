@@ -31,4 +31,4 @@ text = "Login"
 
 [node name="RememberCheckBox" type="CheckBox" parent="HBoxContainer"]
 layout_mode = 2
-text = "Remember me"
+text = "Save"
