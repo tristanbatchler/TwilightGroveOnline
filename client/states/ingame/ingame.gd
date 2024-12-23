@@ -23,6 +23,10 @@ func _ready() -> void:
 	_logout_button.pressed.connect(_on_logout_button_pressed)
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
 	_send_button.pressed.connect(_on_send_button_pressed)
+#
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.is_action_released("ui_accept"):
+		_line_edit.grab_focus()
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	var sender_id := packet.get_sender_id()
@@ -53,6 +57,8 @@ func _on_send_button_pressed() -> void:
 	var chat := packet.new_chat()
 	var chat_msg := entered_text
 	_line_edit.clear()
+	_line_edit.release_focus()
+	_line_edit.grab_focus.call_deferred()
 	chat.set_msg(chat_msg)
 	if WS.send(packet) == OK:
 		_log.chat("You", chat_msg)
