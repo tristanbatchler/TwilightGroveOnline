@@ -144,6 +144,7 @@ func (g *InGame) OnExit() {
 	g.client.Broadcast(packets.NewLogout())
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
 	g.syncPlayerPosition(5 * time.Second)
+	g.cancelPlayerUpdateLoop()
 }
 
 func (g *InGame) syncPlayerPosition(timeout time.Duration) {
