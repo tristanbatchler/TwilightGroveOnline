@@ -34,6 +34,7 @@ text = "Exit"
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 10
+mouse_filter = 2
 bbcode_enabled = true
 scroll_following = true
 script = ExtResource("5_perjg")

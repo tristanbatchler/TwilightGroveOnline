@@ -62,16 +62,19 @@ func _input(event: InputEvent) -> void:
 	if position.distance_squared_to(target_pos) > 0.1:
 		return
 	
-	var dx := 0
-	var dy := 0
+	var input_dir := Vector2i.ZERO
 	
 	# Keyboard movement for PC
 	if event is InputEventKey:
-		dx = int(event.is_action("move_right")) - int(event.is_action("move_left"))
-		dy = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+	
+	move_and_send(input_dir)
 		
+func _unhandled_input(event: InputEvent) -> void:
 	# Handle mouse wheel zoom for PC
-	elif event.is_action("left_click"):
+	# Use unhandled input to avoid moving when clicking inside chatbox or buttons, etc.
+	if event.is_action("left_click"):
 		var mouse_pos := _camera.get_global_mouse_position()
 		var screen_center := _camera.get_screen_center_position()
 		var pos_diff := mouse_pos - screen_center
@@ -80,17 +83,8 @@ func _input(event: InputEvent) -> void:
 			[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
 			[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
 		)
-				
-		dx = strongest_dir.x
-		dy = strongest_dir.y
-	
-	if dx != 0 or dy != 0:
-		move(dx, dy)
-		var packet := Packets.Packet.new()
-		var player_move := packet.new_actor_move()
-		player_move.set_dx(dx)
-		player_move.set_dy(dy)
-		WS.send(packet)
+		
+		move_and_send(strongest_dir)
 		
 func _physics_process(delta: float) -> void:
 	velocity = (target_pos - position) * 20
@@ -104,6 +98,18 @@ func move(dx: int, dy: int) -> void:
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy
+	
+func move_and_send(input_dir: Vector2i) -> void:
+	if input_dir == Vector2i.ZERO:
+		return
+	var dx := input_dir.x
+	var dy := input_dir.y
+	move(dx, dy)
+	var packet := Packets.Packet.new()
+	var player_move := packet.new_actor_move()
+	player_move.set_dx(dx)
+	player_move.set_dy(dy)
+	WS.send(packet)
 
 func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
 	var max_output := 0.0
