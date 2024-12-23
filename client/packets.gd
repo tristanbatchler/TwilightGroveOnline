@@ -1033,17 +1033,22 @@ class ActorInfo:
 		service.field = _id
 		data[_id.tag] = service
 		
-		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_level_id = PBField.new("level_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _level_id
+		data[_level_id.tag] = service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _x
 		data[_x.tag] = service
 		
-		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _y
 		data[_y.tag] = service
 		
-		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
 		service.field = _name
 		data[_name.tag] = service
@@ -1059,11 +1064,20 @@ class ActorInfo:
 	func set_id(value : int) -> void:
 		_id.value = value
 	
+	var _level_id: PBField
+	func get_level_id() -> int:
+		return _level_id.value
+	func clear_level_id() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_level_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_level_id(value : int) -> void:
+		_level_id.value = value
+	
 	var _x: PBField
 	func get_x() -> int:
 		return _x.value
 	func clear_x() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_x(value : int) -> void:
 		_x.value = value
@@ -1072,7 +1086,7 @@ class ActorInfo:
 	func get_y() -> int:
 		return _y.value
 	func clear_y() -> void:
-		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
@@ -1081,7 +1095,7 @@ class ActorInfo:
 	func get_name() -> String:
 		return _name.value
 	func clear_name() -> void:
-		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_name(value : String) -> void:
 		_name.value = value
@@ -1544,7 +1558,17 @@ class LevelUploadResponse:
 	func _init():
 		var service
 		
-		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_db_level_id = PBField.new("db_level_id", PB_DATA_TYPE.INT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT64])
+		service = PBServiceField.new()
+		service.field = _db_level_id
+		data[_db_level_id.tag] = service
+		
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _name
+		data[_name.tag] = service
+		
+		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _response
 		service.func_ref = Callable(self, "new_response")
@@ -1552,11 +1576,29 @@ class LevelUploadResponse:
 		
 	var data = {}
 	
+	var _db_level_id: PBField
+	func get_db_level_id() -> int:
+		return _db_level_id.value
+	func clear_db_level_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_db_level_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT64]
+	func set_db_level_id(value : int) -> void:
+		_db_level_id.value = value
+	
+	var _name: PBField
+	func get_name() -> String:
+		return _name.value
+	func clear_name() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_name(value : String) -> void:
+		_name.value = value
+	
 	var _response: PBField
 	func get_response() -> Response:
 		return _response.value
 	func clear_response() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_response() -> Response:
 		_response.value = Response.new()

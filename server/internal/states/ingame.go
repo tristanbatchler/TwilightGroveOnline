@@ -34,10 +34,8 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 }
 
 func (g *InGame) OnEnter() {
-	const levelId = 1
-
 	g.logger.Println("Sending level data to client")
-	g.sendLevel(levelId)
+	g.sendLevel(g.player.LevelId)
 
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
@@ -100,9 +98,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	collisionPoint := ds.CollisionPoint{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
-	// TODO: Don't hardcode level 1 in the check
-	const levelId = 1
-	if g.client.LevelCollisionPoints().Contains(levelId, collisionPoint) {
+	if g.client.LevelCollisionPoints().Contains(g.player.LevelId, collisionPoint) {
 		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
 		go g.client.SocketSend(packets.NewActorInfo(g.player))
 		return

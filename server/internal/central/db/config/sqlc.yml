@@ -10,6 +10,6 @@ sql:
         out: "../"
         overrides:
           - column: levels.last_updated
-            go_type: "int64"
-          - column: levels.created_at
-            go_type: "int64"
+            go_type: "time.Time"
+          - column: levels.added
+            go_type: "time.Time"

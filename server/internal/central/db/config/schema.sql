@@ -14,9 +14,11 @@ CREATE TABLE IF NOT EXISTS actors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    level_id INTEGER NOT NULL,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (level_id) REFERENCES levels(id)
 );
 
 CREATE TABLE IF NOT EXISTS levels (

@@ -11,24 +11,26 @@ import (
 
 const createActor = `-- name: CreateActor :one
 INSERT INTO actors (
-    user_id, name, x, y
+    user_id, name, level_id, x, y
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
-RETURNING id, user_id, name, x, y
+RETURNING id, user_id, name, level_id, x, y
 `
 
 type CreateActorParams struct {
-	UserID int64
-	Name   string
-	X      int64
-	Y      int64
+	UserID  int64
+	Name    string
+	LevelID int64
+	X       int64
+	Y       int64
 }
 
 func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor, error) {
 	row := q.db.QueryRowContext(ctx, createActor,
 		arg.UserID,
 		arg.Name,
+		arg.LevelID,
 		arg.X,
 		arg.Y,
 	)
@@ -37,6 +39,7 @@ func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor
 		&i.ID,
 		&i.UserID,
 		&i.Name,
+		&i.LevelID,
 		&i.X,
 		&i.Y,
 	)
@@ -202,7 +205,7 @@ func (q *Queries) DeleteLevelTscnDataByLevelId(ctx context.Context, levelID int6
 }
 
 const getActorByUserId = `-- name: GetActorByUserId :one
-SELECT id, user_id, name, x, y FROM actors
+SELECT id, user_id, name, level_id, x, y FROM actors
 WHERE user_id = ? LIMIT 1
 `
 
@@ -213,6 +216,7 @@ func (q *Queries) GetActorByUserId(ctx context.Context, userID int64) (Actor, er
 		&i.ID,
 		&i.UserID,
 		&i.Name,
+		&i.LevelID,
 		&i.X,
 		&i.Y,
 	)
@@ -304,6 +308,33 @@ func (q *Queries) GetLevelCollisionPointsByLevelId(ctx context.Context, levelID 
 	return items, nil
 }
 
+const getLevelIds = `-- name: GetLevelIds :many
+SELECT id FROM levels
+`
+
+func (q *Queries) GetLevelIds(ctx context.Context) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, getLevelIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLevelTscnDataByLevelId = `-- name: GetLevelTscnDataByLevelId :one
 SELECT id, level_id, tscn_data FROM levels_tscn_data
 WHERE level_id = ? LIMIT 1
@@ -326,6 +357,22 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	var i User
 	err := row.Scan(&i.ID, &i.Username, &i.PasswordHash)
 	return i, err
+}
+
+const updateActorLevel = `-- name: UpdateActorLevel :exec
+UPDATE actors
+SET level_id = ?
+WHERE id = ?
+`
+
+type UpdateActorLevelParams struct {
+	LevelID int64
+	ID      int64
+}
+
+func (q *Queries) UpdateActorLevel(ctx context.Context, arg UpdateActorLevelParams) error {
+	_, err := q.db.ExecContext(ctx, updateActorLevel, arg.LevelID, arg.ID)
+	return err
 }
 
 const updateActorPosition = `-- name: UpdateActorPosition :exec

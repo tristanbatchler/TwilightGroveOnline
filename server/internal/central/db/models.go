@@ -5,15 +5,16 @@
 package db
 
 import (
-	"database/sql"
+	"time"
 )
 
 type Actor struct {
-	ID     int64
-	UserID int64
-	Name   string
-	X      int64
-	Y      int64
+	ID      int64
+	UserID  int64
+	Name    string
+	LevelID int64
+	X       int64
+	Y       int64
 }
 
 type Admin struct {
@@ -25,9 +26,9 @@ type Level struct {
 	ID                  int64
 	Name                string
 	AddedByUserID       int64
-	Added               sql.NullTime
+	Added               time.Time
 	LastUpdatedByUserID int64
-	LastUpdated         int64
+	LastUpdated         time.Time
 	Foreign             interface{}
 }
 

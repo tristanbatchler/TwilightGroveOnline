@@ -119,12 +119,12 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		})
 		if err != nil {
 			a.logger.Printf("Error adding new level: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
 			return
 		}
 	} else {
 		a.logger.Printf("Error checking if level exists: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
 		return
 	}
 
@@ -134,7 +134,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	})
 	if err != nil {
 		a.logger.Printf("Error adding new level tscn data: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
 		return
 	}
 
@@ -153,7 +153,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		})
 		if err != nil {
 			a.logger.Printf("Error adding new level collision point: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
 			return
 		}
 	}
@@ -164,7 +164,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 
 	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
 
-	a.client.SocketSend(packets.NewLevelUploadResponse(true, nil))
+	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.Name, nil))
 }
 
 func (a *Admin) OnExit() {

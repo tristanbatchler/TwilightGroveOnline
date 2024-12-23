@@ -105,6 +105,8 @@ func _handle_sql_response(sql_response: Packets.SqlResponse) -> void:
 
 func _handle_level_upload_response(level_upload_response: Packets.LevelUploadResponse) -> void:
 	_upload_level_button.disabled = false
+	var level_id := level_upload_response.get_db_level_id()
+	var level_name := level_upload_response.get_name()
 	var response := level_upload_response.get_response()
 	if not response.get_success():
 		if response.has_msg():
@@ -115,3 +117,5 @@ func _handle_level_upload_response(level_upload_response: Packets.LevelUploadRes
 	
 	_log.success("Server successfully saved the new level!")
 	
+	GameManager.levels[level_id] = level_name
+	_log.info("Saved level to GameManager: %s" % GameManager.levels)

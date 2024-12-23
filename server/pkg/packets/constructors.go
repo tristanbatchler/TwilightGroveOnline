@@ -46,9 +46,10 @@ func NewRegisterResponse(success bool, err error) Msg {
 func NewActorInfo(actor *objs.Actor) Msg {
 	return &Packet_ActorInfo{
 		ActorInfo: &ActorInfo{
-			X:    int32(actor.X),
-			Y:    int32(actor.Y),
-			Name: actor.Name,
+			LevelId: int32(actor.LevelId),
+			X:       int32(actor.X),
+			Y:       int32(actor.Y),
+			Name:    actor.Name,
 		},
 	}
 }
@@ -92,9 +93,11 @@ func NewSqlResponse(success bool, err error, columns []string, rows []*SqlRow) M
 	}
 }
 
-func NewLevelUploadResponse(success bool, err error) Msg {
+func NewLevelUploadResponse(success bool, dbLevelId int64, name string, err error) Msg {
 	return &Packet_LevelUploadResponse{
 		LevelUploadResponse: &LevelUploadResponse{
+			DbLevelId: dbLevelId,
+			Name:      name,
 			Response: &Response{
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),

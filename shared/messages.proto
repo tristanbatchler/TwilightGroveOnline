@@ -39,9 +39,10 @@ message Chat {
 
 message ActorInfo {
     uint64 id = 1;
-    int32 x = 2;
-    int32 y = 3;
-    string name = 4;
+    int32 level_id = 2;
+    int32 x = 3;
+    int32 y = 4;
+    string name = 5;
 }
 
 message ActorMove {
@@ -84,7 +85,9 @@ message LevelUpload {
 }
 
 message LevelUploadResponse {
-    Response response = 1;
+    int64 db_level_id = 1;
+    string name = 2;
+    Response response = 3;
 }
 
 message LevelDownload {

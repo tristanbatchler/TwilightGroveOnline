@@ -105,10 +105,11 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 
 	c.client.SetState(&InGame{
 		player: &objs.Actor{
-			Name: message.LoginRequest.Username,
-			X:    actor.X,
-			Y:    actor.Y,
-			DbId: actor.ID,
+			LevelId: actor.LevelID,
+			Name:    message.LoginRequest.Username,
+			X:       actor.X,
+			Y:       actor.Y,
+			DbId:    actor.ID,
 		},
 	})
 }
@@ -154,11 +155,14 @@ func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_Regi
 		return
 	}
 
+	// TODO: Don't hardcode level ID
+	const levelId = 1
 	_, err = c.queries.CreateActor(ctx, db.CreateActorParams{
-		X:      rand.Int64N(32),
-		Y:      rand.Int64N(32),
-		Name:   message.RegisterRequest.Username,
-		UserID: user.ID,
+		LevelID: levelId,
+		X:       rand.Int64N(32),
+		Y:       rand.Int64N(32),
+		Name:    message.RegisterRequest.Username,
+		UserID:  user.ID,
 	})
 
 	if err != nil {

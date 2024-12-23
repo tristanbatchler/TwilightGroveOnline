@@ -242,25 +242,31 @@ func (h *Hub) populateLevelCollisionPoints() {
 	defer cancel()
 
 	// TODO: Look through all levels, but for now just use level 1
-	const levelId = 1
-
-	levelCollisionPoints, err := h.NewDbTx().Queries.GetLevelCollisionPointsByLevelId(ctx, levelId)
+	levelIds, err := h.NewDbTx().Queries.GetLevelIds(ctx)
 	if err != nil {
-		log.Fatalf("Error getting level collision pointss: %v", err)
+		log.Printf("Error getting level ids, can't populate collision points: %v", err)
+		return
 	}
 
-	collisionPoints := make([]ds.CollisionPoint, 0)
-	for _, cPointModel := range levelCollisionPoints {
-		collisionPoint := ds.CollisionPoint{
-			X: cPointModel.X,
-			Y: cPointModel.Y,
+	for _, levelId := range levelIds {
+		levelCollisionPoints, err := h.NewDbTx().Queries.GetLevelCollisionPointsByLevelId(ctx, levelId)
+		if err != nil {
+			log.Fatalf("Error getting level collision pointss: %v", err)
 		}
 
-		collisionPoints = append(collisionPoints, collisionPoint)
-	}
+		collisionPoints := make([]ds.CollisionPoint, 0)
+		for _, cPointModel := range levelCollisionPoints {
+			collisionPoint := ds.CollisionPoint{
+				X: cPointModel.X,
+				Y: cPointModel.Y,
+			}
 
-	h.LevelCollisionPoints.AddBatch(levelId, collisionPoints)
-	log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
+			collisionPoints = append(collisionPoints, collisionPoint)
+		}
+
+		h.LevelCollisionPoints.AddBatch(levelId, collisionPoints)
+		log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
+	}
 }
 
 func (h *Hub) RunSql(sql string) (*sql.Rows, error) {

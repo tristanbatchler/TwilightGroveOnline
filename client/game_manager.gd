@@ -27,6 +27,8 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 }
 
 
+var levels: Dictionary[int, String] = {}
+
 var client_id: int
 var _current_scene_root: Node
 

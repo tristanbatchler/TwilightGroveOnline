@@ -12,9 +12,9 @@ RETURNING *;
 
 -- name: CreateActor :one
 INSERT INTO actors (
-    user_id, name, x, y
+    user_id, name, level_id, x, y
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -25,6 +25,11 @@ WHERE user_id = ? LIMIT 1;
 -- name: UpdateActorPosition :exec
 UPDATE actors
 SET x = ?, y = ?
+WHERE id = ?;
+
+-- name: UpdateActorLevel :exec
+UPDATE actors
+SET level_id = ?
 WHERE id = ?;
 
 -- name: CreateUserIfNotExists :one
@@ -102,3 +107,6 @@ UPDATE levels
 SET last_updated = CURRENT_TIMESTAMP
 AND last_updated_by_user_id = ?
 WHERE id = ?;
+
+-- name: GetLevelIds :many
+SELECT id FROM levels;
