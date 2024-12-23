@@ -52,6 +52,7 @@ custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 
 [node name="LevelBrowser" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("4_vd6dk")]
+position = Vector2i(0, 36)
 
 [node name="Log" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)

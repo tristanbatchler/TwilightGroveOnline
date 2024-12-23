@@ -40,10 +40,24 @@ func _on_upload_level_button_pressed():
 	_level_browser.show()
 	
 func _on_level_browser_file_selected(path: String) -> void:
-	var file := FileAccess.open(path, FileAccess.READ)
 	var packet := Packets.Packet.new()
 	var level_upload := packet.new_level_upload()
-	level_upload.set_data(file.get_buffer(file.get_length()))
+	
+	# Check for obstacles
+	# Temporarily load the level
+	var scene := ResourceLoader.load(path) as PackedScene
+	var level := scene.instantiate()
+	for node in level.get_children():
+		if node is TileMapLayer:
+			if node.collision_enabled:
+				for cell_pos in node.get_used_cells():
+					print("Found obstacle at %s" % cell_pos)
+					var collision_point := level_upload.add_collision_point()
+					collision_point.set_x(cell_pos[0])
+					collision_point.set_y(cell_pos[1])
+	
+	var file := FileAccess.open(path, FileAccess.READ)
+	level_upload.set_tscn_data(file.get_buffer(file.get_length()))
 	file.close()
 	
 	var err := WS.send(packet)
@@ -51,6 +65,8 @@ func _on_level_browser_file_selected(path: String) -> void:
 		_log.error("Error uploading (WS.send err %d)" % err)
 	else:
 		_log.success("File sent to the server")
+		_log.info("Awaiting result...")
+		_upload_level_button.disabled = true
 
 
 func _on_sql_run_requested(query: String) -> void:
@@ -84,6 +100,7 @@ func _handle_sql_response(sql_response: Packets.SqlResponse) -> void:
 		_sql_console.add_response_row(row.get_values())
 
 func _handle_level_upload_response(level_upload_response: Packets.LevelUploadResponse) -> void:
+	_upload_level_button.disabled = false
 	var response := level_upload_response.get_response()
 	if not response.get_success():
 		if response.has_msg():

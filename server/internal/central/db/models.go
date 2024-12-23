@@ -4,6 +4,10 @@
 
 package db
 
+import (
+	"database/sql"
+)
+
 type Actor struct {
 	ID     int64
 	UserID int64
@@ -15,6 +19,27 @@ type Actor struct {
 type Admin struct {
 	ID     int64
 	UserID int64
+}
+
+type Level struct {
+	ID            int64
+	Name          string
+	AddedByUserID int64
+	Added         sql.NullTime
+	LastUpdated   sql.NullTime
+}
+
+type LevelsCollisionPoint struct {
+	ID      int64
+	LevelID int64
+	X       int64
+	Y       int64
+}
+
+type LevelsTscnDatum struct {
+	ID       int64
+	LevelID  int64
+	TscnData []byte
 }
 
 type User struct {

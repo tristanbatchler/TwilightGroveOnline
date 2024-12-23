@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
@@ -53,8 +54,7 @@ type SharedGameObjects struct {
 
 // A collection of static data for the game
 type GameData struct {
-	MotdPath  string
-	LevelPath string
+	MotdPath string
 }
 
 // A structure for the connected client to interface with the hub
@@ -91,6 +91,7 @@ type ClientInterfacer interface {
 
 	SharedGameObjects() *SharedGameObjects
 	GameData() *GameData
+	LevelCollisionPoints() *ds.LevelCollisionPoints
 
 	// Close the client's connections and cleanup
 	Close(reason string)
@@ -117,6 +118,9 @@ type Hub struct {
 
 	// Static game data
 	GameData *GameData
+
+	// Level collision maps
+	LevelCollisionPoints *ds.LevelCollisionPoints
 }
 
 func NewHub(dataDirPath string) *Hub {
@@ -136,11 +140,12 @@ func NewHub(dataDirPath string) *Hub {
 		dbPool:         dbPool,
 		SharedGameObjects: &SharedGameObjects{
 			Actors: ds.NewSharedCollection[*objs.Actor](),
+			Shrubs: ds.NewSharedCollection[*objs.Shrub](),
 		},
 		GameData: &GameData{
-			MotdPath:  path.Join(dataDirPath, "motd.txt"),
-			LevelPath: path.Join(dataDirPath, "level.tscn"),
+			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
+		LevelCollisionPoints: ds.NewLevelCollisionPoints(),
 	}
 }
 
@@ -151,6 +156,7 @@ func (h *Hub) Run(adminPassword string) {
 	}
 
 	h.addAdmin(adminPassword)
+	h.populateLevelCollisionPoints()
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -225,6 +231,33 @@ func (h *Hub) addAdmin(defaultPassword string) {
 	} else {
 		log.Printf("Admin already exists")
 	}
+}
+
+// Populates the level collision points from the database. These are stored in memory for quick access (constant time lookup)
+func (h *Hub) populateLevelCollisionPoints() {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	// TODO: Look through all levels, but for now just use level 1
+	const levelId = 1
+
+	levelCollisionPoints, err := h.NewDbTx().Queries.GetLevelCollisionPointsByLevelId(ctx, levelId)
+	if err != nil {
+		log.Fatalf("Error getting level collision pointss: %v", err)
+	}
+
+	collisionPoints := make([]ds.CollisionPoint, 0)
+	for _, cPointModel := range levelCollisionPoints {
+		collisionPoint := ds.CollisionPoint{
+			X: cPointModel.X,
+			Y: cPointModel.Y,
+		}
+
+		collisionPoints = append(collisionPoints, collisionPoint)
+	}
+
+	h.LevelCollisionPoints.AddBatch(levelId, collisionPoints)
+	log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
 }
 
 func (h *Hub) RunSql(sql string) (*sql.Rows, error) {

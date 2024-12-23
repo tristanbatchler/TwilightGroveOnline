@@ -1413,25 +1413,97 @@ class SqlResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class LevelCollisionPoint:
+	func _init():
+		var service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _x
+		data[_x.tag] = service
+		
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _y
+		data[_y.tag] = service
+		
+	var data = {}
+	
+	var _x: PBField
+	func get_x() -> int:
+		return _x.value
+	func clear_x() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_x(value : int) -> void:
+		_x.value = value
+	
+	var _y: PBField
+	func get_y() -> int:
+		return _y.value
+	func clear_y() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_y(value : int) -> void:
+		_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class LevelUpload:
 	func _init():
 		var service
 		
-		_data = PBField.new("data", PB_DATA_TYPE.BYTES, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES])
+		_tscn_data = PBField.new("tscn_data", PB_DATA_TYPE.BYTES, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES])
 		service = PBServiceField.new()
-		service.field = _data
-		data[_data.tag] = service
+		service.field = _tscn_data
+		data[_tscn_data.tag] = service
+		
+		_collision_point = PBField.new("collision_point", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, true, [])
+		service = PBServiceField.new()
+		service.field = _collision_point
+		service.func_ref = Callable(self, "add_collision_point")
+		data[_collision_point.tag] = service
 		
 	var data = {}
 	
-	var _data: PBField
-	func get_data() -> PackedByteArray:
-		return _data.value
-	func clear_data() -> void:
+	var _tscn_data: PBField
+	func get_tscn_data() -> PackedByteArray:
+		return _tscn_data.value
+	func clear_tscn_data() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_data.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES]
-	func set_data(value : PackedByteArray) -> void:
-		_data.value = value
+		_tscn_data.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES]
+	func set_tscn_data(value : PackedByteArray) -> void:
+		_tscn_data.value = value
+	
+	var _collision_point: PBField
+	func get_collision_point() -> Array:
+		return _collision_point.value
+	func clear_collision_point() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_collision_point.value = []
+	func add_collision_point() -> LevelCollisionPoint:
+		var element = LevelCollisionPoint.new()
+		_collision_point.value.append(element)
+		return element
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

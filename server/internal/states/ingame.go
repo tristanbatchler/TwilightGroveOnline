@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
@@ -32,7 +32,10 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 }
 
 func (g *InGame) OnEnter() {
-	g.sendLevel()
+	const levelId = 1
+
+	g.logger.Println("Sending level data to client")
+	g.sendLevel(levelId)
 
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
@@ -80,8 +83,21 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 		return
 	}
 
-	g.player.X += int64(message.ActorMove.Dx)
-	g.player.Y += int64(message.ActorMove.Dy)
+	targetX := g.player.X + int64(message.ActorMove.Dx)
+	targetY := g.player.Y + int64(message.ActorMove.Dy)
+	collisionPoint := ds.CollisionPoint{X: targetX, Y: targetY}
+
+	// Check if the target position is in a collision point
+	// TODO: Don't hardcode level 1 in the check
+	const levelId = 1
+	if g.client.LevelCollisionPoints().Contains(levelId, collisionPoint) {
+		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
+		return
+	}
+
+	g.player.X = targetX
+	g.player.Y = targetY
+
 	go g.syncPlayerPosition(500 * time.Millisecond)
 
 	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
@@ -138,14 +154,16 @@ func (g *InGame) syncPlayerPosition(timeout time.Duration) {
 	}
 }
 
-func (g *InGame) sendLevel() {
-	levelPath := g.client.GameData().LevelPath
-	levelData, err := os.ReadFile(levelPath)
+func (g *InGame) sendLevel(levelId int64) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	levelTscnData, err := g.queries.GetLevelTscnDataByLevelId(ctx, levelId)
 	if err != nil {
-		g.logger.Printf("Failed to read level data: %v", err)
+		g.logger.Printf("Failed to get level tscn data for level %d: %v", levelId, err)
 		return
 	}
 
-	g.logger.Printf("Sending level data (%d bytes)", len(levelData))
-	g.client.SocketSend(packets.NewLevelDownload(levelData))
+	g.logger.Printf("Sending level data...")
+	g.client.SocketSend(packets.NewLevelDownload(levelTscnData.TscnData))
 }

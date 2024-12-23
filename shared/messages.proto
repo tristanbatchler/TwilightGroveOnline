@@ -71,8 +71,16 @@ message SqlResponse {
     repeated SqlRow rows = 3;
 }
 
+message LevelCollisionPoint {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+
 message LevelUpload {
-    bytes data = 1;
+    bytes tscn_data = 1;
+    repeated LevelCollisionPoint collision_point = 2;
+    // add more here...
 }
 
 message LevelUploadResponse {

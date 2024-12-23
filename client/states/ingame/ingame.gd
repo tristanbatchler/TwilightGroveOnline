@@ -57,7 +57,7 @@ func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
 	GameManager.set_state(GameManager.State.ENTERED)
 
-func _handle_level_download(level_download: Packets.LevelDownload) -> void:
+func _handle_level_download(level_download: Packets.LevelDownload) -> void:	
 	var data := level_download.get_data()
 	var file := FileAccess.open(download_destination_scene_path, FileAccess.WRITE)
 	file.store_buffer(data)
@@ -74,6 +74,7 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 		_log.error("Invalid world file downloaded, no tilemap layer node. Please report this error.")
 	else:	
 		add_child(_world)
+
 
 func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 	if sender_id in _actors: 

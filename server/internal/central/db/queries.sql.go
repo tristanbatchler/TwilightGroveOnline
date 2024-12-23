@@ -60,6 +60,81 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 	return i, err
 }
 
+const createLevel = `-- name: CreateLevel :one
+INSERT INTO levels (
+    name, added_by_user_id
+) VALUES (
+    ?, ?
+)
+RETURNING id, name, added_by_user_id, added, last_updated
+`
+
+type CreateLevelParams struct {
+	Name          string
+	AddedByUserID int64
+}
+
+func (q *Queries) CreateLevel(ctx context.Context, arg CreateLevelParams) (Level, error) {
+	row := q.db.QueryRowContext(ctx, createLevel, arg.Name, arg.AddedByUserID)
+	var i Level
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.AddedByUserID,
+		&i.Added,
+		&i.LastUpdated,
+	)
+	return i, err
+}
+
+const createLevelCollisionPoint = `-- name: CreateLevelCollisionPoint :one
+INSERT INTO levels_collision_points (
+    level_id, x, y
+) VALUES (
+    ?, ?, ?
+)
+RETURNING id, level_id, x, y
+`
+
+type CreateLevelCollisionPointParams struct {
+	LevelID int64
+	X       int64
+	Y       int64
+}
+
+func (q *Queries) CreateLevelCollisionPoint(ctx context.Context, arg CreateLevelCollisionPointParams) (LevelsCollisionPoint, error) {
+	row := q.db.QueryRowContext(ctx, createLevelCollisionPoint, arg.LevelID, arg.X, arg.Y)
+	var i LevelsCollisionPoint
+	err := row.Scan(
+		&i.ID,
+		&i.LevelID,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
+const createLevelTscnData = `-- name: CreateLevelTscnData :one
+INSERT INTO levels_tscn_data (
+    level_id, tscn_data
+) VALUES (
+    ?, ?
+)
+RETURNING id, level_id, tscn_data
+`
+
+type CreateLevelTscnDataParams struct {
+	LevelID  int64
+	TscnData []byte
+}
+
+func (q *Queries) CreateLevelTscnData(ctx context.Context, arg CreateLevelTscnDataParams) (LevelsTscnDatum, error) {
+	row := q.db.QueryRowContext(ctx, createLevelTscnData, arg.LevelID, arg.TscnData)
+	var i LevelsTscnDatum
+	err := row.Scan(&i.ID, &i.LevelID, &i.TscnData)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username, password_hash
@@ -130,6 +205,69 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 	row := q.db.QueryRowContext(ctx, getAdminByUserId, userID)
 	var i Admin
 	err := row.Scan(&i.ID, &i.UserID)
+	return i, err
+}
+
+const getLevelById = `-- name: GetLevelById :one
+SELECT id, name, added_by_user_id, added, last_updated FROM levels
+WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetLevelById(ctx context.Context, id int64) (Level, error) {
+	row := q.db.QueryRowContext(ctx, getLevelById, id)
+	var i Level
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.AddedByUserID,
+		&i.Added,
+		&i.LastUpdated,
+	)
+	return i, err
+}
+
+const getLevelCollisionPointsByLevelId = `-- name: GetLevelCollisionPointsByLevelId :many
+SELECT id, level_id, x, y FROM levels_collision_points
+WHERE level_id = ?
+`
+
+func (q *Queries) GetLevelCollisionPointsByLevelId(ctx context.Context, levelID int64) ([]LevelsCollisionPoint, error) {
+	rows, err := q.db.QueryContext(ctx, getLevelCollisionPointsByLevelId, levelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LevelsCollisionPoint
+	for rows.Next() {
+		var i LevelsCollisionPoint
+		if err := rows.Scan(
+			&i.ID,
+			&i.LevelID,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLevelTscnDataByLevelId = `-- name: GetLevelTscnDataByLevelId :one
+SELECT id, level_id, tscn_data FROM levels_tscn_data
+WHERE level_id = ? LIMIT 1
+`
+
+func (q *Queries) GetLevelTscnDataByLevelId(ctx context.Context, levelID int64) (LevelsTscnDatum, error) {
+	row := q.db.QueryRowContext(ctx, getLevelTscnDataByLevelId, levelID)
+	var i LevelsTscnDatum
+	err := row.Scan(&i.ID, &i.LevelID, &i.TscnData)
 	return i, err
 }
 

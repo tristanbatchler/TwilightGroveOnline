@@ -1,19 +1,22 @@
 package states
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
+	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
 type Admin struct {
-	client  central.ClientInterfacer
-	queries *db.Queries
-	logger  *log.Logger
+	client     central.ClientInterfacer
+	adminModel *db.Admin
+	queries    *db.Queries
+	logger     *log.Logger
 }
 
 func (a *Admin) Name() string {
@@ -97,15 +100,55 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 
 	a.logger.Println("Received request to upload level")
 
-	levelPath := a.client.GameData().LevelPath
-	err := os.WriteFile(levelPath, message.LevelUpload.Data, 0644)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	level, err := a.queries.CreateLevel(ctx, db.CreateLevelParams{
+		Name:          "Test",
+		AddedByUserID: a.adminModel.UserID,
+	})
 	if err != nil {
-		a.logger.Printf("Error writing level file: %v", err)
+		a.logger.Printf("Error adding new level: %v", err)
 		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
 		return
 	}
 
-	a.logger.Println("Level uploaded successfully")
+	_, err = a.queries.CreateLevelTscnData(ctx, db.CreateLevelTscnDataParams{
+		LevelID:  level.ID,
+		TscnData: message.LevelUpload.GetTscnData(),
+	})
+	if err != nil {
+		a.logger.Printf("Error adding new level tscn data: %v", err)
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+		return
+	}
+
+	collisionPoints := make([]ds.CollisionPoint, 0)
+
+	for _, collisionPoint := range message.LevelUpload.GetCollisionPoint() {
+		x := int64(collisionPoint.GetX())
+		y := int64(collisionPoint.GetY())
+
+		collisionPoints = append(collisionPoints, ds.NewCollisionPoint(x, y))
+
+		_, err = a.queries.CreateLevelCollisionPoint(ctx, db.CreateLevelCollisionPointParams{
+			LevelID: level.ID,
+			X:       x,
+			Y:       y,
+		})
+		if err != nil {
+			a.logger.Printf("Error adding new level collision point: %v", err)
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, err))
+			return
+		}
+	}
+
+	a.logger.Println("Level uploaded successfully to the database. Adding collision points DS to the server for fast lookups...")
+
+	a.client.LevelCollisionPoints().AddBatch(level.ID, collisionPoints)
+
+	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
+
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, nil))
 }
 

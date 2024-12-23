@@ -79,11 +79,11 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 		return
 	}
 
-	_, err = c.queries.GetAdminByUserId(ctx, user.ID)
+	admin, err := c.queries.GetAdminByUserId(ctx, user.ID)
 	if err == nil {
 		c.logger.Printf("Admin login: %s", user.Username)
 		c.client.SocketSend(packets.NewAdminLoginGranted())
-		c.client.SetState(&Admin{})
+		c.client.SetState(&Admin{adminModel: &admin})
 		return
 	}
 	if err != sql.ErrNoRows {

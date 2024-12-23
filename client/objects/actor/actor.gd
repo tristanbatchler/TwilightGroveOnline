@@ -1,8 +1,10 @@
-extends Node2D
+extends Area2D
 
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
+
+var prev_pos: Vector2
 
 var x: int:
 	set(value):
@@ -41,6 +43,12 @@ func _ready() -> void:
 		_camera.queue_free()
 	position = Vector2(x * _world_tile_size.x, y * _world_tile_size.y)
 	_name_plate.text = actor_name
+	body_entered.connect(_on_body_entered)
+
+func _on_body_entered(body: Node2D) -> void:
+	if body is TileMapLayer:
+		x = prev_pos.x / _world_tile_size.x
+		y = prev_pos.y / _world_tile_size.y
 
 func _input(event: InputEvent) -> void:
 	if not is_player:
@@ -75,6 +83,7 @@ func _input(event: InputEvent) -> void:
 		WS.send(packet)
 
 func move(dx: int, dy: int) -> void:
+	prev_pos = position
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy
