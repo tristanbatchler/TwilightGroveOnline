@@ -30,7 +30,17 @@ layout_mode = 2
 size_flags_horizontal = 0
 text = "Exit"
 
-[node name="Log" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+current_tab = 0
+
+[node name="Chat" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+metadata/_tab_index = 0
+
+[node name="Log" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 10
@@ -39,13 +49,14 @@ bbcode_enabled = true
 scroll_following = true
 script = ExtResource("5_perjg")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat"]
 layout_mode = 2
+size_flags_vertical = 10
 
-[node name="LineEdit" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SendButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="SendButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer"]
 layout_mode = 2
 text = "Send"

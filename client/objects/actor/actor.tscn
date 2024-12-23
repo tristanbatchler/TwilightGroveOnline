@@ -11,7 +11,7 @@ collision_mask = 2
 script = ExtResource("1_v10g4")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-offset = Vector2(4, 4)
+offset = Vector2(4, 20)
 zoom = Vector2(3, 3)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

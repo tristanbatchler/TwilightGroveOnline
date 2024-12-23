@@ -7,9 +7,10 @@ const Shrub := preload("res://objects/shrub/shrub.gd")
 @export var download_destination_scene_path: String
 
 @onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/LogoutButton
-@onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
-@onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/LineEdit
-@onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/SendButton
+@onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
+@onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
+@onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
+
 
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer

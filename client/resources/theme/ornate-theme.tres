@@ -1,7 +1,8 @@
-[gd_resource type="Theme" load_steps=75 format=3 uid="uid://chlnkbertyww3"]
+[gd_resource type="Theme" load_steps=76 format=3 uid="uid://chlnkbertyww3"]
 
 [ext_resource type="Texture2D" uid="uid://cuyh1skb8m8hc" path="res://resources/theme/ornate.png" id="1"]
 [ext_resource type="FontFile" uid="uid://brxkvyam2q4xf" path="res://resources/theme/pixelplay.ttf" id="2"]
+[ext_resource type="Texture2D" uid="uid://c8mkad4e3mjtd" path="res://resources/theme/ornate_transparent.png" id="3_cns0m"]
 
 [sub_resource type="FontFile" id="66"]
 fallbacks = Array[Font]([ExtResource("2")])
@@ -33,11 +34,13 @@ texture_margin_right = 9.0
 texture_margin_bottom = 7.0
 region_rect = Rect2(0, 0, 23, 15)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sj8on"]
-content_margin_left = 7.0
-content_margin_top = 7.0
-content_margin_right = 4.0
-content_margin_bottom = 7.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oa1id"]
+texture = ExtResource("1")
+texture_margin_left = 9.0
+texture_margin_top = 7.0
+texture_margin_right = 9.0
+texture_margin_bottom = 7.0
+region_rect = Rect2(16, 64, 16, 16)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_d6vg6"]
 content_margin_left = 7.0
@@ -312,7 +315,7 @@ atlas = ExtResource("1")
 region = Rect2(57, 16, 7, 8)
 
 [sub_resource type="StyleBoxTexture" id="41"]
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 7.0
 texture_margin_top = 7.0
 texture_margin_right = 7.0
@@ -322,7 +325,7 @@ region_rect = Rect2(0, 80, 16, 16)
 [sub_resource type="StyleBoxTexture" id="43"]
 content_margin_top = 0.0
 content_margin_bottom = 0.0
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 7.0
 texture_margin_top = 7.0
 texture_margin_right = 7.0
@@ -331,7 +334,7 @@ region_rect = Rect2(48, 80, 16, 8)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vtvyq"]
 content_margin_top = 0.0
 content_margin_bottom = 0.0
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 7.0
 texture_margin_top = 7.0
 texture_margin_right = 7.0
@@ -340,7 +343,7 @@ region_rect = Rect2(32, 80, 16, 8)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gchxg"]
 content_margin_top = 0.0
 content_margin_bottom = 0.0
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 7.0
 texture_margin_top = 7.0
 texture_margin_right = 7.0
@@ -352,7 +355,7 @@ region_rect = Rect2(16, 80, 16, 11)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_n2g8f"]
 content_margin_top = 0.0
 content_margin_bottom = 0.0
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 7.0
 texture_margin_top = 7.0
 texture_margin_right = 7.0
@@ -488,7 +491,7 @@ Button/fonts/font = SubResource("66")
 Button/styles/disabled = SubResource("1")
 Button/styles/focus = SubResource("2")
 Button/styles/hover = SubResource("StyleBoxTexture_lb5d8")
-Button/styles/normal = SubResource("StyleBoxEmpty_sj8on")
+Button/styles/normal = SubResource("StyleBoxTexture_oa1id")
 Button/styles/pressed = SubResource("StyleBoxTexture_d6vg6")
 CheckBox/colors/font_color = Color(0.88, 0.88, 0.88, 1)
 CheckBox/colors/font_color_disabled = Color(0.901961, 0.901961, 0.901961, 0.117647)
