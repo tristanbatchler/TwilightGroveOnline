@@ -125,7 +125,10 @@ type Hub struct {
 
 func NewHub(dataDirPath string) *Hub {
 	dbPath := path.Join(dataDirPath, "db.sqlite")
-	dbPool, err := sql.Open("sqlite", dbPath)
+
+	// Use WAL mode for better performance
+	dbPool, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL")
+
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)
 	} else {

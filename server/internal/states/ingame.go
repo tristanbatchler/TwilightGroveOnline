@@ -14,10 +14,11 @@ import (
 )
 
 type InGame struct {
-	client  central.ClientInterfacer
-	queries *db.Queries
-	player  *objs.Actor
-	logger  *log.Logger
+	client                 central.ClientInterfacer
+	queries                *db.Queries
+	player                 *objs.Actor
+	logger                 *log.Logger
+	cancelPlayerUpdateLoop context.CancelFunc
 }
 
 func (g *InGame) Name() string {
@@ -49,6 +50,11 @@ func (g *InGame) OnEnter() {
 		g.logger.Printf("Sending actor info for client %d", owner_client_id)
 		go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
 	})
+
+	// Start the player update loop
+	ctx, cancel := context.WithCancel(context.Background())
+	g.cancelPlayerUpdateLoop = cancel
+	go g.playerUpdateLoop(ctx)
 }
 
 func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
@@ -92,6 +98,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	const levelId = 1
 	if g.client.LevelCollisionPoints().Contains(levelId, collisionPoint) {
 		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
+		go g.client.SocketSend(packets.NewActorInfo(g.player))
 		return
 	}
 
@@ -166,4 +173,19 @@ func (g *InGame) sendLevel(levelId int64) {
 
 	g.logger.Printf("Sending level data...")
 	g.client.SocketSend(packets.NewLevelDownload(levelTscnData.TscnData))
+}
+
+func (g *InGame) playerUpdateLoop(ctx context.Context) {
+	const delta float64 = 5 // Every 5 seconds
+	ticker := time.NewTicker(time.Duration(delta*1000) * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			g.syncPlayerPosition(1 * time.Second)
+		case <-ctx.Done():
+			return
+		}
+	}
 }
