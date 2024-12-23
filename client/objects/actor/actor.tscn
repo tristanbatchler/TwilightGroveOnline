@@ -4,10 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="2_nkvg6"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_r0emk"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_botth"]
-resource_local_to_scene = true
+[sub_resource type="CircleShape2D" id="CircleShape2D_nf4m1"]
 
-[node name="Actor" type="Area2D"]
+[node name="Actor" type="CharacterBody2D"]
 collision_mask = 2
 script = ExtResource("1_v10g4")
 
@@ -42,5 +41,5 @@ vertical_alignment = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(4, 4)
-scale = Vector2(0.25, 0.25)
-shape = SubResource("RectangleShape2D_botth")
+scale = Vector2(0.39, 0.39)
+shape = SubResource("CircleShape2D_nf4m1")

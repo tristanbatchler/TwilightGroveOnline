@@ -1,22 +1,22 @@
-extends Area2D
+extends CharacterBody2D
 
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 
-var prev_pos: Vector2
+var target_pos: Vector2
 
 var x: int:
 	set(value):
 		x = value
 		if is_node_ready():
-			position.x = _world_tile_size.x * x
+			target_pos.x = _world_tile_size.x * x
 
 var y: int:
 	set(value):
 		y = value
 		if is_node_ready():
-			position.y = _world_tile_size.y * y
+			target_pos.y = _world_tile_size.y * y
 
 var actor_name: String
 var is_player: bool
@@ -42,13 +42,8 @@ func _ready() -> void:
 	if not is_player:
 		_camera.queue_free()
 	position = Vector2(x * _world_tile_size.x, y * _world_tile_size.y)
+	target_pos = position
 	_name_plate.text = actor_name
-	body_entered.connect(_on_body_entered)
-
-func _on_body_entered(body: Node2D) -> void:
-	if body is TileMapLayer:
-		x = prev_pos.x / _world_tile_size.x
-		y = prev_pos.y / _world_tile_size.y
 
 func _input(event: InputEvent) -> void:
 	if not is_player:
@@ -56,7 +51,7 @@ func _input(event: InputEvent) -> void:
 	
 	var dx := 0
 	var dy := 0
-	if event is InputEventKey:
+	if event is InputEventKey and position.distance_squared_to(target_pos) < 0.1:
 		if event.is_action_released("ui_right"):
 			dx += 1
 		if event.is_action_released("ui_left"):
@@ -81,9 +76,16 @@ func _input(event: InputEvent) -> void:
 		player_move.set_dx(dx)
 		player_move.set_dy(dy)
 		WS.send(packet)
+		
+func _physics_process(delta: float) -> void:
+	velocity = (target_pos - position) * 20
+	move_and_slide()
+	var speed_sq := velocity.length_squared()
+	if 0 > speed_sq and speed_sq < 0.1:
+		velocity = Vector2.ZERO
+		position = target_pos
 
 func move(dx: int, dy: int) -> void:
-	prev_pos = position
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy
