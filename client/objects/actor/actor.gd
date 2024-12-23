@@ -48,26 +48,41 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_player:
 		return
-	
-	var dx := 0
-	var dy := 0
-	if event is InputEventKey and position.distance_squared_to(target_pos) < 0.1:
-		if event.is_action_released("ui_right"):
-			dx += 1
-		if event.is_action_released("ui_left"):
-			dx -= 1
-		if event.is_action_released("ui_down"):
-			dy += 1
-		if event.is_action_released("ui_up"):
-			dy -= 1
 		
-	elif event is InputEventMouseButton and event.is_pressed():
+	# Camera zoom
+	if event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
 			MOUSE_BUTTON_WHEEL_UP:
 				_camera.zoom.x = min(4, _camera.zoom.x + 0.1)
 			MOUSE_BUTTON_WHEEL_DOWN:
 				_camera.zoom.x = max(0.1, _camera.zoom.x - 0.1)
 		_camera.zoom.y = _camera.zoom.x
+	
+	# Movement
+	if position.distance_squared_to(target_pos) > 0.1:
+		return
+	
+	var dx := 0
+	var dy := 0
+	
+	# Keyboard movement for PC
+	if event is InputEventKey:
+		dx = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+		dy = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		
+	# Handle mouse wheel zoom for PC
+	elif event.is_action("left_click"):
+		var mouse_pos := _camera.get_global_mouse_position()
+		var screen_center := _camera.get_screen_center_position()
+		var pos_diff := mouse_pos - screen_center
+		
+		var strongest_dir: Vector2 = argmax(
+			[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
+			[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
+		)
+				
+		dx = strongest_dir.x
+		dy = strongest_dir.y
 	
 	if dx != 0 or dy != 0:
 		move(dx, dy)
@@ -89,3 +104,12 @@ func move(dx: int, dy: int) -> void:
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy
+
+func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
+	var max_output := 0.0
+	var corresponding_input: Variant
+	for i in range(len(outputs)):
+		if outputs[i] > max_output:
+			max_output = outputs[i]
+			corresponding_input = inputs[i]
+	return corresponding_input
