@@ -1,7 +1,12 @@
-[gd_scene format=3 uid="uid://bn1mqtxr8ohag"]
+[gd_scene load_steps=2 format=3 uid="uid://bn1mqtxr8ohag"]
+
+[ext_resource type="Script" path="res://ui/level_browser/level_browser.gd" id="1_03opc"]
 
 [node name="LevelBrowser" type="FileDialog"]
 title = "Open a File"
+visible = true
 ok_button_text = "Open"
 file_mode = 0
+access = 1
 filters = PackedStringArray("*.tscn")
+script = ExtResource("1_03opc")

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://states/ingame/ingame.gd" id="1_5whee"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_mm4dv"]
-[ext_resource type="PackedScene" uid="uid://b1gqqlouulpyn" path="res://levels/forest.tscn" id="4_bv67e"]
+[ext_resource type="PackedScene" uid="uid://b1gqqlouulpyn" path="res://admin_levels/forest.tscn" id="4_bv67e"]
 [ext_resource type="Script" path="res://ui/log/log.gd" id="5_perjg"]
 
 [node name="InGame" type="Node"]

@@ -144,13 +144,13 @@ func NewHub(dataDirPath string) *Hub {
 	}
 }
 
-func (h *Hub) Run() {
+func (h *Hub) Run(adminPassword string) {
 	log.Println("Initializing database...")
 	if _, err := h.RunSql(schemaGenSql); err != nil {
 		log.Fatal(err)
 	}
 
-	h.addAdmin()
+	h.addAdmin(adminPassword)
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -186,12 +186,16 @@ func (h *Hub) Serve(getNewClient func(*Hub, http.ResponseWriter, *http.Request) 
 }
 
 // Adds an admin user to the database if one does not already exist
-func (h *Hub) addAdmin() {
+func (h *Hub) addAdmin(defaultPassword string) {
 	ctx := context.Background()
 
 	adminUsername := "admin"
-	randomPassword := password.Generate(10)
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(randomPassword), bcrypt.DefaultCost)
+
+	if defaultPassword == "" {
+		defaultPassword = password.Generate(10)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatalf("Error hashing admin password: %v", err)
 	}
@@ -202,7 +206,7 @@ func (h *Hub) addAdmin() {
 	})
 
 	if err == nil {
-		log.Printf("Admin username: %s\nAdmin password: %s", adminUsername, randomPassword)
+		log.Printf("Admin username: %s\nAdmin password: %s", adminUsername, defaultPassword)
 	} else if err != sql.ErrNoRows {
 		log.Fatalf("Error creating admin user: %v", err)
 	} else {

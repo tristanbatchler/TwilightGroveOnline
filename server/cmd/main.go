@@ -23,6 +23,7 @@ type config struct {
 	KeyPath          string
 	DataPath         string
 	ClientExportPath string
+	AdminPassword    string
 }
 
 func loadConfig() *config {
@@ -32,6 +33,7 @@ func loadConfig() *config {
 		CertPath:         coalescePaths(os.Getenv("CERT_PATH"), "certs/cert.pem"),
 		KeyPath:          coalescePaths(os.Getenv("KEY_PATH"), "certs/key.pem"),
 		ClientExportPath: coalescePaths(os.Getenv("CLIENT_EXPORT_PATH"), "../exports/web"),
+		AdminPassword:    os.Getenv("ADMIN_PASSWORD"),
 	}
 
 	port, err := strconv.Atoi(os.Getenv("PORT"))
@@ -86,7 +88,7 @@ func main() {
 	}
 
 	// Start the server
-	go hub.Run()
+	go hub.Run(cfg.AdminPassword)
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
 	log.Printf("Starting server on %s", addr)
