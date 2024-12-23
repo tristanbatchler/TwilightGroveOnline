@@ -78,9 +78,9 @@ message LevelCollisionPoint {
 
 
 message LevelUpload {
-    bytes tscn_data = 1;
-    repeated LevelCollisionPoint collision_point = 2;
-    // add more here...
+    string name = 1;
+    bytes tscn_data = 2;
+    repeated LevelCollisionPoint collision_point = 3;
 }
 
 message LevelUploadResponse {

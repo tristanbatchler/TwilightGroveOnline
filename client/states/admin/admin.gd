@@ -57,6 +57,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 					collision_point.set_y(cell_pos[1])
 	
 	var file := FileAccess.open(path, FileAccess.READ)
+	level_upload.set_name(scene.resource_path)
 	level_upload.set_tscn_data(file.get_buffer(file.get_length()))
 	file.close()
 	

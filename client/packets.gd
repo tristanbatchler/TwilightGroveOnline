@@ -1472,12 +1472,17 @@ class LevelUpload:
 	func _init():
 		var service
 		
-		_tscn_data = PBField.new("tscn_data", PB_DATA_TYPE.BYTES, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES])
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _name
+		data[_name.tag] = service
+		
+		_tscn_data = PBField.new("tscn_data", PB_DATA_TYPE.BYTES, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES])
 		service = PBServiceField.new()
 		service.field = _tscn_data
 		data[_tscn_data.tag] = service
 		
-		_collision_point = PBField.new("collision_point", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 2, true, [])
+		_collision_point = PBField.new("collision_point", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 3, true, [])
 		service = PBServiceField.new()
 		service.field = _collision_point
 		service.func_ref = Callable(self, "add_collision_point")
@@ -1485,11 +1490,20 @@ class LevelUpload:
 		
 	var data = {}
 	
+	var _name: PBField
+	func get_name() -> String:
+		return _name.value
+	func clear_name() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_name(value : String) -> void:
+		_name.value = value
+	
 	var _tscn_data: PBField
 	func get_tscn_data() -> PackedByteArray:
 		return _tscn_data.value
 	func clear_tscn_data() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_tscn_data.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES]
 	func set_tscn_data(value : PackedByteArray) -> void:
 		_tscn_data.value = value
@@ -1498,7 +1512,7 @@ class LevelUpload:
 	func get_collision_point() -> Array:
 		return _collision_point.value
 	func clear_collision_point() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_collision_point.value = []
 	func add_collision_point() -> LevelCollisionPoint:
 		var element = LevelCollisionPoint.new()

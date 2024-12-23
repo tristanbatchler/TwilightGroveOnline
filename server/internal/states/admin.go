@@ -103,8 +103,9 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// TODO: Clear out level collisions and data if level already exists and re-upload
 	level, err := a.queries.CreateLevel(ctx, db.CreateLevelParams{
-		Name:          "Test",
+		Name:          message.LevelUpload.Name,
 		AddedByUserID: a.adminModel.UserID,
 	})
 	if err != nil {
