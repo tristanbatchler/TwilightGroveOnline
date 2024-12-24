@@ -5,7 +5,7 @@
 package db
 
 import (
-	"time"
+	"database/sql"
 )
 
 type Actor struct {
@@ -26,9 +26,9 @@ type Level struct {
 	ID                  int64
 	Name                string
 	AddedByUserID       int64
-	Added               time.Time
+	Added               sql.NullString
 	LastUpdatedByUserID int64
-	LastUpdated         time.Time
+	LastUpdated         sql.NullString
 	Foreign             interface{}
 }
 

@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS levels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     added_by_user_id INTEGER NOT NULL,
-    added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    added TEXT DEFAULT CURRENT_TIMESTAMP,
     last_updated_by_user_id INTEGER NOT NULL,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (added_by_user_id) REFERENCES users(id)
     FOREIGN KEY (last_updated_by_user_id) REFERENCES users(id)
 );

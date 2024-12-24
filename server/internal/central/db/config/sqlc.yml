@@ -8,8 +8,3 @@ sql:
       go:
         package: "db"
         out: "../"
-        overrides:
-          - column: levels.last_updated
-            go_type: "time.Time"
-          - column: levels.added
-            go_type: "time.Time"
