@@ -115,6 +115,11 @@ message LevelDownload {
     bytes data = 1;
 }
 
+message AdminJoinGameRequest { }
+message AdminJoinGameResponse { 
+    Response response = 1;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -136,5 +141,7 @@ message Packet {
         LevelUpload level_upload = 17;
         LevelUploadResponse level_upload_response = 18;
         LevelDownload level_download = 19;
+        AdminJoinGameRequest admin_join_game_request = 20;
+        AdminJoinGameResponse admin_join_game_response = 21;
     }
 }

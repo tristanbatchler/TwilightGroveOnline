@@ -43,6 +43,8 @@ func (a *Admin) HandleMessage(senderId uint64, message packets.Msg) {
 		a.handleLevelUpload(senderId, message)
 	case *packets.Packet_Logout:
 		a.client.SetState(&Connected{})
+	case *packets.Packet_AdminJoinGameRequest:
+		a.handleAdminJoinGameRequest(senderId, message)
 	}
 }
 
@@ -156,6 +158,33 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
+}
+
+func (a *Admin) handleAdminJoinGameRequest(senderId uint64, message *packets.Packet_AdminJoinGameRequest) {
+	if senderId != a.client.Id() {
+		a.logger.Printf("Received request to join game from another client (%d)", senderId)
+		return
+	}
+
+	a.logger.Println("Received request to join game")
+	a.client.SocketSend(packets.NewAdminJoinGameResponse(true, nil))
+
+	actor, err := a.queries.GetActorByUserId(context.Background(), a.adminModel.UserID)
+	if err != nil {
+		a.logger.Printf("Failed to get actor for user %d: %v", a.adminModel.UserID, err)
+		a.client.SocketSend(packets.NewAdminJoinGameResponse(false, err))
+		return
+	}
+
+	a.client.SetState(&InGame{
+		levelId: actor.LevelID,
+		player: &objs.Actor{
+			Name: actor.Name,
+			X:    actor.X,
+			Y:    actor.Y,
+			DbId: actor.ID,
+		},
+	})
 }
 
 func (a *Admin) OnExit() {

@@ -7,6 +7,7 @@ const Door := preload("res://objects/door/door.gd")
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _nav: HBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/Nav
 @onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/LogoutButton
+@onready var _join_game_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/JoinGameButton
 
 @onready var _show_sql_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/ShowSqlButton
 @onready var _sql_console: SqlConsole = $CanvasLayer/MarginContainer/VBoxContainer/SqlConsole
@@ -16,6 +17,7 @@ const Door := preload("res://objects/door/door.gd")
 
 func _ready() -> void:
 	_logout_button.pressed.connect(_on_logout_button_pressed)
+	_join_game_button.pressed.connect(_on_join_game_button_pressed)
 	_upload_level_button.pressed.connect(_on_upload_level_button_pressed)
 	_show_sql_button.pressed.connect(_on_show_sql_button_pressed)
 	_sql_console.run_requested.connect(_on_sql_run_requested)
@@ -29,6 +31,12 @@ func _on_logout_button_pressed():
 	packet.new_logout()
 	WS.send(packet)
 	GameManager.set_state(GameManager.State.CONNECTED)
+	
+func _on_join_game_button_pressed():
+	var packet := Packets.Packet.new()
+	packet.new_admin_join_game_request()
+	WS.send(packet)
+	_log.info("Requesting to join game...")
 	
 func _on_sql_console_closed():
 	_sql_console.hide()
@@ -109,6 +117,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_sql_response(packet.get_sql_response())
 	elif packet.has_level_upload_response():
 		_handle_level_upload_response(packet.get_level_upload_response())
+	elif packet.has_admin_join_game_response():
+		_handle_admin_join_game_response(packet.get_admin_join_game_response())
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
@@ -144,3 +154,15 @@ func _handle_level_upload_response(level_upload_response: Packets.LevelUploadRes
 	
 	GameManager.levels[level_id] = level_gd_res_path
 	_log.info("Saved level to GameManager: %s" % GameManager.levels)
+
+func _handle_admin_join_game_response(admin_join_game_response: Packets.AdminJoinGameResponse) -> void:
+	var response := admin_join_game_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error("Can't join game right now: %s" % response.get_msg())
+		else:
+			_log.error("Can't join game right now, reason unknown")
+		return
+		
+	_log.success("Access granted!")
+	GameManager.set_state(GameManager.State.INGAME)

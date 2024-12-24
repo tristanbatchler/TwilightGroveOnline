@@ -249,6 +249,22 @@ func (h *Hub) addAdmin(defaultPassword string) {
 	} else {
 		log.Printf("Admin already exists")
 	}
+
+	// Give the admin a default actor so they can play the game as well
+	_, err = h.NewDbTx().Queries.CreateActorIfNotExists(ctx, db.CreateActorIfNotExistsParams{
+		UserID:  user.ID,
+		Name:    adminUsername,
+		X:       0,
+		Y:       0,
+		LevelID: 1,
+	})
+	if err == nil {
+		log.Printf("Admin actor created")
+	} else if err != sql.ErrNoRows {
+		log.Printf("Error creating admin actor: %v (maybe no levels have been uploaded yet?)", err)
+	} else {
+		log.Printf("Admin actor already exists")
+	}
 }
 
 // Populates the level collision points from the database. These are stored in memory for quick access (constant time lookup)

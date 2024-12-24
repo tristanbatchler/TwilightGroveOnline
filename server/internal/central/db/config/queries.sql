@@ -50,6 +50,15 @@ INSERT INTO admins (
 ON CONFLICT (user_id) DO NOTHING
 RETURNING *;
 
+-- name: CreateActorIfNotExists :one
+INSERT INTO actors (
+    user_id, name, level_id, x, y
+) VALUES (
+    ?, ?, ?, ?, ?
+)
+ON CONFLICT (user_id) DO NOTHING
+RETURNING *;
+
 -- name: GetAdminByUserId :one
 SELECT * FROM admins
 WHERE user_id = ? LIMIT 1;

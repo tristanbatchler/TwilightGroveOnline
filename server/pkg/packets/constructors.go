@@ -43,6 +43,17 @@ func NewRegisterResponse(success bool, err error) Msg {
 	}
 }
 
+func NewAdminJoinGameResponse(success bool, err error) Msg {
+	return &Packet_AdminJoinGameResponse{
+		AdminJoinGameResponse: &AdminJoinGameResponse{
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}
+
 func NewActorInfo(actor *objs.Actor) Msg {
 	return &Packet_ActorInfo{
 		ActorInfo: &ActorInfo{

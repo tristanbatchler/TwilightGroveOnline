@@ -46,6 +46,44 @@ func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor
 	return i, err
 }
 
+const createActorIfNotExists = `-- name: CreateActorIfNotExists :one
+INSERT INTO actors (
+    user_id, name, level_id, x, y
+) VALUES (
+    ?, ?, ?, ?, ?
+)
+ON CONFLICT (user_id) DO NOTHING
+RETURNING id, user_id, name, level_id, x, y
+`
+
+type CreateActorIfNotExistsParams struct {
+	UserID  int64
+	Name    string
+	LevelID int64
+	X       int64
+	Y       int64
+}
+
+func (q *Queries) CreateActorIfNotExists(ctx context.Context, arg CreateActorIfNotExistsParams) (Actor, error) {
+	row := q.db.QueryRowContext(ctx, createActorIfNotExists,
+		arg.UserID,
+		arg.Name,
+		arg.LevelID,
+		arg.X,
+		arg.Y,
+	)
+	var i Actor
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.LevelID,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
 const createAdminIfNotExists = `-- name: CreateAdminIfNotExists :one
 INSERT INTO admins (
     user_id

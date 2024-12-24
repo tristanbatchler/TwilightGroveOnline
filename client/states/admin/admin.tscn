@@ -33,9 +33,13 @@ layout_mode = 2
 layout_mode = 2
 text = "Logout"
 
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
 [node name="ShowSqlButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
-size_flags_horizontal = 0
+size_flags_horizontal = 4
 tooltip_text = "Opens an console to run remote SQL on the server's database directly. No hand holding!"
 text = "SQL Console"
 
@@ -45,6 +49,13 @@ tooltip_text = "Upload a Godot level to the server.
 The server will store this as the main game level to send to players upon login."
 text = "Upload Level
 "
+
+[node name="JoinGameButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
+layout_mode = 2
+size_flags_horizontal = 10
+tooltip_text = "Upload a Godot level to the server.
+The server will store this as the main game level to send to players upon login."
+text = "Join Game"
 
 [node name="SqlConsole" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("3_6q754")]
 visible = false
