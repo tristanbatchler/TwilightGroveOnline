@@ -59,6 +59,7 @@ type GameData struct {
 type LevelPointMaps struct {
 	Collisions *ds.LevelPointMap[struct{}]
 	Shrubs     *ds.LevelPointMap[*objs.Shrub]
+	Doors      *ds.LevelPointMap[*objs.Door]
 }
 
 // A structure for the connected client to interface with the hub
@@ -154,6 +155,7 @@ func NewHub(dataDirPath string) *Hub {
 		LevelPointMaps: &LevelPointMaps{
 			Collisions: ds.NewLevelPointMap[struct{}](),
 			Shrubs:     ds.NewLevelPointMap[*objs.Shrub](),
+			Doors:      ds.NewLevelPointMap[*objs.Door](),
 		},
 	}
 }

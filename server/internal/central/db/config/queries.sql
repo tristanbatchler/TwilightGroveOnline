@@ -56,7 +56,7 @@ WHERE user_id = ? LIMIT 1;
 
 -- name: CreateLevel :one
 INSERT INTO levels (
-    name, added_by_user_id, last_updated_by_user_id
+    gd_res_path, added_by_user_id, last_updated_by_user_id
 ) VALUES (
     ?, ?, ?
 )
@@ -90,9 +90,9 @@ WHERE level_id = ? LIMIT 1;
 SELECT * FROM levels_collision_points
 WHERE level_id = ?;
 
--- name: GetLevelByName :one
+-- name: GetLevelByGdResPath :one
 SELECT * FROM levels
-WHERE name = ? LIMIT 1;
+WHERE gd_res_path = ? LIMIT 1;
 
 -- name: DeleteLevelTscnDataByLevelId :exec
 DELETE FROM levels_tscn_data
@@ -129,4 +129,25 @@ RETURNING *;
 
 -- name: DeleteLevelShrubsByLevelId :exec
 DELETE FROM levels_shrubs
+WHERE level_id = ?;
+
+
+-- name: CreateDoor :one
+INSERT INTO doors (
+    destination_level_id, destination_x, destination_y, x, y
+) VALUES (
+    ?, ?, ?, ?, ?
+)
+RETURNING *;
+
+-- name: CreateLevelDoor :one
+INSERT INTO levels_doors (
+    level_id, door_id
+) VALUES (
+    ?, ?
+)
+RETURNING *;
+
+-- name: DeleteLevelDoorsByLevelId :exec
+DELETE FROM levels_doors
 WHERE level_id = ?;

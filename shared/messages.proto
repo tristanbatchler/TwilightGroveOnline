@@ -89,16 +89,25 @@ message Shrub {
     int32 strength = 3;
 }
 
+message Door {
+    string destination_level_gd_res_path = 1;
+    int32 destination_x = 2;
+    int32 destination_y = 3;
+    int32 x = 4;
+    int32 y = 5;
+}
+
 message LevelUpload {
-    string name = 1;
+    string gd_res_path = 1;
     bytes tscn_data = 2;
     repeated LevelCollisionPoint collision_point = 3;
     repeated Shrub shrub = 4;
+    repeated Door door = 5;
 }
 
 message LevelUploadResponse {
     int64 db_level_id = 1;
-    string name = 2;
+    string gd_res_path = 2;
     Response response = 3;
 }
 

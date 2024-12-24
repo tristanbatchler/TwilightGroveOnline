@@ -63,27 +63,64 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 	return i, err
 }
 
+const createDoor = `-- name: CreateDoor :one
+INSERT INTO doors (
+    destination_level_id, destination_x, destination_y, x, y
+) VALUES (
+    ?, ?, ?, ?, ?
+)
+RETURNING id, destination_level_id, destination_x, destination_y, x, y
+`
+
+type CreateDoorParams struct {
+	DestinationLevelID int64
+	DestinationX       int64
+	DestinationY       int64
+	X                  int64
+	Y                  int64
+}
+
+func (q *Queries) CreateDoor(ctx context.Context, arg CreateDoorParams) (Door, error) {
+	row := q.db.QueryRowContext(ctx, createDoor,
+		arg.DestinationLevelID,
+		arg.DestinationX,
+		arg.DestinationY,
+		arg.X,
+		arg.Y,
+	)
+	var i Door
+	err := row.Scan(
+		&i.ID,
+		&i.DestinationLevelID,
+		&i.DestinationX,
+		&i.DestinationY,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
 const createLevel = `-- name: CreateLevel :one
 INSERT INTO levels (
-    name, added_by_user_id, last_updated_by_user_id
+    gd_res_path, added_by_user_id, last_updated_by_user_id
 ) VALUES (
     ?, ?, ?
 )
-RETURNING id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign"
+RETURNING id, gd_res_path, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign"
 `
 
 type CreateLevelParams struct {
-	Name                string
+	GdResPath           string
 	AddedByUserID       int64
 	LastUpdatedByUserID int64
 }
 
 func (q *Queries) CreateLevel(ctx context.Context, arg CreateLevelParams) (Level, error) {
-	row := q.db.QueryRowContext(ctx, createLevel, arg.Name, arg.AddedByUserID, arg.LastUpdatedByUserID)
+	row := q.db.QueryRowContext(ctx, createLevel, arg.GdResPath, arg.AddedByUserID, arg.LastUpdatedByUserID)
 	var i Level
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.GdResPath,
 		&i.AddedByUserID,
 		&i.Added,
 		&i.LastUpdatedByUserID,
@@ -117,6 +154,27 @@ func (q *Queries) CreateLevelCollisionPoint(ctx context.Context, arg CreateLevel
 		&i.X,
 		&i.Y,
 	)
+	return i, err
+}
+
+const createLevelDoor = `-- name: CreateLevelDoor :one
+INSERT INTO levels_doors (
+    level_id, door_id
+) VALUES (
+    ?, ?
+)
+RETURNING id, level_id, door_id
+`
+
+type CreateLevelDoorParams struct {
+	LevelID int64
+	DoorID  int64
+}
+
+func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams) (LevelsDoor, error) {
+	row := q.db.QueryRowContext(ctx, createLevelDoor, arg.LevelID, arg.DoorID)
+	var i LevelsDoor
+	err := row.Scan(&i.ID, &i.LevelID, &i.DoorID)
 	return i, err
 }
 
@@ -242,6 +300,16 @@ func (q *Queries) DeleteLevelCollisionPointsByLevelId(ctx context.Context, level
 	return err
 }
 
+const deleteLevelDoorsByLevelId = `-- name: DeleteLevelDoorsByLevelId :exec
+DELETE FROM levels_doors
+WHERE level_id = ?
+`
+
+func (q *Queries) DeleteLevelDoorsByLevelId(ctx context.Context, levelID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelDoorsByLevelId, levelID)
+	return err
+}
+
 const deleteLevelShrubsByLevelId = `-- name: DeleteLevelShrubsByLevelId :exec
 DELETE FROM levels_shrubs
 WHERE level_id = ?
@@ -293,17 +361,17 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 	return i, err
 }
 
-const getLevelById = `-- name: GetLevelById :one
-SELECT id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
-WHERE id = ? LIMIT 1
+const getLevelByGdResPath = `-- name: GetLevelByGdResPath :one
+SELECT id, gd_res_path, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
+WHERE gd_res_path = ? LIMIT 1
 `
 
-func (q *Queries) GetLevelById(ctx context.Context, id int64) (Level, error) {
-	row := q.db.QueryRowContext(ctx, getLevelById, id)
+func (q *Queries) GetLevelByGdResPath(ctx context.Context, gdResPath string) (Level, error) {
+	row := q.db.QueryRowContext(ctx, getLevelByGdResPath, gdResPath)
 	var i Level
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.GdResPath,
 		&i.AddedByUserID,
 		&i.Added,
 		&i.LastUpdatedByUserID,
@@ -313,17 +381,17 @@ func (q *Queries) GetLevelById(ctx context.Context, id int64) (Level, error) {
 	return i, err
 }
 
-const getLevelByName = `-- name: GetLevelByName :one
-SELECT id, name, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
-WHERE name = ? LIMIT 1
+const getLevelById = `-- name: GetLevelById :one
+SELECT id, gd_res_path, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
+WHERE id = ? LIMIT 1
 `
 
-func (q *Queries) GetLevelByName(ctx context.Context, name string) (Level, error) {
-	row := q.db.QueryRowContext(ctx, getLevelByName, name)
+func (q *Queries) GetLevelById(ctx context.Context, id int64) (Level, error) {
+	row := q.db.QueryRowContext(ctx, getLevelById, id)
 	var i Level
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.GdResPath,
 		&i.AddedByUserID,
 		&i.Added,
 		&i.LastUpdatedByUserID,

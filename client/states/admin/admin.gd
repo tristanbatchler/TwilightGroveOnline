@@ -2,6 +2,7 @@ extends Node
 
 const Packets := preload("res://packets.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Door := preload("res://objects/door/door.gd")
 
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _nav: HBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/Nav
@@ -69,9 +70,25 @@ func _on_level_browser_file_selected(path: String) -> void:
 			# still, not a huge deal as long as we commit to 8x8 for our game!
 			shrub.set_x(node.position.x / node._world_tile_size.x)
 			shrub.set_y(node.position.y / node._world_tile_size.y)
+			print("Found shrub at (%d, %d)" % [shrub.get_x(), shrub.get_y()])
+			
+		elif node is Door:
+			var door := level_upload.add_door()
+			var desintation_res_path := ""
+			if node.destination_level != null:
+				desintation_res_path = node.destination_level.resource_path
+			else:
+				print("Door has no destination, remember to come back and fix if this is for a temporary workaround")
+				
+			door.set_destination_level_gd_res_path(desintation_res_path)
+			door.set_destination_x(node.destination_pos.x)
+			door.set_destination_y(node.destination_pos.y)
+			door.set_x(node.position.x / node._world_tile_size.x)
+			door.set_y(node.position.y / node._world_tile_size.y)
+			print("Found door at (%d, %d)" % [door.get_x(), door.get_y()])
 	
 	var file := FileAccess.open(path, FileAccess.READ)
-	level_upload.set_name(scene.resource_path)
+	level_upload.set_gd_res_path(scene.resource_path)
 	level_upload.set_tscn_data(file.get_buffer(file.get_length()))
 	file.close()
 	
@@ -117,7 +134,7 @@ func _handle_sql_response(sql_response: Packets.SqlResponse) -> void:
 func _handle_level_upload_response(level_upload_response: Packets.LevelUploadResponse) -> void:
 	_upload_level_button.disabled = false
 	var level_id := level_upload_response.get_db_level_id()
-	var level_name := level_upload_response.get_name()
+	var level_gd_res_path := level_upload_response.get_gd_res_path()
 	var response := level_upload_response.get_response()
 	if not response.get_success():
 		if response.has_msg():
@@ -128,5 +145,5 @@ func _handle_level_upload_response(level_upload_response: Packets.LevelUploadRes
 	
 	_log.success("Server successfully saved the new level!")
 	
-	GameManager.levels[level_id] = level_name
+	GameManager.levels[level_id] = level_gd_res_path
 	_log.info("Saved level to GameManager: %s" % GameManager.levels)

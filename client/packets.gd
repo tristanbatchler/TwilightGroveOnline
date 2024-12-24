@@ -1606,14 +1606,111 @@ class Shrub:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class Door:
+	func _init():
+		var service
+		
+		_destination_level_gd_res_path = PBField.new("destination_level_gd_res_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _destination_level_gd_res_path
+		data[_destination_level_gd_res_path.tag] = service
+		
+		_destination_x = PBField.new("destination_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _destination_x
+		data[_destination_x.tag] = service
+		
+		_destination_y = PBField.new("destination_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _destination_y
+		data[_destination_y.tag] = service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _x
+		data[_x.tag] = service
+		
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _y
+		data[_y.tag] = service
+		
+	var data = {}
+	
+	var _destination_level_gd_res_path: PBField
+	func get_destination_level_gd_res_path() -> String:
+		return _destination_level_gd_res_path.value
+	func clear_destination_level_gd_res_path() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_destination_level_gd_res_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_destination_level_gd_res_path(value : String) -> void:
+		_destination_level_gd_res_path.value = value
+	
+	var _destination_x: PBField
+	func get_destination_x() -> int:
+		return _destination_x.value
+	func clear_destination_x() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_destination_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_destination_x(value : int) -> void:
+		_destination_x.value = value
+	
+	var _destination_y: PBField
+	func get_destination_y() -> int:
+		return _destination_y.value
+	func clear_destination_y() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_destination_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_destination_y(value : int) -> void:
+		_destination_y.value = value
+	
+	var _x: PBField
+	func get_x() -> int:
+		return _x.value
+	func clear_x() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_x(value : int) -> void:
+		_x.value = value
+	
+	var _y: PBField
+	func get_y() -> int:
+		return _y.value
+	func clear_y() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_y(value : int) -> void:
+		_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class LevelUpload:
 	func _init():
 		var service
 		
-		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_gd_res_path = PBField.new("gd_res_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
-		service.field = _name
-		data[_name.tag] = service
+		service.field = _gd_res_path
+		data[_gd_res_path.tag] = service
 		
 		_tscn_data = PBField.new("tscn_data", PB_DATA_TYPE.BYTES, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BYTES])
 		service = PBServiceField.new()
@@ -1632,16 +1729,22 @@ class LevelUpload:
 		service.func_ref = Callable(self, "add_shrub")
 		data[_shrub.tag] = service
 		
+		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 5, true, [])
+		service = PBServiceField.new()
+		service.field = _door
+		service.func_ref = Callable(self, "add_door")
+		data[_door.tag] = service
+		
 	var data = {}
 	
-	var _name: PBField
-	func get_name() -> String:
-		return _name.value
-	func clear_name() -> void:
+	var _gd_res_path: PBField
+	func get_gd_res_path() -> String:
+		return _gd_res_path.value
+	func clear_gd_res_path() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
-	func set_name(value : String) -> void:
-		_name.value = value
+		_gd_res_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_gd_res_path(value : String) -> void:
+		_gd_res_path.value = value
 	
 	var _tscn_data: PBField
 	func get_tscn_data() -> PackedByteArray:
@@ -1674,6 +1777,17 @@ class LevelUpload:
 		_shrub.value.append(element)
 		return element
 	
+	var _door: PBField
+	func get_door() -> Array:
+		return _door.value
+	func clear_door() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = []
+	func add_door() -> Door:
+		var element = Door.new()
+		_door.value.append(element)
+		return element
+	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
 		
@@ -1704,10 +1818,10 @@ class LevelUploadResponse:
 		service.field = _db_level_id
 		data[_db_level_id.tag] = service
 		
-		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_gd_res_path = PBField.new("gd_res_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
-		service.field = _name
-		data[_name.tag] = service
+		service.field = _gd_res_path
+		data[_gd_res_path.tag] = service
 		
 		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
@@ -1726,14 +1840,14 @@ class LevelUploadResponse:
 	func set_db_level_id(value : int) -> void:
 		_db_level_id.value = value
 	
-	var _name: PBField
-	func get_name() -> String:
-		return _name.value
-	func clear_name() -> void:
+	var _gd_res_path: PBField
+	func get_gd_res_path() -> String:
+		return _gd_res_path.value
+	func clear_gd_res_path() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
-	func set_name(value : String) -> void:
-		_name.value = value
+		_gd_res_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_gd_res_path(value : String) -> void:
+		_gd_res_path.value = value
 	
 	var _response: PBField
 	func get_response() -> Response:

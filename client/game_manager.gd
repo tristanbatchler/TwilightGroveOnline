@@ -27,6 +27,7 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 }
 
 
+# DB Level IDs - Godot scene resource paths
 var levels: Dictionary[int, String] = {}
 
 var client_id: int
@@ -58,3 +59,4 @@ func get_config(key: ConfigKey) -> Variant:
 func clear_config(key: ConfigKey) -> void:
 	_config.erase_section_key("global", _config_key_names[key])
 	_config.save(_config_path)
+	

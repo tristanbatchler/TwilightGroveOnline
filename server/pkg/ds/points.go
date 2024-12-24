@@ -201,5 +201,9 @@ func (l *LevelPointMap[T]) ForEach(levelId int64, callback func(Point, T)) {
 func (l *LevelPointMap[T]) Clear(levelId int64) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
-	delete(l.m, levelId)
+	pm, exists := l.m[levelId]
+	if !exists {
+		return
+	}
+	pm.Clear()
 }

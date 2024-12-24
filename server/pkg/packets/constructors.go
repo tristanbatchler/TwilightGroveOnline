@@ -93,11 +93,11 @@ func NewSqlResponse(success bool, err error, columns []string, rows []*SqlRow) M
 	}
 }
 
-func NewLevelUploadResponse(success bool, dbLevelId int64, name string, err error) Msg {
+func NewLevelUploadResponse(success bool, dbLevelId int64, gdResPath string, err error) Msg {
 	return &Packet_LevelUploadResponse{
 		LevelUploadResponse: &LevelUploadResponse{
 			DbLevelId: dbLevelId,
-			Name:      name,
+			GdResPath: gdResPath,
 			Response: &Response{
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),

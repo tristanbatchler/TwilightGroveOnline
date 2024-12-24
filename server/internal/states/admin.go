@@ -105,27 +105,27 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	uploadedLevelName := message.LevelUpload.Name
+	uploadedLevelGdResPath := message.LevelUpload.GdResPath
 	uploaderUserId := a.adminModel.UserID
 
-	level, err := a.queries.GetLevelByName(ctx, uploadedLevelName)
+	level, err := a.queries.GetLevelByGdResPath(ctx, uploadedLevelGdResPath)
 	if err == nil {
-		a.clearLevelData(ctx, level.ID, uploadedLevelName, uploaderUserId)
+		a.clearLevelData(ctx, level.ID, uploadedLevelGdResPath, uploaderUserId)
 	} else if err == sql.ErrNoRows {
-		a.logger.Printf("Level does not exist with name %s, creating new level", uploadedLevelName)
+		a.logger.Printf("Level does not exist with name %s, creating new level", uploadedLevelGdResPath)
 		level, err = a.queries.CreateLevel(ctx, db.CreateLevelParams{
-			Name:                uploadedLevelName,
+			GdResPath:           uploadedLevelGdResPath,
 			AddedByUserID:       uploaderUserId,
 			LastUpdatedByUserID: uploaderUserId,
 		})
 		if err != nil {
 			a.logger.Printf("Error adding new level: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
 			return
 		}
 	} else {
 		a.logger.Printf("Error checking if level exists: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	})
 	if err != nil {
 		a.logger.Printf("Error adding new level tscn data: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
 		return
 	}
 
@@ -153,15 +153,63 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		})
 		if err != nil {
 			a.logger.Printf("Error adding new level collision point: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
 			return
 		}
 	}
 
-	for _, shrub := range message.LevelUpload.Shrub {
-		x := int64(shrub.GetX())
-		y := int64(shrub.GetY())
-		strength := shrub.GetStrength()
+	err = a.importShrubs(level, message.LevelUpload.Shrub)
+	if err != nil {
+		a.logger.Printf("Error importing shrubs: %v", err)
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
+		return
+	}
+
+	err = a.importDoors(level, message.LevelUpload.Door)
+	if err != nil {
+		a.logger.Printf("Error importing doors: %v", err)
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
+		return
+	}
+
+	a.logger.Println("Level uploaded successfully to the database. Adding collisions to the server's LevelPointMaps DS for fast lookups... (shrubs/doors already added)")
+	a.client.LevelPointMaps().Collisions.AddBatch(level.ID, collisionPoints, struct{}{})
+
+	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
+
+	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
+}
+
+func (a *Admin) OnExit() {
+}
+
+func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
+	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
+
+	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
+	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
+	a.queries.DeleteLevelDoorsByLevelId(dbCtx, levelId)
+
+	a.client.LevelPointMaps().Collisions.Clear(levelId)
+	a.client.LevelPointMaps().Shrubs.Clear(levelId)
+	a.client.LevelPointMaps().Doors.Clear(levelId)
+
+	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
+	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
+		ID:                  levelId,
+		LastUpdatedByUserID: uploaderUserId,
+	})
+	a.logger.Printf("Cleared out old data for level %s", levelName)
+}
+
+func (a *Admin) importShrubs(level db.Level, shrubs []*packets.Shrub) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, shrub := range shrubs {
+		x := int64(shrub.X)
+		y := int64(shrub.Y)
+		strength := shrub.Strength
 
 		shrubObj := &objs.Shrub{
 			X:        x,
@@ -178,9 +226,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 			Y:        y,
 		})
 		if err != nil {
-			a.logger.Printf("Error adding new shrub: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
-			return
+			return err
 		}
 
 		_, err = a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
@@ -188,33 +234,74 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 			ShrubID: dbShrub.ID,
 		})
 		if err != nil {
-			a.logger.Printf("Error adding new level shrub: %v", err)
-			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
-			return
+			return err
 		}
 	}
 
-	a.logger.Println("Level uploaded successfully to the database. Adding collisions to the server's LevelPointMaps DS for fast lookups... (shrubs already added)")
-	a.client.LevelPointMaps().Collisions.AddBatch(level.ID, collisionPoints, struct{}{})
-
-	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
-
-	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.Name, nil))
+	return nil
 }
 
-func (a *Admin) OnExit() {
-}
+func (a *Admin) importDoors(level db.Level, doors []*packets.Door) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
-	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
-	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
-	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
-	a.client.LevelPointMaps().Collisions.Clear(levelId)
-	a.client.LevelPointMaps().Shrubs.Clear(levelId)
-	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
-	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
-		ID:                  levelId,
-		LastUpdatedByUserID: uploaderUserId,
-	})
-	a.logger.Printf("Cleared out old data for level %s", levelName)
+	for _, door := range doors {
+		destinationLevel := level
+		if door.DestinationLevelGdResPath != "" {
+			var err error
+			destinationLevel, err = a.queries.GetLevelByGdResPath(ctx, door.DestinationLevelGdResPath)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					return fmt.Errorf(
+						"Error getting destination level %s for door at (%d, %d): probably hasn't been uploaded yet. "+
+							"Try uploading the destination level first", door.DestinationLevelGdResPath, door.X, door.Y,
+					)
+				}
+				return err
+			}
+		} else {
+			a.logger.Printf(
+				"Had to assume destination level is the same as the current level for door at (%d, %d) because "+
+					"no destination level was specified. If this was intentional to temporarily avoid a circular dependency, "+
+					"please fix the destination level and re-upload the level", door.X, door.Y,
+			)
+		}
+
+		destinationX := int64(door.DestinationX)
+		destinationY := int64(door.DestinationY)
+		x := int64(door.X)
+		y := int64(door.Y)
+
+		doorObj := &objs.Door{
+			DestinationLevelId: destinationLevel.ID,
+			DestinationX:       destinationX,
+			DestinationY:       destinationY,
+			X:                  x,
+			Y:                  y,
+		}
+
+		a.client.LevelPointMaps().Doors.Add(level.ID, ds.NewPoint(x, y), doorObj)
+		a.logger.Printf("Added door %v to the server's LevelPointMaps DS", doorObj)
+
+		dbShrub, err := a.queries.CreateDoor(ctx, db.CreateDoorParams{
+			DestinationLevelID: destinationLevel.ID,
+			DestinationX:       destinationX,
+			DestinationY:       destinationY,
+			X:                  x,
+			Y:                  y,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = a.queries.CreateLevelDoor(ctx, db.CreateLevelDoorParams{
+			LevelID: level.ID,
+			DoorID:  dbShrub.ID,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

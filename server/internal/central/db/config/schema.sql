@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS actors (
 
 CREATE TABLE IF NOT EXISTS levels (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    gd_res_path TEXT NOT NULL UNIQUE,
     added_by_user_id INTEGER NOT NULL,
     added TEXT DEFAULT CURRENT_TIMESTAMP,
     last_updated_by_user_id INTEGER NOT NULL,
@@ -61,4 +61,21 @@ CREATE TABLE IF NOT EXISTS levels_shrubs (
     shrub_id INTEGER NOT NULL,
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE,
     FOREIGN KEY (shrub_id) REFERENCES shrubs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS doors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    destination_level_id INTEGER NOT NULL,
+    destination_x INTEGER NOT NULL,
+    destination_y INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS levels_doors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level_id INTEGER NOT NULL,
+    door_id INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE,
+    FOREIGN KEY (door_id) REFERENCES doors(id) ON DELETE CASCADE
 );

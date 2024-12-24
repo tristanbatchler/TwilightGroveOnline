@@ -11,3 +11,10 @@ type Shrub struct {
 	Strength int32
 	X, Y     int64
 }
+
+type Door struct {
+	DestinationLevelId int64
+	DestinationX       int64
+	DestinationY       int64
+	X, Y               int64
+}

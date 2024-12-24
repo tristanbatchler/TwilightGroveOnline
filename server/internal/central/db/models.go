@@ -22,9 +22,18 @@ type Admin struct {
 	UserID int64
 }
 
+type Door struct {
+	ID                 int64
+	DestinationLevelID int64
+	DestinationX       int64
+	DestinationY       int64
+	X                  int64
+	Y                  int64
+}
+
 type Level struct {
 	ID                  int64
-	Name                string
+	GdResPath           string
 	AddedByUserID       int64
 	Added               sql.NullString
 	LastUpdatedByUserID int64
@@ -37,6 +46,12 @@ type LevelsCollisionPoint struct {
 	LevelID int64
 	X       int64
 	Y       int64
+}
+
+type LevelsDoor struct {
+	ID      int64
+	LevelID int64
+	DoorID  int64
 }
 
 type LevelsShrub struct {
