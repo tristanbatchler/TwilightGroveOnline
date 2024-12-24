@@ -39,10 +39,23 @@ type LevelsCollisionPoint struct {
 	Y       int64
 }
 
+type LevelsShrub struct {
+	ID      int64
+	LevelID int64
+	ShrubID int64
+}
+
 type LevelsTscnDatum struct {
 	ID       int64
 	LevelID  int64
 	TscnData []byte
+}
+
+type Shrub struct {
+	ID       int64
+	Strength int64
+	X        int64
+	Y        int64
 }
 
 type User struct {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
@@ -139,8 +140,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 
 	collisionPoints := make([]ds.Point, 0)
-
-	for _, collisionPoint := range message.LevelUpload.GetCollisionPoint() {
+	for _, collisionPoint := range message.LevelUpload.CollisionPoint {
 		x := int64(collisionPoint.GetX())
 		y := int64(collisionPoint.GetY())
 
@@ -158,8 +158,43 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		}
 	}
 
-	a.logger.Println("Level uploaded successfully to the database. Adding collision points DS to the server for fast lookups...")
+	for _, shrub := range message.LevelUpload.Shrub {
+		x := int64(shrub.GetX())
+		y := int64(shrub.GetY())
+		strength := shrub.GetStrength()
 
+		shrubObj := &objs.Shrub{
+			X:        x,
+			Y:        y,
+			Strength: strength,
+		}
+
+		a.client.LevelPointMaps().Shrubs.Add(level.ID, ds.NewPoint(x, y), shrubObj)
+		a.logger.Printf("Added shrub %v to the server's LevelPointMaps DS", shrubObj)
+
+		dbShrub, err := a.queries.CreateShrub(ctx, db.CreateShrubParams{
+			Strength: int64(strength),
+			X:        x,
+			Y:        y,
+		})
+		if err != nil {
+			a.logger.Printf("Error adding new shrub: %v", err)
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+			return
+		}
+
+		_, err = a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
+			LevelID: level.ID,
+			ShrubID: dbShrub.ID,
+		})
+		if err != nil {
+			a.logger.Printf("Error adding new level shrub: %v", err)
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.Name, err))
+			return
+		}
+	}
+
+	a.logger.Println("Level uploaded successfully to the database. Adding collisions to the server's LevelPointMaps DS for fast lookups... (shrubs already added)")
 	a.client.LevelPointMaps().Collisions.AddBatch(level.ID, collisionPoints, struct{}{})
 
 	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
@@ -173,6 +208,7 @@ func (a *Admin) OnExit() {
 func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
 	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
 	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
+	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
 	a.client.LevelPointMaps().Collisions.Clear(levelId)
 	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
 	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{

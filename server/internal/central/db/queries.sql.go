@@ -120,6 +120,27 @@ func (q *Queries) CreateLevelCollisionPoint(ctx context.Context, arg CreateLevel
 	return i, err
 }
 
+const createLevelShrub = `-- name: CreateLevelShrub :one
+INSERT INTO levels_shrubs (
+    level_id, shrub_id
+) VALUES (
+    ?, ?
+)
+RETURNING id, level_id, shrub_id
+`
+
+type CreateLevelShrubParams struct {
+	LevelID int64
+	ShrubID int64
+}
+
+func (q *Queries) CreateLevelShrub(ctx context.Context, arg CreateLevelShrubParams) (LevelsShrub, error) {
+	row := q.db.QueryRowContext(ctx, createLevelShrub, arg.LevelID, arg.ShrubID)
+	var i LevelsShrub
+	err := row.Scan(&i.ID, &i.LevelID, &i.ShrubID)
+	return i, err
+}
+
 const createLevelTscnData = `-- name: CreateLevelTscnData :one
 INSERT INTO levels_tscn_data (
     level_id, tscn_data
@@ -138,6 +159,33 @@ func (q *Queries) CreateLevelTscnData(ctx context.Context, arg CreateLevelTscnDa
 	row := q.db.QueryRowContext(ctx, createLevelTscnData, arg.LevelID, arg.TscnData)
 	var i LevelsTscnDatum
 	err := row.Scan(&i.ID, &i.LevelID, &i.TscnData)
+	return i, err
+}
+
+const createShrub = `-- name: CreateShrub :one
+INSERT INTO shrubs (
+    strength, x, y
+) VALUES (
+    ?, ?, ?
+)
+RETURNING id, strength, x, y
+`
+
+type CreateShrubParams struct {
+	Strength int64
+	X        int64
+	Y        int64
+}
+
+func (q *Queries) CreateShrub(ctx context.Context, arg CreateShrubParams) (Shrub, error) {
+	row := q.db.QueryRowContext(ctx, createShrub, arg.Strength, arg.X, arg.Y)
+	var i Shrub
+	err := row.Scan(
+		&i.ID,
+		&i.Strength,
+		&i.X,
+		&i.Y,
+	)
 	return i, err
 }
 
@@ -191,6 +239,16 @@ WHERE level_id = ?
 
 func (q *Queries) DeleteLevelCollisionPointsByLevelId(ctx context.Context, levelID int64) error {
 	_, err := q.db.ExecContext(ctx, deleteLevelCollisionPointsByLevelId, levelID)
+	return err
+}
+
+const deleteLevelShrubsByLevelId = `-- name: DeleteLevelShrubsByLevelId :exec
+DELETE FROM levels_shrubs
+WHERE level_id = ?
+`
+
+func (q *Queries) DeleteLevelShrubsByLevelId(ctx context.Context, levelID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelShrubsByLevelId, levelID)
 	return err
 }
 

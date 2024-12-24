@@ -1,6 +1,7 @@
 extends Node
 
 const Packets := preload("res://packets.gd")
+const Shrub := preload("res://objects/shrub/shrub.gd")
 
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _nav: HBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/Nav
@@ -58,6 +59,16 @@ func _on_level_browser_file_selected(path: String) -> void:
 						var collision_point := level_upload.add_collision_point()
 						collision_point.set_x(cell_pos[0])
 						collision_point.set_y(cell_pos[1])
+		elif node is Shrub:
+			var shrub := level_upload.add_shrub()
+			shrub.set_strength(node.strength)
+			
+			# The shrub is placed in the level editor and the ready function is never called, so x and y never
+			# get set properly. Therefore we need to calculate it here again based on position
+			# TODO: This is a bit hacky, plus we are using the fact that node._world_tile_size is 8x8 by default...
+			# still, not a huge deal as long as we commit to 8x8 for our game!
+			shrub.set_x(node.position.x / node._world_tile_size.x)
+			shrub.set_y(node.position.y / node._world_tile_size.y)
 	
 	var file := FileAccess.open(path, FileAccess.READ)
 	level_upload.set_name(scene.resource_path)

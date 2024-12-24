@@ -110,3 +110,23 @@ WHERE id = ?;
 
 -- name: GetLevelIds :many
 SELECT id FROM levels;
+
+-- name: CreateShrub :one
+INSERT INTO shrubs (
+    strength, x, y
+) VALUES (
+    ?, ?, ?
+)
+RETURNING *;
+
+-- name: CreateLevelShrub :one
+INSERT INTO levels_shrubs (
+    level_id, shrub_id
+) VALUES (
+    ?, ?
+)
+RETURNING *;
+
+-- name: DeleteLevelShrubsByLevelId :exec
+DELETE FROM levels_shrubs
+WHERE level_id = ?;

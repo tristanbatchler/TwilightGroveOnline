@@ -8,6 +8,6 @@ type Actor struct {
 }
 
 type Shrub struct {
-	LevelId int64
-	X, Y    int64
+	Strength int32
+	X, Y     int64
 }

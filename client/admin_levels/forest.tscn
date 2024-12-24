@@ -205,34 +205,19 @@ tile_map_data = PackedByteArray("AAATAAcAAAABAAEAAAATAAgAAAABAAEAAAAUAAcAAAABAAE
 tile_set = SubResource("TileSet_lqx7t")
 
 [node name="Shrub" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(112, 104)
+position = Vector2(96, 32)
 
 [node name="Shrub2" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(152, 104)
+position = Vector2(264, 104)
 
 [node name="Shrub3" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(232, 48)
+position = Vector2(248, 16)
 
 [node name="Shrub4" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(168, 16)
+position = Vector2(168, 104)
 
 [node name="Shrub5" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(88, 64)
+position = Vector2(72, 112)
 
 [node name="Shrub6" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(152, 136)
-
-[node name="Shrub7" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(200, 88)
-
-[node name="Shrub8" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(216, 16)
-
-[node name="Shrub9" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(120, 24)
-
-[node name="Shrub10" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(120, 24)
-
-[node name="Shrub11" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(96, 88)
+position = Vector2(176, 8)

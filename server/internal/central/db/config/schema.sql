@@ -39,10 +39,26 @@ CREATE TABLE IF NOT EXISTS levels_tscn_data (
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
 );
 
+-- TODO: Make collision points its own table and add a foreign key to levels_collision_points
 CREATE TABLE IF NOT EXISTS levels_collision_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level_id INTEGER NOT NULL,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
     FOREIGN KEY (level_id) REFERENCES levels_tscn_data(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS shrubs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    strength INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS levels_shrubs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level_id INTEGER NOT NULL,
+    shrub_id INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE,
+    FOREIGN KEY (shrub_id) REFERENCES shrubs(id) ON DELETE CASCADE
 );

@@ -1537,6 +1537,75 @@ class LevelCollisionPoint:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class Shrub:
+	func _init():
+		var service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _x
+		data[_x.tag] = service
+		
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _y
+		data[_y.tag] = service
+		
+		_strength = PBField.new("strength", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _strength
+		data[_strength.tag] = service
+		
+	var data = {}
+	
+	var _x: PBField
+	func get_x() -> int:
+		return _x.value
+	func clear_x() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_x(value : int) -> void:
+		_x.value = value
+	
+	var _y: PBField
+	func get_y() -> int:
+		return _y.value
+	func clear_y() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_y(value : int) -> void:
+		_y.value = value
+	
+	var _strength: PBField
+	func get_strength() -> int:
+		return _strength.value
+	func clear_strength() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_strength.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_strength(value : int) -> void:
+		_strength.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class LevelUpload:
 	func _init():
 		var service
@@ -1556,6 +1625,12 @@ class LevelUpload:
 		service.field = _collision_point
 		service.func_ref = Callable(self, "add_collision_point")
 		data[_collision_point.tag] = service
+		
+		_shrub = PBField.new("shrub", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 4, true, [])
+		service = PBServiceField.new()
+		service.field = _shrub
+		service.func_ref = Callable(self, "add_shrub")
+		data[_shrub.tag] = service
 		
 	var data = {}
 	
@@ -1586,6 +1661,17 @@ class LevelUpload:
 	func add_collision_point() -> LevelCollisionPoint:
 		var element = LevelCollisionPoint.new()
 		_collision_point.value.append(element)
+		return element
+	
+	var _shrub: PBField
+	func get_shrub() -> Array:
+		return _shrub.value
+	func clear_shrub() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = []
+	func add_shrub() -> Shrub:
+		var element = Shrub.new()
+		_shrub.value.append(element)
 		return element
 	
 	func _to_string() -> String:

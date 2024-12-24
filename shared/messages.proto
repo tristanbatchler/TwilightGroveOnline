@@ -77,16 +77,23 @@ message SqlResponse {
     repeated SqlRow rows = 3;
 }
 
+// TODO: Rename to just CollisionPoint, as it's sent as part of LevelUpload
 message LevelCollisionPoint {
     int32 x = 1;
     int32 y = 2;
 }
 
+message Shrub {
+    int32 x = 1;
+    int32 y = 2;
+    int32 strength = 3;
+}
 
 message LevelUpload {
     string name = 1;
     bytes tscn_data = 2;
     repeated LevelCollisionPoint collision_point = 3;
+    repeated Shrub shrub = 4;
 }
 
 message LevelUploadResponse {
