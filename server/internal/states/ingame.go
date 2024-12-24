@@ -148,6 +148,13 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 		return
 	}
 
+	// Check if the target position is in a door
+	if door, exists := g.client.LevelPointMaps().Doors.Get(g.levelId, collisionPoint); exists {
+		g.logger.Printf("Player moved to a door (%d, %d)", targetX, targetY)
+		g.enterDoor(door)
+		return
+	}
+
 	g.player.X = targetX
 	g.player.Y = targetY
 
@@ -174,6 +181,8 @@ func (g *InGame) handleLogout(senderId uint64, message *packets.Packet_Logout) {
 	}
 
 	g.client.SocketSendAs(message, senderId)
+	g.removeFromOtherInLevel(senderId)
+
 }
 
 func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disconnect) {
@@ -184,6 +193,7 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 	}
 
 	g.client.SocketSendAs(message, senderId)
+	g.removeFromOtherInLevel(senderId)
 }
 
 func (g *InGame) OnExit() {
@@ -191,6 +201,15 @@ func (g *InGame) OnExit() {
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
 	g.syncPlayerPosition(5 * time.Second)
 	g.cancelPlayerUpdateLoop()
+}
+
+func (g *InGame) removeFromOtherInLevel(clientId uint64) {
+	for i, id := range g.othersInLevel {
+		if id == clientId {
+			g.othersInLevel = append(g.othersInLevel[:i], g.othersInLevel[i+1:]...)
+			return
+		}
+	}
 }
 
 func (g *InGame) syncPlayerPosition(timeout time.Duration) {
@@ -237,6 +256,7 @@ func (g *InGame) playerUpdateLoop(ctx context.Context) {
 	}
 }
 
+// TODO: Remove this when removing debug chat command
 func (g *InGame) switchLevel(newLevelId int64) {
 	g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
 		ID:      g.player.DbId,
@@ -244,6 +264,23 @@ func (g *InGame) switchLevel(newLevelId int64) {
 	})
 	g.client.SetState(&InGame{
 		levelId: newLevelId,
+		player:  g.player,
+	})
+}
+
+func (g *InGame) enterDoor(door *objs.Door) {
+	g.player.X = door.DestinationX
+	g.player.Y = door.DestinationY
+	go g.syncPlayerPosition(500 * time.Millisecond)
+
+	g.player.LevelId = door.DestinationLevelId
+	go g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
+		ID:      g.player.DbId,
+		LevelID: door.DestinationLevelId,
+	})
+
+	g.client.SetState(&InGame{
+		levelId: door.DestinationLevelId,
 		player:  g.player,
 	})
 }

@@ -361,6 +361,42 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 	return i, err
 }
 
+const getDoorsByLevelId = `-- name: GetDoorsByLevelId :many
+SELECT d.id, d.destination_level_id, d.destination_x, d.destination_y, d.x, d.y FROM doors d
+JOIN levels_doors ld ON d.id = ld.door_id
+WHERE ld.level_id = ?
+`
+
+func (q *Queries) GetDoorsByLevelId(ctx context.Context, levelID int64) ([]Door, error) {
+	rows, err := q.db.QueryContext(ctx, getDoorsByLevelId, levelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Door
+	for rows.Next() {
+		var i Door
+		if err := rows.Scan(
+			&i.ID,
+			&i.DestinationLevelID,
+			&i.DestinationX,
+			&i.DestinationY,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLevelByGdResPath = `-- name: GetLevelByGdResPath :one
 SELECT id, gd_res_path, added_by_user_id, added, last_updated_by_user_id, last_updated, "foreign" FROM levels
 WHERE gd_res_path = ? LIMIT 1
@@ -471,6 +507,40 @@ func (q *Queries) GetLevelTscnDataByLevelId(ctx context.Context, levelID int64) 
 	var i LevelsTscnDatum
 	err := row.Scan(&i.ID, &i.LevelID, &i.TscnData)
 	return i, err
+}
+
+const getShrubsByLevelId = `-- name: GetShrubsByLevelId :many
+SELECT s.id, s.strength, s.x, s.y FROM shrubs s
+JOIN levels_shrubs ls ON s.id = ls.shrub_id
+WHERE ls.level_id = ?
+`
+
+func (q *Queries) GetShrubsByLevelId(ctx context.Context, levelID int64) ([]Shrub, error) {
+	rows, err := q.db.QueryContext(ctx, getShrubsByLevelId, levelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Shrub
+	for rows.Next() {
+		var i Shrub
+		if err := rows.Scan(
+			&i.ID,
+			&i.Strength,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one

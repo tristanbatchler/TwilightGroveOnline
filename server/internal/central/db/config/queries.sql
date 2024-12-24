@@ -131,6 +131,11 @@ RETURNING *;
 DELETE FROM levels_shrubs
 WHERE level_id = ?;
 
+-- name: GetShrubsByLevelId :many
+SELECT s.* FROM shrubs s
+JOIN levels_shrubs ls ON s.id = ls.shrub_id
+WHERE ls.level_id = ?;
+
 
 -- name: CreateDoor :one
 INSERT INTO doors (
@@ -151,3 +156,8 @@ RETURNING *;
 -- name: DeleteLevelDoorsByLevelId :exec
 DELETE FROM levels_doors
 WHERE level_id = ?;
+
+-- name: GetDoorsByLevelId :many
+SELECT d.* FROM doors d
+JOIN levels_doors ld ON d.id = ld.door_id
+WHERE ld.level_id = ?;
