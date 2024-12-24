@@ -20,6 +20,7 @@ type InGame struct {
 	player                 *objs.Actor
 	logger                 *log.Logger
 	cancelPlayerUpdateLoop context.CancelFunc
+	othersInLevel          []uint64
 }
 
 func (g *InGame) Name() string {
@@ -40,14 +41,17 @@ func (g *InGame) OnEnter() {
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
 	ourPlayerInfo := packets.NewActorInfo(g.player)
-	g.client.Broadcast(ourPlayerInfo)
+	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
 
 	g.client.SharedGameObjects().Actors.Add(g.player, g.client.Id())
 
-	// Send our client about all the other actors in the game
+	// Send our client about all the other actors in the level (including ourselves!)
 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint64, actor *objs.Actor) {
-		g.logger.Printf("Sending actor info for client %d", owner_client_id)
-		go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
+		if actor.LevelId == g.player.LevelId {
+			g.othersInLevel = append(g.othersInLevel, owner_client_id)
+			g.logger.Printf("Sending actor info for client %d", owner_client_id)
+			go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
+		}
 	})
 
 	// Start the player update loop
@@ -60,6 +64,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_Chat:
 		g.handleChat(senderId, message)
+	case *packets.Packet_Yell:
+		g.handleYell(senderId, message)
 	case *packets.Packet_ActorMove:
 		g.handleActorMove(senderId, message)
 	case *packets.Packet_ActorInfo:
@@ -79,11 +85,27 @@ func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
 
 	if senderId == g.client.Id() {
 		g.logger.Println("Received a chat message from ourselves, broadcasting")
-		g.client.Broadcast(message)
+		g.client.Broadcast(message, g.othersInLevel)
 		return
 	}
 
 	g.logger.Printf("Received a chat message from client %d, forwarding", senderId)
+	g.client.SocketSendAs(message, senderId)
+}
+
+func (g *InGame) handleYell(senderId uint64, message *packets.Packet_Yell) {
+	if strings.TrimSpace(message.Yell.Msg) == "" {
+		g.logger.Println("Received a yell message with no content, ignoring")
+		return
+	}
+
+	if senderId == g.client.Id() {
+		g.logger.Println("Received a yell message from ourselves, broadcasting")
+		g.client.Broadcast(message)
+		return
+	}
+
+	g.logger.Printf("Received a yell message from client %d, forwarding", senderId)
 	g.client.SocketSendAs(message, senderId)
 }
 
@@ -111,7 +133,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 
 	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
-	g.client.Broadcast(packets.NewActorInfo(g.player))
+	g.client.Broadcast(packets.NewActorInfo(g.player), g.othersInLevel)
 }
 
 func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_ActorInfo) {
@@ -143,7 +165,7 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 }
 
 func (g *InGame) OnExit() {
-	g.client.Broadcast(packets.NewLogout())
+	g.client.Broadcast(packets.NewLogout(), g.othersInLevel)
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
 	g.syncPlayerPosition(5 * time.Second)
 	g.cancelPlayerUpdateLoop()

@@ -75,7 +75,7 @@ type ClientInterfacer interface {
 	PassToPeer(message packets.Msg, peerId uint64)
 
 	// Forward message to all other clients for processing
-	Broadcast(message packets.Msg)
+	Broadcast(message packets.Msg, to ...[]uint64)
 
 	// Pump data from the connected socket directly to the client
 	ReadPump()

@@ -80,8 +80,19 @@ func (c *WebSocketClient) PassToPeer(message packets.Msg, peerId uint64) {
 	}
 }
 
-func (c *WebSocketClient) Broadcast(message packets.Msg) {
-	c.hub.BroadcastChan <- &packets.Packet{SenderId: c.id, Msg: message}
+func (c *WebSocketClient) Broadcast(message packets.Msg, to ...[]uint64) {
+	if len(to) <= 0 {
+		c.hub.BroadcastChan <- &packets.Packet{SenderId: c.id, Msg: message}
+		return
+	}
+
+	for _, recipient := range to[0] {
+		if recipient == c.id {
+			continue
+		}
+
+		c.PassToPeer(message, recipient)
+	}
 }
 
 func (c *WebSocketClient) ReadPump() {

@@ -37,6 +37,11 @@ message Chat {
     string msg = 1;
 }
 
+message Yell {
+    string sender_name = 1;
+    string msg = 2;
+}
+
 message ActorInfo {
     uint64 id = 1;
     int32 level_id = 2;
@@ -104,15 +109,16 @@ message Packet {
         RegisterResponse register_response = 6;
         Logout logout = 7;
         Chat chat = 8;
-        ActorInfo actor_info = 9;
-        ActorMove actor_move = 10;
-        Motd motd = 11;
-        Disconnect disconnect = 12;
-        AdminLoginGranted admin_login_granted = 13;
-        SqlQuery sql_query = 14;
-        SqlResponse sql_response = 15;
-        LevelUpload level_upload = 16;
-        LevelUploadResponse level_upload_response = 17;
-        LevelDownload level_download = 18;
+        Yell yell = 9;
+        ActorInfo actor_info = 10;
+        ActorMove actor_move = 11;
+        Motd motd = 12;
+        Disconnect disconnect = 13;
+        AdminLoginGranted admin_login_granted = 14;
+        SqlQuery sql_query = 15;
+        SqlResponse sql_response = 16;
+        LevelUpload level_upload = 17;
+        LevelUploadResponse level_upload_response = 18;
+        LevelDownload level_download = 19;
     }
 }

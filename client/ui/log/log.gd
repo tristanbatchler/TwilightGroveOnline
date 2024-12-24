@@ -20,3 +20,6 @@ func success(message: String) -> void:
 	
 func chat(sender_name: String, message: String) -> void:
 	_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message])
+
+func yell(sender_name: String, message: String) -> void:
+	_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message.to_upper()])

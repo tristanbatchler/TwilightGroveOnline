@@ -34,6 +34,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_level_download(packet.get_level_download())
 	elif packet.has_chat():
 		_handle_chat(sender_id, packet.get_chat())
+	elif packet.has_yell():
+		_handle_yell(sender_id, packet.get_yell())
 	elif packet.has_actor_info():
 		_handle_actor_info(sender_id, packet.get_actor_info())
 	elif packet.has_logout():
@@ -53,15 +55,30 @@ func _on_send_button_pressed() -> void:
 	var entered_text := _line_edit.text
 	if entered_text.strip_edges() == "":
 		return
+	
 	var packet := Packets.Packet.new()
-	var chat := packet.new_chat()
-	var chat_msg := entered_text
+	
+	var yell_cmd := "/yell "
+	var is_yelling := entered_text.begins_with(yell_cmd)
+	
+	if is_yelling and GameManager.client_id in _actors:
+		entered_text = entered_text.trim_prefix(yell_cmd)
+		var yell := packet.new_yell()
+		yell.set_sender_name(_actors[GameManager.client_id].actor_name)
+		yell.set_msg(entered_text)
+	else:
+		var chat := packet.new_chat()
+		chat.set_msg(entered_text)
+	
+	if WS.send(packet) == OK:
+		if is_yelling:
+			_log.yell("You", entered_text)
+		else:
+			_log.chat("You", entered_text)
+
 	_line_edit.clear()
 	_line_edit.release_focus()
 	_line_edit.grab_focus.call_deferred()
-	chat.set_msg(chat_msg)
-	if WS.send(packet) == OK:
-		_log.chat("You", chat_msg)
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
@@ -89,6 +106,9 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 	if sender_id in _actors: 
 		_log.chat(_actors[sender_id].actor_name, chat.get_msg())
+
+func _handle_yell(sender_id: int, yell: Packets.Yell) -> void:
+	_log.yell(yell.get_sender_name(), yell.get_msg())
 
 func _handle_actor_info(sender_id: int, actor_info: Packets.ActorInfo) -> void:
 	#var level_id := actor_info.get_level_id() # TODO: Don't need this?
