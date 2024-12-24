@@ -49,12 +49,16 @@ type ClientStateHandler interface {
 type SharedGameObjects struct {
 	// The ID of the actor is the client ID of the client that owns it
 	Actors *ds.SharedCollection[*objs.Actor]
-	Shrubs *ds.SharedCollection[*objs.Shrub]
 }
 
 // A collection of static data for the game
 type GameData struct {
 	MotdPath string
+}
+
+type LevelPointMaps struct {
+	Collisions *ds.LevelPointMap[struct{}]
+	Shrubs     *ds.LevelPointMap[*objs.Shrub]
 }
 
 // A structure for the connected client to interface with the hub
@@ -91,7 +95,7 @@ type ClientInterfacer interface {
 
 	SharedGameObjects() *SharedGameObjects
 	GameData() *GameData
-	LevelCollisionPoints() *ds.LevelCollisionPoints
+	LevelPointMaps() *LevelPointMaps
 
 	// Close the client's connections and cleanup
 	Close(reason string)
@@ -119,8 +123,8 @@ type Hub struct {
 	// Static game data
 	GameData *GameData
 
-	// Level collision maps
-	LevelCollisionPoints *ds.LevelCollisionPoints
+	// Stuff found at each point per level
+	LevelPointMaps *LevelPointMaps
 }
 
 func NewHub(dataDirPath string) *Hub {
@@ -143,12 +147,14 @@ func NewHub(dataDirPath string) *Hub {
 		dbPool:         dbPool,
 		SharedGameObjects: &SharedGameObjects{
 			Actors: ds.NewSharedCollection[*objs.Actor](),
-			Shrubs: ds.NewSharedCollection[*objs.Shrub](),
 		},
 		GameData: &GameData{
 			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
-		LevelCollisionPoints: ds.NewLevelCollisionPoints(),
+		LevelPointMaps: &LevelPointMaps{
+			Collisions: ds.NewLevelPointMap[struct{}](),
+			Shrubs:     ds.NewLevelPointMap[*objs.Shrub](),
+		},
 	}
 }
 
@@ -254,9 +260,9 @@ func (h *Hub) populateLevelCollisionPoints() {
 			log.Fatalf("Error getting level collision pointss: %v", err)
 		}
 
-		collisionPoints := make([]ds.CollisionPoint, 0)
+		collisionPoints := make([]ds.Point, 0)
 		for _, cPointModel := range levelCollisionPoints {
-			collisionPoint := ds.CollisionPoint{
+			collisionPoint := ds.Point{
 				X: cPointModel.X,
 				Y: cPointModel.Y,
 			}
@@ -264,7 +270,7 @@ func (h *Hub) populateLevelCollisionPoints() {
 			collisionPoints = append(collisionPoints, collisionPoint)
 		}
 
-		h.LevelCollisionPoints.AddBatch(levelId, collisionPoints)
+		h.LevelPointMaps.Collisions.AddBatch(levelId, collisionPoints, struct{}{})
 		log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
 	}
 }

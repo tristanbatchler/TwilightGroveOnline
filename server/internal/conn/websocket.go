@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
-	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	"google.golang.org/protobuf/proto"
 )
@@ -179,8 +178,8 @@ func (c *WebSocketClient) GameData() *central.GameData {
 	return c.hub.GameData
 }
 
-func (c *WebSocketClient) LevelCollisionPoints() *ds.LevelCollisionPoints {
-	return c.hub.LevelCollisionPoints
+func (c *WebSocketClient) LevelPointMaps() *central.LevelPointMaps {
+	return c.hub.LevelPointMaps
 }
 
 func (c *WebSocketClient) SetState(state central.ClientStateHandler) {

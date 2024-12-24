@@ -138,13 +138,13 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		return
 	}
 
-	collisionPoints := make([]ds.CollisionPoint, 0)
+	collisionPoints := make([]ds.Point, 0)
 
 	for _, collisionPoint := range message.LevelUpload.GetCollisionPoint() {
 		x := int64(collisionPoint.GetX())
 		y := int64(collisionPoint.GetY())
 
-		collisionPoints = append(collisionPoints, ds.NewCollisionPoint(x, y))
+		collisionPoints = append(collisionPoints, ds.NewPoint(x, y))
 
 		_, err = a.queries.CreateLevelCollisionPoint(ctx, db.CreateLevelCollisionPointParams{
 			LevelID: level.ID,
@@ -160,7 +160,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 
 	a.logger.Println("Level uploaded successfully to the database. Adding collision points DS to the server for fast lookups...")
 
-	a.client.LevelCollisionPoints().AddBatch(level.ID, collisionPoints)
+	a.client.LevelPointMaps().Collisions.AddBatch(level.ID, collisionPoints, struct{}{})
 
 	a.logger.Printf("Added %d collision points to the server for level %d", len(collisionPoints), level.ID)
 
@@ -173,7 +173,7 @@ func (a *Admin) OnExit() {
 func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
 	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
 	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
-	a.client.LevelCollisionPoints().Clear(levelId)
+	a.client.LevelPointMaps().Collisions.Clear(levelId)
 	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
 	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
 		ID:                  levelId,
