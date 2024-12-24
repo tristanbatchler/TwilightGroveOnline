@@ -72,6 +72,24 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 		return
 	}
 
+	// Check if the user is already in the game
+	player, err := c.queries.GetActorByUserId(ctx, user.ID)
+	found := false
+	c.client.SharedGameObjects().Actors.ForEach(func(_ uint64, actor *objs.Actor) {
+		if found {
+			return
+		}
+		if actor.DbId == player.ID {
+			found = true
+			return
+		}
+	})
+	if found {
+		c.logger.Printf("User %s is already in the game", user.Username)
+		c.client.SocketSend(packets.NewLoginResponse(false, errors.New("already logged in")))
+		return
+	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(message.LoginRequest.Password))
 	if err != nil {
 		c.logger.Printf("Login failed: %v", err)
