@@ -210,6 +210,7 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName s
 	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
 	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
 	a.client.LevelPointMaps().Collisions.Clear(levelId)
+	a.client.LevelPointMaps().Shrubs.Clear(levelId)
 	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
 	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
 		ID:                  levelId,
