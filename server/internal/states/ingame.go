@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand/v2"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,9 +20,10 @@ type InGame struct {
 	client                 central.ClientInterfacer
 	queries                *db.Queries
 	player                 *objs.Actor
+	levelId                int64
+	othersInLevel          []uint64
 	logger                 *log.Logger
 	cancelPlayerUpdateLoop context.CancelFunc
-	othersInLevel          []uint64
 }
 
 func (g *InGame) Name() string {
@@ -35,8 +38,15 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 }
 
 func (g *InGame) OnEnter() {
+	// Initialize the player object
+	g.player.LevelId = g.levelId
+	if g.player.X == -1 && g.player.Y == -1 {
+		g.player.X = rand.Int64N(50)
+		g.player.Y = rand.Int64N(50)
+	}
+
 	g.logger.Println("Sending level data to client")
-	g.sendLevel(g.player.LevelId)
+	g.sendLevel()
 
 	// A newly connected client will want to know info about its actor
 	// (we will broadcast this to all clients too, so they know about us when we join)
@@ -47,7 +57,7 @@ func (g *InGame) OnEnter() {
 
 	// Send our client about all the other actors in the level (including ourselves!)
 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint64, actor *objs.Actor) {
-		if actor.LevelId == g.player.LevelId {
+		if actor.LevelId == g.levelId {
 			g.othersInLevel = append(g.othersInLevel, owner_client_id)
 			g.logger.Printf("Sending actor info for client %d", owner_client_id)
 			go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
@@ -84,6 +94,18 @@ func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
 	}
 
 	if senderId == g.client.Id() {
+		// TODO: Remove this debug code
+		if strings.HasPrefix(message.Chat.Msg, "/level ") {
+			levelId, err := strconv.Atoi(strings.TrimPrefix(message.Chat.Msg, "/level "))
+			if err != nil {
+				g.logger.Printf("Failed to parse level ID: %v", err)
+				return
+			}
+			g.switchLevel(int64(levelId))
+			return
+		}
+		// End debug code
+
 		g.logger.Println("Received a chat message from ourselves, broadcasting")
 		g.client.Broadcast(message, g.othersInLevel)
 		return
@@ -120,7 +142,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	collisionPoint := ds.CollisionPoint{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
-	if g.client.LevelCollisionPoints().Contains(g.player.LevelId, collisionPoint) {
+	if g.client.LevelCollisionPoints().Contains(g.levelId, collisionPoint) {
 		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
 		go g.client.SocketSend(packets.NewActorInfo(g.player))
 		return
@@ -186,13 +208,13 @@ func (g *InGame) syncPlayerPosition(timeout time.Duration) {
 	}
 }
 
-func (g *InGame) sendLevel(levelId int64) {
+func (g *InGame) sendLevel() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	levelTscnData, err := g.queries.GetLevelTscnDataByLevelId(ctx, levelId)
+	levelTscnData, err := g.queries.GetLevelTscnDataByLevelId(ctx, g.levelId)
 	if err != nil {
-		g.logger.Printf("Failed to get level tscn data for level %d: %v", levelId, err)
+		g.logger.Printf("Failed to get level tscn data for level %d: %v", g.levelId, err)
 		return
 	}
 
@@ -213,4 +235,15 @@ func (g *InGame) playerUpdateLoop(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (g *InGame) switchLevel(newLevelId int64) {
+	g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
+		ID:      g.player.DbId,
+		LevelID: newLevelId,
+	})
+	g.client.SetState(&InGame{
+		levelId: newLevelId,
+		player:  g.player,
+	})
 }

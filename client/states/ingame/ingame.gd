@@ -85,6 +85,12 @@ func _on_ws_connection_closed() -> void:
 	GameManager.set_state(GameManager.State.ENTERED)
 
 func _handle_level_download(level_download: Packets.LevelDownload) -> void:
+	# If we're getting a new level, remove the old one
+	if _world != null:		
+		remove_child(_world)
+		_world.queue_free()
+		_actors.clear()
+	
 	var data := level_download.get_data()
 	var file := FileAccess.open(download_destination_scene_path, FileAccess.WRITE)
 	file.store_buffer(data)

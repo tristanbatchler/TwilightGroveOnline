@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand/v2"
 	"os"
 	"strings"
 	"time"
@@ -122,12 +121,12 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 	c.client.SocketSend(packets.NewLoginResponse(true, nil))
 
 	c.client.SetState(&InGame{
+		levelId: actor.LevelID,
 		player: &objs.Actor{
-			LevelId: actor.LevelID,
-			Name:    message.LoginRequest.Username,
-			X:       actor.X,
-			Y:       actor.Y,
-			DbId:    actor.ID,
+			Name: message.LoginRequest.Username,
+			X:    actor.X,
+			Y:    actor.Y,
+			DbId: actor.ID,
 		},
 	})
 }
@@ -177,8 +176,8 @@ func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_Regi
 	const levelId = 1
 	_, err = c.queries.CreateActor(ctx, db.CreateActorParams{
 		LevelID: levelId,
-		X:       rand.Int64N(32),
-		Y:       rand.Int64N(32),
+		X:       -1,
+		Y:       -1,
 		Name:    message.RegisterRequest.Username,
 		UserID:  user.ID,
 	})
