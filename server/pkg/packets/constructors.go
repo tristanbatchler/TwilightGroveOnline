@@ -124,3 +124,11 @@ func NewLevelDownload(data []byte) Msg {
 		},
 	}
 }
+
+func NewServerMessage(msg string) Msg {
+	return &Packet_ServerMessage{
+		ServerMessage: &ServerMessage{
+			Msg: msg,
+		},
+	}
+}

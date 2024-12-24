@@ -1991,6 +1991,47 @@ class AdminJoinGameResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class ServerMessage:
+	func _init():
+		var service
+		
+		_msg = PBField.new("msg", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _msg
+		data[_msg.tag] = service
+		
+	var data = {}
+	
+	var _msg: PBField
+	func get_msg() -> String:
+		return _msg.value
+	func clear_msg() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_msg.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_msg(value : String) -> void:
+		_msg.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Packet:
 	func _init():
 		var service
@@ -2120,6 +2161,12 @@ class Packet:
 		service.func_ref = Callable(self, "new_admin_join_game_response")
 		data[_admin_join_game_response.tag] = service
 		
+		_server_message = PBField.new("server_message", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 22, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _server_message
+		service.func_ref = Callable(self, "new_server_message")
+		data[_server_message.tag] = service
+		
 	var data = {}
 	
 	var _sender_id: PBField
@@ -2179,6 +2226,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_client_id.value = ClientId.new()
 		return _client_id.value
 	
@@ -2230,6 +2279,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = LoginRequest.new()
 		return _login_request.value
 	
@@ -2281,6 +2332,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_login_response.value = LoginResponse.new()
 		return _login_response.value
 	
@@ -2332,6 +2385,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_register_request.value = RegisterRequest.new()
 		return _register_request.value
 	
@@ -2383,6 +2438,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_register_response.value = RegisterResponse.new()
 		return _register_response.value
 	
@@ -2434,6 +2491,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_logout.value = Logout.new()
 		return _logout.value
 	
@@ -2485,6 +2544,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_chat.value = Chat.new()
 		return _chat.value
 	
@@ -2536,6 +2597,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = Yell.new()
 		return _yell.value
 	
@@ -2587,6 +2650,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_actor_info.value = ActorInfo.new()
 		return _actor_info.value
 	
@@ -2638,6 +2703,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = ActorMove.new()
 		return _actor_move.value
 	
@@ -2689,6 +2756,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_motd.value = Motd.new()
 		return _motd.value
 	
@@ -2740,6 +2809,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_disconnect.value = Disconnect.new()
 		return _disconnect.value
 	
@@ -2791,6 +2862,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_admin_login_granted.value = AdminLoginGranted.new()
 		return _admin_login_granted.value
 	
@@ -2842,6 +2915,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_sql_query.value = SqlQuery.new()
 		return _sql_query.value
 	
@@ -2893,6 +2968,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_sql_response.value = SqlResponse.new()
 		return _sql_response.value
 	
@@ -2944,6 +3021,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload.value = LevelUpload.new()
 		return _level_upload.value
 	
@@ -2995,6 +3074,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload_response.value = LevelUploadResponse.new()
 		return _level_upload_response.value
 	
@@ -3046,6 +3127,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_level_download.value = LevelDownload.new()
 		return _level_download.value
 	
@@ -3097,6 +3180,8 @@ class Packet:
 		data[20].state = PB_SERVICE_STATE.FILLED
 		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_request.value = AdminJoinGameRequest.new()
 		return _admin_join_game_request.value
 	
@@ -3148,8 +3233,63 @@ class Packet:
 		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[20].state = PB_SERVICE_STATE.UNFILLED
 		data[21].state = PB_SERVICE_STATE.FILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = AdminJoinGameResponse.new()
 		return _admin_join_game_response.value
+	
+	var _server_message: PBField
+	func has_server_message() -> bool:
+		return data[22].state == PB_SERVICE_STATE.FILLED
+	func get_server_message() -> ServerMessage:
+		return _server_message.value
+	func clear_server_message() -> void:
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_server_message() -> ServerMessage:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		data[22].state = PB_SERVICE_STATE.FILLED
+		_server_message.value = ServerMessage.new()
+		return _server_message.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

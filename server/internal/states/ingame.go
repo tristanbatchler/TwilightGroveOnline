@@ -2,6 +2,7 @@ package states
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -96,6 +97,10 @@ func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
 	if senderId == g.client.Id() {
 		// TODO: Remove this debug code
 		if strings.HasPrefix(message.Chat.Msg, "/level ") {
+			if !g.isAdmin() {
+				g.client.SocketSend(packets.NewServerMessage("You are not an admin"))
+				return
+			}
 			levelId, err := strconv.Atoi(strings.TrimPrefix(message.Chat.Msg, "/level "))
 			if err != nil {
 				g.logger.Printf("Failed to parse level ID: %v", err)
@@ -283,4 +288,16 @@ func (g *InGame) enterDoor(door *objs.Door) {
 		levelId: door.DestinationLevelId,
 		player:  g.player,
 	})
+}
+
+func (g *InGame) isAdmin() bool {
+	_, err := g.queries.IsActorAdmin(context.Background(), g.player.DbId)
+	if err == nil {
+		return true
+	} else if err == sql.ErrNoRows {
+		return false
+	} else {
+		g.logger.Printf("Failed to check if actor is admin: %v", err)
+		return false
+	}
 }

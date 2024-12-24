@@ -152,3 +152,13 @@ WHERE level_id = ?;
 -- name: GetLevelDoorsByLevelId :many
 SELECT * FROM levels_doors
 WHERE level_id = ?;
+
+-- name: IsActorAdmin :one
+SELECT 1 FROM users u
+JOIN admins ad ON u.id = ad.user_id
+JOIN actors ac ON u.id = ac.user_id
+WHERE ac.id = ? LIMIT 1;
+
+-- name: GetUserIdByActorId :one
+SELECT user_id FROM actors
+WHERE id = ? LIMIT 1;

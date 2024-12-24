@@ -540,6 +540,32 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
+const getUserIdByActorId = `-- name: GetUserIdByActorId :one
+SELECT user_id FROM actors
+WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetUserIdByActorId(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getUserIdByActorId, id)
+	var user_id int64
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const isActorAdmin = `-- name: IsActorAdmin :one
+SELECT 1 FROM users u
+JOIN admins ad ON u.id = ad.user_id
+JOIN actors ac ON u.id = ac.user_id
+WHERE ac.id = ? LIMIT 1
+`
+
+func (q *Queries) IsActorAdmin(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, isActorAdmin, id)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const updateActorLevel = `-- name: UpdateActorLevel :exec
 UPDATE actors
 SET level_id = ?

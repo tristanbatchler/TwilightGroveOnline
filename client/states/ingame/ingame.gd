@@ -44,6 +44,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_disconnect(sender_id)
 	elif packet.has_actor_move():
 		_handle_actor_move(sender_id, packet.get_actor_move())
+	elif packet.has_server_message():
+		_log.warning(packet.get_server_message().get_msg())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()

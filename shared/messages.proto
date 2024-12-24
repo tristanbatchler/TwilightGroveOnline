@@ -120,6 +120,10 @@ message AdminJoinGameResponse {
     Response response = 1;
 }
 
+message ServerMessage {
+    string msg = 1;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -143,5 +147,6 @@ message Packet {
         LevelDownload level_download = 19;
         AdminJoinGameRequest admin_join_game_request = 20;
         AdminJoinGameResponse admin_join_game_response = 21;
+        ServerMessage server_message = 22;
     }
 }
