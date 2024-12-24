@@ -42,10 +42,10 @@ func (p *PointMap[T]) Add(point Point, value T) {
 // AddBatch adds a batch of points to the PointMap with the specified value.
 // It locks the PointMap to ensure thread safety during the operation.
 // This is faster when adding lots of points because it only locks the map once.
-func (p *PointMap[T]) AddBatch(points []Point, value T) {
+func (p *PointMap[T]) AddBatch(batch map[Point]T) {
 	p.mux.Lock()
 	defer p.mux.Unlock()
-	for _, point := range points {
+	for point, value := range batch {
 		p.m[point] = value
 	}
 }
@@ -156,7 +156,7 @@ func (l *LevelPointMap[T]) Add(levelId int64, point Point, value T) {
 // for the given levelId. If the levelId does not already exist in the map, a
 // new PointMap is created and added to the LevelPointMap.
 // This is faster when adding lots of points because it only locks the map once.
-func (l *LevelPointMap[T]) AddBatch(levelId int64, points []Point, value T) {
+func (l *LevelPointMap[T]) AddBatch(levelId int64, batch map[Point]T) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
@@ -165,7 +165,7 @@ func (l *LevelPointMap[T]) AddBatch(levelId int64, points []Point, value T) {
 		pm = NewPointMap[T]()
 		l.m[levelId] = pm
 	}
-	pm.AddBatch(points, value)
+	pm.AddBatch(batch)
 }
 
 // Remove deletes a Point from the LevelPointMap for a given levelId.

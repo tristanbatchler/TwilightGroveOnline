@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=4 uid="uid://dc7v63q4081e3"]
+[gd_scene load_steps=5 format=4 uid="uid://dkoe1rn34sbf4"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_12rrr"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="2_g8ril"]
-[ext_resource type="PackedScene" uid="uid://b1gqqlouulpyn" path="res://admin_levels/forest.tscn" id="3_evdyk"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_12rrr")
@@ -207,5 +206,5 @@ tile_set = SubResource("TileSet_lqx7t")
 
 [node name="Door" parent="." instance=ExtResource("2_g8ril")]
 position = Vector2(264, 72)
-destination_level = ExtResource("3_evdyk")
+destination_level_res_path = "res://admin_levels/forest.tscn"
 destination_pos = Vector2i(19, 9)

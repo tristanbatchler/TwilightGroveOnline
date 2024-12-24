@@ -33,49 +33,37 @@ CREATE TABLE IF NOT EXISTS levels (
 );
 
 CREATE TABLE IF NOT EXISTS levels_tscn_data (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    level_id INTEGER NOT NULL,
+    level_id INTEGER NOT NULL UNIQUE,
     tscn_data BLOB NOT NULL,
+    PRIMARY KEY (level_id),
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
 );
 
--- TODO: Make collision points its own table and add a foreign key to levels_collision_points
 CREATE TABLE IF NOT EXISTS levels_collision_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level_id INTEGER NOT NULL,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
-    FOREIGN KEY (level_id) REFERENCES levels_tscn_data(id) ON DELETE RESTRICT
-);
-
-CREATE TABLE IF NOT EXISTS shrubs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    strength INTEGER NOT NULL,
-    x INTEGER NOT NULL,
-    y INTEGER NOT NULL
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS levels_shrubs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level_id INTEGER NOT NULL,
-    shrub_id INTEGER NOT NULL,
-    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE,
-    FOREIGN KEY (shrub_id) REFERENCES shrubs(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS doors (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    destination_level_id INTEGER NOT NULL,
-    destination_x INTEGER NOT NULL,
-    destination_y INTEGER NOT NULL,
+    strength INTEGER NOT NULL,
     x INTEGER NOT NULL,
-    y INTEGER NOT NULL
+    y INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE 
 );
 
 CREATE TABLE IF NOT EXISTS levels_doors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level_id INTEGER NOT NULL,
-    door_id INTEGER NOT NULL,
-    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE,
-    FOREIGN KEY (door_id) REFERENCES doors(id) ON DELETE CASCADE
+    destination_level_id INTEGER NOT NULL,
+    destination_x INTEGER NOT NULL,
+    destination_y INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE, -- delete from levels_doors when level with id level_id is deleted
+    FOREIGN KEY (destination_level_id) REFERENCES levels(id) ON DELETE RESTRICT -- do not allow deletion of levels that are destinations
 );

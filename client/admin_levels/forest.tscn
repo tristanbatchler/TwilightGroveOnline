@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=4 uid="uid://b1gqqlouulpyn"]
+[gd_scene load_steps=6 format=4 uid="uid://b1gqqlouulpyn"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_rprl3"]
 [ext_resource type="PackedScene" uid="uid://7lm0b0ei76wc" path="res://objects/shrub/shrub.tscn" id="2_lfbik"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="3_xd47s"]
-[ext_resource type="PackedScene" uid="uid://dc7v63q4081e3" path="res://admin_levels/room.tscn" id="4_bq5f7"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_rprl3")
@@ -226,5 +225,5 @@ position = Vector2(176, 8)
 
 [node name="Door" parent="." instance=ExtResource("3_xd47s")]
 position = Vector2(152, 72)
-destination_level = ExtResource("4_bq5f7")
+destination_level_res_path = "res://admin_levels/room.tscn"
 destination_pos = Vector2i(33, 9)

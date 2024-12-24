@@ -167,9 +167,14 @@ func (h *Hub) Run(adminPassword string) {
 	}
 
 	h.addAdmin(adminPassword)
-	h.populateLevelCollisionPoints()
-	h.populateLevelShrubs()
-	h.populateLevelDoors()
+
+	levelIds, err := h.NewDbTx().Queries.GetLevelIds(context.Background())
+	if err != nil {
+		log.Fatalf("Error getting level IDs: %v", err)
+	}
+	h.populateLevelCollisionPoints(levelIds)
+	h.populateLevelShrubs(levelIds)
+	h.populateLevelDoors(levelIds)
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -247,15 +252,9 @@ func (h *Hub) addAdmin(defaultPassword string) {
 }
 
 // Populates the level collision points from the database. These are stored in memory for quick access (constant time lookup)
-func (h *Hub) populateLevelCollisionPoints() {
+func (h *Hub) populateLevelCollisionPoints(levelIds []int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-
-	levelIds, err := h.NewDbTx().Queries.GetLevelIds(ctx)
-	if err != nil {
-		log.Printf("Error getting level ids, can't populate collision points: %v", err)
-		return
-	}
 
 	for _, levelId := range levelIds {
 		levelCollisionPoints, err := h.NewDbTx().Queries.GetLevelCollisionPointsByLevelId(ctx, levelId)
@@ -263,37 +262,32 @@ func (h *Hub) populateLevelCollisionPoints() {
 			log.Fatalf("Error getting level collision pointss: %v", err)
 		}
 
-		collisionPoints := make([]ds.Point, 0)
+		batch := make(map[ds.Point]struct{}, len(levelCollisionPoints))
 		for _, cPointModel := range levelCollisionPoints {
 			collisionPoint := ds.Point{
 				X: cPointModel.X,
 				Y: cPointModel.Y,
 			}
 
-			collisionPoints = append(collisionPoints, collisionPoint)
+			batch[collisionPoint] = struct{}{}
 		}
 
-		h.LevelPointMaps.Collisions.AddBatch(levelId, collisionPoints, struct{}{})
+		h.LevelPointMaps.Collisions.AddBatch(levelId, batch)
 		log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
 	}
 }
 
-func (h *Hub) populateLevelShrubs() {
+func (h *Hub) populateLevelShrubs(levelIds []int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	levelIds, err := h.NewDbTx().Queries.GetLevelIds(ctx)
-	if err != nil {
-		log.Printf("Error getting level ids, can't populate shrubs: %v", err)
-		return
-	}
-
 	for _, levelId := range levelIds {
-		shrubs, err := h.NewDbTx().Queries.GetShrubsByLevelId(ctx, levelId)
+		shrubs, err := h.NewDbTx().Queries.GetLevelShrubsByLevelId(ctx, levelId)
 		if err != nil {
 			log.Fatalf("Error getting shrubs: %v", err)
 		}
 
+		batch := make(map[ds.Point]*objs.Shrub, len(shrubs))
 		for _, shrubModel := range shrubs {
 			shrub := &objs.Shrub{
 				Strength: int32(shrubModel.Strength),
@@ -301,29 +295,25 @@ func (h *Hub) populateLevelShrubs() {
 				Y:        shrubModel.Y,
 			}
 
-			h.LevelPointMaps.Shrubs.Add(levelId, ds.Point{X: shrub.X, Y: shrub.Y}, shrub)
+			batch[ds.Point{X: shrub.X, Y: shrub.Y}] = shrub
 		}
 
+		h.LevelPointMaps.Shrubs.AddBatch(levelId, batch)
 		log.Printf("Added %d shrubs to the server for level %d", len(shrubs), levelId)
 	}
 }
 
-func (h *Hub) populateLevelDoors() {
+func (h *Hub) populateLevelDoors(levelIds []int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	levelIds, err := h.NewDbTx().Queries.GetLevelIds(ctx)
-	if err != nil {
-		log.Printf("Error getting level ids, can't populate doors: %v", err)
-		return
-	}
-
 	for _, levelId := range levelIds {
-		doors, err := h.NewDbTx().Queries.GetDoorsByLevelId(ctx, levelId)
+		doors, err := h.NewDbTx().Queries.GetLevelDoorsByLevelId(ctx, levelId)
 		if err != nil {
 			log.Fatalf("Error getting doors: %v", err)
 		}
 
+		batch := make(map[ds.Point]*objs.Door, len(doors))
 		for _, doorModel := range doors {
 			door := &objs.Door{
 				DestinationLevelId: doorModel.DestinationLevelID,
@@ -333,9 +323,10 @@ func (h *Hub) populateLevelDoors() {
 				Y:                  doorModel.Y,
 			}
 
-			h.LevelPointMaps.Doors.Add(levelId, ds.Point{X: door.X, Y: door.Y}, door)
+			batch[ds.Point{X: door.X, Y: door.Y}] = door
 		}
 
+		h.LevelPointMaps.Doors.AddBatch(levelId, batch)
 		log.Printf("Added %d doors to the server for level %d", len(doors), levelId)
 	}
 }

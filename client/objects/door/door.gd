@@ -3,7 +3,7 @@ extends Area2D
 const Door := preload("res://objects/door/door.gd")
 const Scene: PackedScene = preload("res://objects/door/door.tscn")
 
-@export var destination_level: PackedScene
+@export var destination_level_res_path: String
 @export var destination_pos: Vector2i
 
 var _world_tile_size := Vector2i(8, 8)
@@ -22,7 +22,7 @@ var y: int:
 
 static func instantiate(destination_level_id: int, destination_x: int, destination_y: int, x: int, y: int) -> Door:
 	var door := Scene.instantiate() as Door
-	door.destination_level = load(GameManager.levels[destination_level_id])
+	door.destination_level_res_path = GameManager.levels[destination_level_id]
 	door.destination_pos = Vector2i(destination_x, destination_y)
 	door.x = x
 	door.y = y

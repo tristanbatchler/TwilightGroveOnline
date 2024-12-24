@@ -22,15 +22,6 @@ type Admin struct {
 	UserID int64
 }
 
-type Door struct {
-	ID                 int64
-	DestinationLevelID int64
-	DestinationX       int64
-	DestinationY       int64
-	X                  int64
-	Y                  int64
-}
-
 type Level struct {
 	ID                  int64
 	GdResPath           string
@@ -49,28 +40,26 @@ type LevelsCollisionPoint struct {
 }
 
 type LevelsDoor struct {
-	ID      int64
-	LevelID int64
-	DoorID  int64
+	ID                 int64
+	LevelID            int64
+	DestinationLevelID int64
+	DestinationX       int64
+	DestinationY       int64
+	X                  int64
+	Y                  int64
 }
 
 type LevelsShrub struct {
-	ID      int64
-	LevelID int64
-	ShrubID int64
-}
-
-type LevelsTscnDatum struct {
 	ID       int64
 	LevelID  int64
-	TscnData []byte
-}
-
-type Shrub struct {
-	ID       int64
 	Strength int64
 	X        int64
 	Y        int64
+}
+
+type LevelsTscnDatum struct {
+	LevelID  int64
+	TscnData []byte
 }
 
 type User struct {

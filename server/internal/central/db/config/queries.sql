@@ -62,12 +62,13 @@ INSERT INTO levels (
 )
 RETURNING *;
 
--- name: CreateLevelTscnData :one
+-- name: UpsertLevelTscnData :one
 INSERT INTO levels_tscn_data (
     level_id, tscn_data
 ) VALUES (
     ?, ?
 )
+ON CONFLICT (level_id) DO UPDATE SET tscn_data = EXCLUDED.tscn_data
 RETURNING *;
 
 -- name: CreateLevelCollisionPoint :one
@@ -111,19 +112,11 @@ WHERE id = ?;
 -- name: GetLevelIds :many
 SELECT id FROM levels;
 
--- name: CreateShrub :one
-INSERT INTO shrubs (
-    strength, x, y
-) VALUES (
-    ?, ?, ?
-)
-RETURNING *;
-
 -- name: CreateLevelShrub :one
 INSERT INTO levels_shrubs (
-    level_id, shrub_id
+    level_id, strength, x, y
 ) VALUES (
-    ?, ?
+    ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -131,25 +124,15 @@ RETURNING *;
 DELETE FROM levels_shrubs
 WHERE level_id = ?;
 
--- name: GetShrubsByLevelId :many
-SELECT s.* FROM shrubs s
-JOIN levels_shrubs ls ON s.id = ls.shrub_id
-WHERE ls.level_id = ?;
-
-
--- name: CreateDoor :one
-INSERT INTO doors (
-    destination_level_id, destination_x, destination_y, x, y
-) VALUES (
-    ?, ?, ?, ?, ?
-)
-RETURNING *;
+-- name: GetLevelShrubsByLevelId :many
+SELECT * FROM levels_shrubs
+WHERE level_id = ?;
 
 -- name: CreateLevelDoor :one
 INSERT INTO levels_doors (
-    level_id, door_id
+    level_id, destination_level_id, destination_x, destination_y, x, y
 ) VALUES (
-    ?, ?
+    ?, ?, ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -157,7 +140,6 @@ RETURNING *;
 DELETE FROM levels_doors
 WHERE level_id = ?;
 
--- name: GetDoorsByLevelId :many
-SELECT d.* FROM doors d
-JOIN levels_doors ld ON d.id = ld.door_id
-WHERE ld.level_id = ?;
+-- name: GetLevelDoorsByLevelId :many
+SELECT * FROM levels_doors
+WHERE level_id = ?;

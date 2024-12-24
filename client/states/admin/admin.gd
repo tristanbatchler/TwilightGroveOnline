@@ -74,13 +74,10 @@ func _on_level_browser_file_selected(path: String) -> void:
 			
 		elif node is Door:
 			var door := level_upload.add_door()
-			var desintation_res_path := ""
-			if node.destination_level != null:
-				desintation_res_path = node.destination_level.resource_path
-			else:
+			if node.destination_level_res_path == null:
 				print("Door has no destination, remember to come back and fix if this is for a temporary workaround")
 				
-			door.set_destination_level_gd_res_path(desintation_res_path)
+			door.set_destination_level_gd_res_path(node.destination_level_res_path)
 			door.set_destination_x(node.destination_pos.x)
 			door.set_destination_y(node.destination_pos.y)
 			door.set_x(node.position.x / node._world_tile_size.x)
