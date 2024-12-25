@@ -3,30 +3,54 @@
     "tasks": [
         {
             "label": "compileProtobufGo",
-            "command": "$HOME/go/bin/protoc -I=\"${workspaceFolder}/shared\" --go_out=\"${workspaceFolder}/server\" --plugin=protoc-gen-go=\"$HOME/go/bin/protoc-gen-go\" \"${workspaceFolder}/shared/messages.proto\"",
-            "type": "shell"
+            "type": "shell",
+            "command": "${env:HOME}/go/bin/protoc",
+            "args": [
+                "-I=${workspaceFolder}/shared",
+                "--go_out=${workspaceFolder}/server",
+                "--plugin=protoc-gen-go=${env:HOME}/go/bin/protoc-gen-go",
+                "${workspaceFolder}/shared/messages.proto"
+            ],
+            "windows": {
+                "command": "${env:USERPROFILE}\\go\\bin\\protoc",
+                "args": [
+                    "-I=${workspaceFolder}\\shared",
+                    "--go_out=${workspaceFolder}\\server",
+                    "--plugin=protoc-gen-go=${env:USERPROFILE}\\go\\bin\\protoc-gen-go.exe",
+                    "${workspaceFolder}\\shared\\messages.proto"
+                ]
+            }
         },
         {
             "label": "compileProtobufGodot",
+            "type": "shell",
             "command": "cd \"${workspaceFolder}/client\" && ./godot --headless -s addons/protobuf/protobuf_cmdln.gd --input=../shared/messages.proto --output=packets.gd && cd ..",
-            "type": "shell"
+            "windows": {
+                "command": "cd \"${workspaceFolder}\\client\" && godot --headless -s addons\\protobuf\\protobuf_cmdln.gd --input=..\\shared\\messages.proto --output=packets.gd && cd .."
+            }
         },
         {
             "label": "compileSql",
-            "command": "$HOME/go/bin/sqlc generate -f \"${workspaceFolder}/server/internal/central/db/config/sqlc.yml\"",
-            "type": "shell"
+            "type": "shell",
+            "command": "${env:HOME}/go/bin/sqlc generate -f \"${workspaceFolder}/server/internal/central/db/config/sqlc.yml\"",
+            "windows": {
+                "command": "${env:USERPROFILE}\\go\\bin\\sqlc generate -f \"${workspaceFolder}\\server\\internal\\central\\db\\config\\sqlc.yml\""
+            }
         },
         {
             "label": "syncServer",
-            "command": "cd \"${workspaceFolder}/server\" && /usr/local/go/bin/go mod tidy && cd ..",
             "type": "shell",
+            "command": "cd \"${workspaceFolder}/server\" && /usr/local/go/bin/go mod tidy && cd ..",
             "dependsOn": ["compileProtobufGo", "compileSql"],
+            "windows": {
+                "command": "cd \"${workspaceFolder}\\server\" && go mod tidy && cd .."
+            }
         },
         {
             "label": "syncAll",
-            "command": "echo \"Syncing all...\"",
             "type": "shell",
-            "dependsOn": ["syncServer", "compileProtobufGodot"],
+            "command": "echo \"Syncing all...\"",
+            "dependsOn": ["syncServer", "compileProtobufGodot"]
         }
     ]
 }
