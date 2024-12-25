@@ -49,14 +49,10 @@ func (g *InGame) OnEnter() {
 	g.logger.Println("Sending level data to client")
 	g.sendLevel()
 
-	// A newly connected client will want to know info about its actor
-	// (we will broadcast this to all clients too, so they know about us when we join)
-	ourPlayerInfo := packets.NewActorInfo(g.player)
-	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
-
 	g.client.SharedGameObjects().Actors.Add(g.player, g.client.Id())
 
-	// Send our client about all the other actors in the level (including ourselves!)
+	// Send our client info about all the other actors in the level (including ourselves!)
+	ourPlayerInfo := packets.NewActorInfo(g.player)
 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint64, actor *objs.Actor) {
 		if actor.LevelId == g.levelId {
 			g.othersInLevel = append(g.othersInLevel, owner_client_id)
@@ -64,6 +60,9 @@ func (g *InGame) OnEnter() {
 			go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
 		}
 	})
+
+	// Send our info back to all the other clients in the level
+	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
 
 	// Start the player update loop
 	ctx, cancel := context.WithCancel(context.Background())
@@ -177,6 +176,10 @@ func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_ActorI
 	}
 
 	g.client.SocketSendAs(message, senderId)
+	if !g.isOtherKnown(senderId) {
+		g.othersInLevel = append(g.othersInLevel, senderId)
+		g.client.PassToPeer(packets.NewActorInfo(g.player), senderId)
+	}
 }
 
 func (g *InGame) handleLogout(senderId uint64, message *packets.Packet_Logout) {
@@ -187,7 +190,6 @@ func (g *InGame) handleLogout(senderId uint64, message *packets.Packet_Logout) {
 
 	g.client.SocketSendAs(message, senderId)
 	g.removeFromOtherInLevel(senderId)
-
 }
 
 func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disconnect) {
@@ -300,4 +302,13 @@ func (g *InGame) isAdmin() bool {
 		g.logger.Printf("Failed to check if actor is admin: %v", err)
 		return false
 	}
+}
+
+func (g *InGame) isOtherKnown(otherId uint64) bool {
+	for _, id := range g.othersInLevel {
+		if id == otherId {
+			return true
+		}
+	}
+	return false
 }

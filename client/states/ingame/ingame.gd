@@ -128,7 +128,7 @@ func _handle_actor_info(sender_id: int, actor_info: Packets.ActorInfo) -> void:
 		_update_actor(sender_id, x, y)
 	else:
 		_add_new_actor(sender_id, x, y, actor_name)
-		
+	
 func _update_actor(actor_id: int, x: int, y: int) -> void:
 	var actor := _actors[actor_id]
 	var dx := x - actor.x
@@ -137,9 +137,10 @@ func _update_actor(actor_id: int, x: int, y: int) -> void:
 	
 func _add_new_actor(actor_id: int, x: int, y: int, actor_name) -> void:
 	var actor := Actor.instantiate(x, y, actor_name, actor_id == GameManager.client_id)
-	_actors[actor_id] = actor
 	if _world_tilemap_layer != null:
+		_actors[actor_id] = actor
 		actor.place(_world_tilemap_layer)
+		_log.info("%s has entered" % actor.actor_name)
 	
 func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 	if actor_id in _actors:
