@@ -9,16 +9,25 @@ import (
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
+type LevelDataImporters struct {
+	CollisionPointsImporter *levels.DataImporter[struct{}, packets.CollisionPoint]
+	ShrubsImporter          *levels.DataImporter[objs.Shrub, packets.Shrub]
+	DoorsImporter           *levels.DataImporter[objs.Door, packets.Door]
+	GroundItemsImporter     *levels.DataImporter[objs.GroundItem, packets.GroundItem]
+}
+
 type Admin struct {
-	client     central.ClientInterfacer
-	adminModel *db.Admin
-	queries    *db.Queries
-	logger     *log.Logger
+	client             central.ClientInterfacer
+	adminModel         *db.Admin
+	queries            *db.Queries
+	levelDataImporters *LevelDataImporters
+	logger             *log.Logger
 }
 
 func (a *Admin) Name() string {
@@ -30,6 +39,56 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), a.Name())
 	a.queries = client.DbTx().Queries
 	a.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
+	a.levelDataImporters = &LevelDataImporters{
+		CollisionPointsImporter: levels.NewDataImporter(
+			"collision points",
+			a.client.LevelPointMaps().Collisions,
+			func(c *packets.CollisionPoint) ds.Point { return ds.NewPoint(int64(c.GetX()), int64(c.GetY())) },
+			a.addCollisionPointToDb,
+			a.queries.DeleteLevelCollisionPointsByLevelId,
+			func(c *packets.CollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
+		),
+		ShrubsImporter: levels.NewDataImporter(
+			"shrubs",
+			a.client.LevelPointMaps().Shrubs,
+			func(s *packets.Shrub) ds.Point { return ds.NewPoint(int64(s.X), int64(s.Y)) },
+			a.addShrubToDb,
+			a.queries.DeleteLevelShrubsByLevelId,
+			func(s *packets.Shrub) (*objs.Shrub, error) {
+				return &objs.Shrub{X: int64(s.X), Y: int64(s.Y), Strength: s.Strength}, nil
+			},
+		),
+		DoorsImporter: levels.NewDataImporter(
+			"doors",
+			a.client.LevelPointMaps().Doors,
+			func(d *packets.Door) ds.Point { return ds.NewPoint(int64(d.X), int64(d.Y)) },
+			a.addDoorToDb,
+			a.queries.DeleteLevelDoorsByLevelId,
+			func(d *packets.Door) (*objs.Door, error) {
+				destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
+				if err != nil {
+					return nil, err
+				}
+				return &objs.Door{
+					X:                  int64(d.X),
+					Y:                  int64(d.Y),
+					DestinationX:       int64(d.DestinationX),
+					DestinationY:       int64(d.DestinationY),
+					DestinationLevelId: destinationLevelId,
+				}, nil
+			},
+		),
+		GroundItemsImporter: levels.NewDataImporter(
+			"ground items",
+			a.client.LevelPointMaps().GroundItems,
+			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(int64(g.X), int64(g.Y)) },
+			a.addGroundItemToDb,
+			a.queries.DeleteLevelGroundItemsByLevelId,
+			func(g *packets.GroundItem) (*objs.GroundItem, error) {
+				return &objs.GroundItem{X: int64(g.X), Y: int64(g.Y), Name: g.Name}, nil
+			},
+		),
+	}
 }
 
 func (a *Admin) OnEnter() {
@@ -141,27 +200,27 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		return
 	}
 
-	err = a.importCollisionPoints(level, message.LevelUpload.CollisionPoint)
-
-	err = a.importShrubs(level, message.LevelUpload.Shrub)
-	if err != nil {
-		a.logger.Printf("Error importing shrubs: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
-		return
+	importFuncs := []func() error{
+		func() error {
+			return a.levelDataImporters.CollisionPointsImporter.ImportObjects(level.ID, message.LevelUpload.CollisionPoint)
+		},
+		func() error {
+			return a.levelDataImporters.ShrubsImporter.ImportObjects(level.ID, message.LevelUpload.Shrub)
+		},
+		func() error {
+			return a.levelDataImporters.DoorsImporter.ImportObjects(level.ID, message.LevelUpload.Door)
+		},
+		func() error {
+			return a.levelDataImporters.GroundItemsImporter.ImportObjects(level.ID, message.LevelUpload.GroundItem)
+		},
 	}
 
-	err = a.importDoors(level, message.LevelUpload.Door)
-	if err != nil {
-		a.logger.Printf("Error importing doors: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
-		return
-	}
-
-	err = a.importGroundItems(level, message.LevelUpload.GroundItem)
-	if err != nil {
-		a.logger.Printf("Error importing ground items: %v", err)
-		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
-		return
+	for _, importFunc := range importFuncs {
+		if importFunc() != nil {
+			a.logger.Printf("Error importing object: %v", err)
+			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
+			return
+		}
 	}
 
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
@@ -200,15 +259,10 @@ func (a *Admin) OnExit() {
 func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
 	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
 
-	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
-	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
-	a.queries.DeleteLevelDoorsByLevelId(dbCtx, levelId)
-	a.queries.DeleteLevelGroundItemsByLevelId(dbCtx, levelId)
-
-	a.client.LevelPointMaps().Collisions.Clear(levelId)
-	a.client.LevelPointMaps().Shrubs.Clear(levelId)
-	a.client.LevelPointMaps().Doors.Clear(levelId)
-	a.client.LevelPointMaps().GroundItems.Clear(levelId)
+	a.levelDataImporters.CollisionPointsImporter.ClearObjects(levelId)
+	a.levelDataImporters.ShrubsImporter.ClearObjects(levelId)
+	a.levelDataImporters.DoorsImporter.ClearObjects(levelId)
+	a.levelDataImporters.GroundItemsImporter.ClearObjects(levelId)
 
 	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
 	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
@@ -218,152 +272,73 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName s
 	a.logger.Printf("Cleared out old data for level %s", levelName)
 }
 
-func (a *Admin) importCollisionPoints(level db.Level, collisionPoints []*packets.CollisionPoint) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	batch := make(map[ds.Point]struct{})
-	for _, collisionPoint := range collisionPoints {
-		x := int64(collisionPoint.GetX())
-		y := int64(collisionPoint.GetY())
-
-		batch[ds.NewPoint(x, y)] = struct{}{}
-
-		_, err := a.queries.CreateLevelCollisionPoint(ctx, db.CreateLevelCollisionPointParams{
-			LevelID: level.ID,
-			X:       x,
-			Y:       y,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (a *Admin) addCollisionPointToDb(ctx context.Context, levelId int64, message *packets.CollisionPoint) error {
+	_, err := a.queries.CreateLevelCollisionPoint(ctx, db.CreateLevelCollisionPointParams{
+		LevelID: levelId,
+		X:       int64(message.GetX()),
+		Y:       int64(message.GetY()),
+	})
+	return err
 }
 
-func (a *Admin) importShrubs(level db.Level, shrubs []*packets.Shrub) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	batch := make(map[ds.Point]*objs.Shrub)
-	for _, shrub := range shrubs {
-		x := int64(shrub.X)
-		y := int64(shrub.Y)
-		strength := shrub.Strength
-
-		shrubObj := &objs.Shrub{
-			X:        x,
-			Y:        y,
-			Strength: strength,
-		}
-
-		batch[ds.NewPoint(x, y)] = shrubObj
-
-		_, err := a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
-			LevelID:  level.ID,
-			X:        x,
-			Y:        y,
-			Strength: int64(strength),
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	a.client.LevelPointMaps().Shrubs.AddBatch(level.ID, batch)
-	a.logger.Printf("Added %d shrubs to the server's LevelPointMaps DS", len(batch))
-	return nil
+func (a *Admin) addShrubToDb(ctx context.Context, levelId int64, message *packets.Shrub) error {
+	_, err := a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
+		LevelID:  levelId,
+		X:        int64(message.X),
+		Y:        int64(message.Y),
+		Strength: int64(message.Strength),
+	})
+	return err
 }
 
-func (a *Admin) importDoors(level db.Level, doors []*packets.Door) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets.Door) error {
+	destinationLevelId, err := a.getDoorDestinationLevelId(message.DestinationLevelGdResPath)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.queries.CreateLevelDoor(ctx, db.CreateLevelDoorParams{
+		LevelID:            levelId,
+		DestinationLevelID: destinationLevelId,
+		DestinationX:       int64(message.DestinationX),
+		DestinationY:       int64(message.DestinationY),
+		X:                  int64(message.X),
+		Y:                  int64(message.Y),
+	})
+	return err
+}
+
+func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *packets.GroundItem) error {
+	_, err := a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
+		LevelID: levelId,
+		X:       int64(message.X),
+		Y:       int64(message.Y),
+		Name:    message.Name,
+	})
+	return err
+}
+
+func (a *Admin) getDoorDestinationLevelId(gdResPath string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	batch := make(map[ds.Point]*objs.Door)
-	for _, door := range doors {
-		destinationLevel := level
-		if door.DestinationLevelGdResPath != "" {
-			var err error
-			destinationLevel, err = a.queries.GetLevelByGdResPath(ctx, door.DestinationLevelGdResPath)
-			if err != nil {
-				if err == sql.ErrNoRows {
-					return fmt.Errorf(
-						"Error getting destination level %s for door at (%d, %d): probably hasn't been uploaded yet. "+
-							"Try uploading the destination level first", door.DestinationLevelGdResPath, door.X, door.Y,
-					)
-				}
-				return err
-			}
+	if gdResPath == "" {
+		a.logger.Printf("Had to use placeholder 0 for destination level for door in %s because "+
+			"no destination level was specified. If this was intentional to temporarily avoid a circular dependency, "+
+			"please fix the destination level and re-upload the level", gdResPath,
+		)
+		return 0, nil
+	}
+
+	destinationLevel, err := a.queries.GetLevelByGdResPath(ctx, gdResPath)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			a.logger.Printf("Failed to find a door's destination level with path %s - try uploading it first", gdResPath)
 		} else {
-			a.logger.Printf(
-				"Had to assume destination level is the same as the current level for door at (%d, %d) because "+
-					"no destination level was specified. If this was intentional to temporarily avoid a circular dependency, "+
-					"please fix the destination level and re-upload the level", door.X, door.Y,
-			)
+			a.logger.Printf("Error getting destination level id: %v", err)
 		}
-		destinationX := int64(door.DestinationX)
-		destinationY := int64(door.DestinationY)
-		x := int64(door.X)
-		y := int64(door.Y)
-
-		doorObj := &objs.Door{
-			DestinationLevelId: destinationLevel.ID,
-			DestinationX:       destinationX,
-			DestinationY:       destinationY,
-			X:                  x,
-			Y:                  y,
-		}
-
-		batch[ds.NewPoint(x, y)] = doorObj
-
-		_, err := a.queries.CreateLevelDoor(ctx, db.CreateLevelDoorParams{
-			LevelID:            level.ID,
-			DestinationLevelID: destinationLevel.ID,
-			DestinationX:       destinationX,
-			DestinationY:       destinationY,
-			X:                  x,
-			Y:                  y,
-		})
-		if err != nil {
-			return err
-		}
+		return -1, err
 	}
 
-	a.client.LevelPointMaps().Doors.AddBatch(level.ID, batch)
-	a.logger.Printf("Added %d doors to the server's LevelPointMaps DS", len(batch))
-	return nil
-}
-
-func (a *Admin) importGroundItems(level db.Level, groundItems []*packets.GroundItem) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	batch := make(map[ds.Point]*objs.GroundItem)
-	for _, groundItem := range groundItems {
-		x := int64(groundItem.X)
-		y := int64(groundItem.Y)
-		name := groundItem.Name
-
-		groundItemObj := &objs.GroundItem{
-			X:    x,
-			Y:    y,
-			Name: name,
-		}
-
-		batch[ds.NewPoint(x, y)] = groundItemObj
-
-		_, err := a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
-			LevelID: level.ID,
-			X:       x,
-			Y:       y,
-			Name:    name,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	a.client.LevelPointMaps().GroundItems.AddBatch(level.ID, batch)
-	a.logger.Printf("Added %d ground items to the server's LevelPointMaps DS", len(batch))
-	return nil
+	return destinationLevel.ID, nil
 }

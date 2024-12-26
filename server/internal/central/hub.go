@@ -57,7 +57,7 @@ type GameData struct {
 }
 
 type LevelPointMaps struct {
-	Collisions  *ds.LevelPointMap[struct{}]
+	Collisions  *ds.LevelPointMap[*struct{}]
 	Shrubs      *ds.LevelPointMap[*objs.Shrub]
 	Doors       *ds.LevelPointMap[*objs.Door]
 	GroundItems *ds.LevelPointMap[*objs.GroundItem]
@@ -154,7 +154,7 @@ func NewHub(dataDirPath string) *Hub {
 			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
 		LevelPointMaps: &LevelPointMaps{
-			Collisions:  ds.NewLevelPointMap[struct{}](),
+			Collisions:  ds.NewLevelPointMap[*struct{}](),
 			Shrubs:      ds.NewLevelPointMap[*objs.Shrub](),
 			Doors:       ds.NewLevelPointMap[*objs.Door](),
 			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
@@ -280,14 +280,14 @@ func (h *Hub) populateLevelCollisionPoints(levelIds []int64) {
 			log.Fatalf("Error getting level collision pointss: %v", err)
 		}
 
-		batch := make(map[ds.Point]struct{}, len(levelCollisionPoints))
+		batch := make(map[ds.Point]*struct{}, len(levelCollisionPoints))
 		for _, cPointModel := range levelCollisionPoints {
 			collisionPoint := ds.Point{
 				X: cPointModel.X,
 				Y: cPointModel.Y,
 			}
 
-			batch[collisionPoint] = struct{}{}
+			batch[collisionPoint] = &struct{}{}
 		}
 
 		h.LevelPointMaps.Collisions.AddBatch(levelId, batch)
