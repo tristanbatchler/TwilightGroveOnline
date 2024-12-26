@@ -207,19 +207,25 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 }
 
 func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets.Packet_PickupGroundItemRequest) {
-	point := ds.Point{X: int64(message.PickupGroundItemRequest.X), Y: int64(message.PickupGroundItemRequest.Y)}
+	if senderId == g.client.Id() {
+		point := ds.Point{X: int64(message.PickupGroundItemRequest.X), Y: int64(message.PickupGroundItemRequest.Y)}
 
-	groundItem, exists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
+		groundItem, exists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
 
-	if !exists {
-		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist", senderId)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+		if !exists {
+			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist", senderId)
+			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+			return
+		}
+
+		g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
+		g.client.Broadcast(message, g.othersInLevel)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 		return
 	}
 
-	g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
-	g.client.Broadcast(message, g.othersInLevel)
-	g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
+	// If the client isn't us, we just forward the message
+	g.client.SocketSendAs(message, senderId)
 }
 
 func (g *InGame) OnExit() {

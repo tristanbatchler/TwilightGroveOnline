@@ -49,6 +49,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_log.warning(packet.get_server_message().get_msg())
 	elif packet.has_pickup_ground_item_response():
 		_handle_pickup_ground_item_response(packet.get_pickup_ground_item_response())
+	elif packet.has_pickup_ground_item_request():
+		_handle_pickup_ground_item_request(sender_id, packet.get_pickup_ground_item_request())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -159,6 +161,15 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	var ground_item_msg := pickup_ground_item_response.get_ground_item()
 	var ground_item_obj := GroundItem.instantiate(ground_item_msg.get_x(), ground_item_msg.get_y(), ground_item_msg.get_name())
 	_log.info("Picked up a %s at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
+	_remove_ground_item_from_world(ground_item_obj.x, ground_item_obj.y)
+
+# This gets forwareded to us from the server only when the other player *successfully* picks up the item
+func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_request: Packets.PickupGroundItemRequest) -> void:
+	var x := pickup_ground_item_request.get_x()
+	var y := pickup_ground_item_request.get_y()
+	if sender_id in _actors:
+		_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, x, y])
+	_remove_ground_item_from_world(x, y)
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
@@ -174,3 +185,9 @@ func _handle_disconnect(sender_id: int) -> void:
 	if sender_id in _actors:
 		_log.error("%s disconnected" % _actors[sender_id].actor_name)
 		_remove_actor(sender_id)
+
+func _remove_ground_item_from_world(x: int, y: int) -> void:
+	for node in _world.get_children():
+		if node is GroundItem:
+			if node.x == x and node.y == y:
+				node.queue_free()

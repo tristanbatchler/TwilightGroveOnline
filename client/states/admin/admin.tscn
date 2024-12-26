@@ -53,8 +53,7 @@ text = "Upload Level
 [node name="JoinGameButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
 size_flags_horizontal = 10
-tooltip_text = "Upload a Godot level to the server.
-The server will store this as the main game level to send to players upon login."
+tooltip_text = "Enter the game as a player with special privileges"
 text = "Join Game"
 
 [node name="SqlConsole" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("3_6q754")]
