@@ -582,20 +582,26 @@ func (q *Queries) UpdateActorLevel(ctx context.Context, arg UpdateActorLevelPara
 	return err
 }
 
-const updateActorPosition = `-- name: UpdateActorPosition :exec
+const updateActorLocation = `-- name: UpdateActorLocation :exec
 UPDATE actors
-SET x = ?, y = ?
+SET level_id = ?, x = ?, y = ?
 WHERE id = ?
 `
 
-type UpdateActorPositionParams struct {
-	X  int64
-	Y  int64
-	ID int64
+type UpdateActorLocationParams struct {
+	LevelID int64
+	X       int64
+	Y       int64
+	ID      int64
 }
 
-func (q *Queries) UpdateActorPosition(ctx context.Context, arg UpdateActorPositionParams) error {
-	_, err := q.db.ExecContext(ctx, updateActorPosition, arg.X, arg.Y, arg.ID)
+func (q *Queries) UpdateActorLocation(ctx context.Context, arg UpdateActorLocationParams) error {
+	_, err := q.db.ExecContext(ctx, updateActorLocation,
+		arg.LevelID,
+		arg.X,
+		arg.Y,
+		arg.ID,
+	)
 	return err
 }
 

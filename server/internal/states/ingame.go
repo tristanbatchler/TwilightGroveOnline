@@ -162,7 +162,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	g.player.X = targetX
 	g.player.Y = targetY
 
-	go g.syncPlayerPosition(500 * time.Millisecond)
+	go g.syncPlayerLocation(500 * time.Millisecond)
 
 	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
@@ -206,7 +206,7 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 func (g *InGame) OnExit() {
 	g.client.Broadcast(packets.NewLogout(), g.othersInLevel)
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
-	g.syncPlayerPosition(5 * time.Second)
+	g.syncPlayerLocation(5 * time.Second)
 	g.cancelPlayerUpdateLoop()
 }
 
@@ -219,14 +219,15 @@ func (g *InGame) removeFromOtherInLevel(clientId uint64) {
 	}
 }
 
-func (g *InGame) syncPlayerPosition(timeout time.Duration) {
+func (g *InGame) syncPlayerLocation(timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	err := g.queries.UpdateActorPosition(ctx, db.UpdateActorPositionParams{
-		X:  g.player.X,
-		Y:  g.player.Y,
-		ID: g.player.DbId,
+	err := g.queries.UpdateActorLocation(ctx, db.UpdateActorLocationParams{
+		LevelID: g.player.LevelId,
+		X:       g.player.X,
+		Y:       g.player.Y,
+		ID:      g.player.DbId,
 	})
 
 	if err != nil {
@@ -256,7 +257,7 @@ func (g *InGame) playerUpdateLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			g.syncPlayerPosition(1 * time.Second)
+			g.syncPlayerLocation(1 * time.Second)
 		case <-ctx.Done():
 			return
 		}
@@ -278,7 +279,7 @@ func (g *InGame) switchLevel(newLevelId int64) {
 func (g *InGame) enterDoor(door *objs.Door) {
 	g.player.X = door.DestinationX
 	g.player.Y = door.DestinationY
-	go g.syncPlayerPosition(500 * time.Millisecond)
+	go g.syncPlayerLocation(500 * time.Millisecond)
 
 	g.player.LevelId = door.DestinationLevelId
 	go g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{

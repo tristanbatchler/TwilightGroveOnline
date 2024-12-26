@@ -22,9 +22,9 @@ RETURNING *;
 SELECT * FROM actors
 WHERE user_id = ? LIMIT 1;
 
--- name: UpdateActorPosition :exec
+-- name: UpdateActorLocation :exec
 UPDATE actors
-SET x = ?, y = ?
+SET level_id = ?, x = ?, y = ?
 WHERE id = ?;
 
 -- name: UpdateActorLevel :exec
