@@ -22,3 +22,11 @@
 1. Optional: install the [vscode-proto3](https://marketplace.visualstudio.com/items?itemName=zxh404.vscode-proto3) extension for syntax highlighting and automatical go compilation on save.
 
 1. Edit the root `Entered` node in the `res://states/entered/entered.tscn` scene in Godot to have a server URL of `wss://dev.your.domain:43200/ws`.
+
+## TODO
+- [x] Items on the ground for the level
+- [ ] Refactor level parsing code - add interface to implement `ToGameObject()`? `ToDB()`?
+- [ ] Press G to pick up items when standing on them
+- [ ] Storing items in the player's inventory, both on the server and in the database
+- [ ] Displaying the player's inventory on the client
+- [ ] Dropping items from the player's inventory onto the ground

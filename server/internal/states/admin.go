@@ -157,6 +157,13 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		return
 	}
 
+	err = a.importGroundItems(level, message.LevelUpload.GroundItem)
+	if err != nil {
+		a.logger.Printf("Error importing ground items: %v", err)
+		a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
+		return
+	}
+
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
 }
 
@@ -196,10 +203,12 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName s
 	a.queries.DeleteLevelCollisionPointsByLevelId(dbCtx, levelId)
 	a.queries.DeleteLevelShrubsByLevelId(dbCtx, levelId)
 	a.queries.DeleteLevelDoorsByLevelId(dbCtx, levelId)
+	a.queries.DeleteLevelGroundItemsByLevelId(dbCtx, levelId)
 
 	a.client.LevelPointMaps().Collisions.Clear(levelId)
 	a.client.LevelPointMaps().Shrubs.Clear(levelId)
 	a.client.LevelPointMaps().Doors.Clear(levelId)
+	a.client.LevelPointMaps().GroundItems.Clear(levelId)
 
 	a.queries.DeleteLevelTscnDataByLevelId(dbCtx, levelId)
 	a.queries.UpdateLevelLastUpdated(dbCtx, db.UpdateLevelLastUpdatedParams{
@@ -322,5 +331,39 @@ func (a *Admin) importDoors(level db.Level, doors []*packets.Door) error {
 
 	a.client.LevelPointMaps().Doors.AddBatch(level.ID, batch)
 	a.logger.Printf("Added %d doors to the server's LevelPointMaps DS", len(batch))
+	return nil
+}
+
+func (a *Admin) importGroundItems(level db.Level, groundItems []*packets.GroundItem) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	batch := make(map[ds.Point]*objs.GroundItem)
+	for _, groundItem := range groundItems {
+		x := int64(groundItem.X)
+		y := int64(groundItem.Y)
+		name := groundItem.Name
+
+		groundItemObj := &objs.GroundItem{
+			X:    x,
+			Y:    y,
+			Name: name,
+		}
+
+		batch[ds.NewPoint(x, y)] = groundItemObj
+
+		_, err := a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
+			LevelID: level.ID,
+			X:       x,
+			Y:       y,
+			Name:    name,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	a.client.LevelPointMaps().GroundItems.AddBatch(level.ID, batch)
+	a.logger.Printf("Added %d ground items to the server's LevelPointMaps DS", len(batch))
 	return nil
 }

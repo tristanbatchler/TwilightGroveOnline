@@ -67,3 +67,12 @@ CREATE TABLE IF NOT EXISTS levels_doors (
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE, -- delete from levels_doors when level with id level_id is deleted
     FOREIGN KEY (destination_level_id) REFERENCES levels(id) ON DELETE RESTRICT -- do not allow deletion of levels that are destinations
 );
+
+CREATE TABLE IF NOT EXISTS levels_ground_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE 
+);

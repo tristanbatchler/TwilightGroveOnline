@@ -57,9 +57,10 @@ type GameData struct {
 }
 
 type LevelPointMaps struct {
-	Collisions *ds.LevelPointMap[struct{}]
-	Shrubs     *ds.LevelPointMap[*objs.Shrub]
-	Doors      *ds.LevelPointMap[*objs.Door]
+	Collisions  *ds.LevelPointMap[struct{}]
+	Shrubs      *ds.LevelPointMap[*objs.Shrub]
+	Doors       *ds.LevelPointMap[*objs.Door]
+	GroundItems *ds.LevelPointMap[*objs.GroundItem]
 }
 
 // A structure for the connected client to interface with the hub
@@ -153,9 +154,10 @@ func NewHub(dataDirPath string) *Hub {
 			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
 		LevelPointMaps: &LevelPointMaps{
-			Collisions: ds.NewLevelPointMap[struct{}](),
-			Shrubs:     ds.NewLevelPointMap[*objs.Shrub](),
-			Doors:      ds.NewLevelPointMap[*objs.Door](),
+			Collisions:  ds.NewLevelPointMap[struct{}](),
+			Shrubs:      ds.NewLevelPointMap[*objs.Shrub](),
+			Doors:       ds.NewLevelPointMap[*objs.Door](),
+			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
 		},
 	}
 }
@@ -344,6 +346,32 @@ func (h *Hub) populateLevelDoors(levelIds []int64) {
 
 		h.LevelPointMaps.Doors.AddBatch(levelId, batch)
 		log.Printf("Added %d doors to the server for level %d", len(doors), levelId)
+	}
+}
+
+func (h *Hub) populateLevelGroundItems(levelIds []int64) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	for _, levelId := range levelIds {
+		groundItems, err := h.NewDbTx().Queries.GetLevelGroundItemsByLevelId(ctx, levelId)
+		if err != nil {
+			log.Fatalf("Error getting shrubs: %v", err)
+		}
+
+		batch := make(map[ds.Point]*objs.GroundItem, len(groundItems))
+		for _, groundItemModel := range groundItems {
+			groundItem := &objs.GroundItem{
+				Name: groundItemModel.Name,
+				X:    groundItemModel.X,
+				Y:    groundItemModel.Y,
+			}
+
+			batch[ds.Point{X: groundItem.X, Y: groundItem.Y}] = groundItem
+		}
+
+		h.LevelPointMaps.GroundItems.AddBatch(levelId, batch)
+		log.Printf("Added %d ground items to the server for level %d", len(groundItems), levelId)
 	}
 }
 

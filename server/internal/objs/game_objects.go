@@ -18,3 +18,8 @@ type Door struct {
 	DestinationY       int64
 	X, Y               int64
 }
+
+type GroundItem struct {
+	Name string
+	X, Y int64
+}

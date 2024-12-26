@@ -49,6 +49,14 @@ type LevelsDoor struct {
 	Y                  int64
 }
 
+type LevelsGroundItem struct {
+	ID      int64
+	LevelID int64
+	Name    string
+	X       int64
+	Y       int64
+}
+
 type LevelsShrub struct {
 	ID       int64
 	LevelID  int64

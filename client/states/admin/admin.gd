@@ -3,6 +3,7 @@ extends Node
 const Packets := preload("res://packets.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
 const Door := preload("res://objects/door/door.gd")
+const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _nav: HBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/Nav
@@ -91,6 +92,14 @@ func _on_level_browser_file_selected(path: String) -> void:
 			door.set_x(node.position.x / node._world_tile_size.x)
 			door.set_y(node.position.y / node._world_tile_size.y)
 			print("Found door at (%d, %d)" % [door.get_x(), door.get_y()])
+			
+		elif node is GroundItem:
+			var ground_item := level_upload.add_ground_item()
+			ground_item.set_name(node.item_name)
+			ground_item.set_x(node.position.x / node._world_tile_size.x)
+			ground_item.set_y(node.position.y / node._world_tile_size.y)
+			print("Found ground item %s at (%d, %d)" % [ground_item.get_name(), ground_item.get_x(), ground_item.get_y()])
+			
 	
 	var file := FileAccess.open(path, FileAccess.READ)
 	level_upload.set_gd_res_path(scene.resource_path)

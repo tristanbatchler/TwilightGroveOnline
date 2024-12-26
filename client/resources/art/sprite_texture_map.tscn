@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgtfkq31ugw5c"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ngowx"]
+load_path = "res://.godot/imported/colored_tilemap_packed.png-57095d1f6d6aa91557b0fd75f86e218d.ctex"
+
+[node name="Sprite2D" type="Sprite2D"]
+texture = SubResource("CompressedTexture2D_ngowx")
+centered = false
+region_enabled = true
+region_rect = Rect2(32, 40, 8, 8)

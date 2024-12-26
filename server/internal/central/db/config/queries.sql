@@ -153,6 +153,22 @@ WHERE level_id = ?;
 SELECT * FROM levels_doors
 WHERE level_id = ?;
 
+-- name: CreateLevelGroundItem :one
+INSERT INTO levels_ground_items (
+    level_id, name, x, y
+) VALUES (
+    ?, ?, ?, ?
+)
+RETURNING *;
+
+-- name: DeleteLevelGroundItemsByLevelId :exec
+DELETE FROM levels_ground_items
+WHERE level_id = ?;
+
+-- name: GetLevelGroundItemsByLevelId :many
+SELECT * FROM levels_ground_items
+WHERE level_id = ?;
+
 -- name: IsActorAdmin :one
 SELECT 1 FROM users u
 JOIN admins ad ON u.id = ad.user_id

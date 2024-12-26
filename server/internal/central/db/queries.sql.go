@@ -198,6 +198,40 @@ func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams
 	return i, err
 }
 
+const createLevelGroundItem = `-- name: CreateLevelGroundItem :one
+INSERT INTO levels_ground_items (
+    level_id, name, x, y
+) VALUES (
+    ?, ?, ?, ?
+)
+RETURNING id, level_id, name, x, y
+`
+
+type CreateLevelGroundItemParams struct {
+	LevelID int64
+	Name    string
+	X       int64
+	Y       int64
+}
+
+func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGroundItemParams) (LevelsGroundItem, error) {
+	row := q.db.QueryRowContext(ctx, createLevelGroundItem,
+		arg.LevelID,
+		arg.Name,
+		arg.X,
+		arg.Y,
+	)
+	var i LevelsGroundItem
+	err := row.Scan(
+		&i.ID,
+		&i.LevelID,
+		&i.Name,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
 const createLevelShrub = `-- name: CreateLevelShrub :one
 INSERT INTO levels_shrubs (
     level_id, strength, x, y
@@ -292,6 +326,16 @@ WHERE level_id = ?
 
 func (q *Queries) DeleteLevelDoorsByLevelId(ctx context.Context, levelID int64) error {
 	_, err := q.db.ExecContext(ctx, deleteLevelDoorsByLevelId, levelID)
+	return err
+}
+
+const deleteLevelGroundItemsByLevelId = `-- name: DeleteLevelGroundItemsByLevelId :exec
+DELETE FROM levels_ground_items
+WHERE level_id = ?
+`
+
+func (q *Queries) DeleteLevelGroundItemsByLevelId(ctx context.Context, levelID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelGroundItemsByLevelId, levelID)
 	return err
 }
 
@@ -439,6 +483,40 @@ func (q *Queries) GetLevelDoorsByLevelId(ctx context.Context, levelID int64) ([]
 			&i.DestinationLevelID,
 			&i.DestinationX,
 			&i.DestinationY,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLevelGroundItemsByLevelId = `-- name: GetLevelGroundItemsByLevelId :many
+SELECT id, level_id, name, x, y FROM levels_ground_items
+WHERE level_id = ?
+`
+
+func (q *Queries) GetLevelGroundItemsByLevelId(ctx context.Context, levelID int64) ([]LevelsGroundItem, error) {
+	rows, err := q.db.QueryContext(ctx, getLevelGroundItemsByLevelId, levelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LevelsGroundItem
+	for rows.Next() {
+		var i LevelsGroundItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.LevelID,
+			&i.Name,
 			&i.X,
 			&i.Y,
 		); err != nil {

@@ -95,12 +95,19 @@ message Door {
     int32 y = 5;
 }
 
+message GroundItem {
+    string name = 1;
+    int32 x = 2;
+    int32 y = 3;
+}
+
 message LevelUpload {
     string gd_res_path = 1;
     bytes tscn_data = 2;
     repeated CollisionPoint collision_point = 3;
     repeated Shrub shrub = 4;
     repeated Door door = 5;
+    repeated GroundItem ground_item = 6;
 }
 
 message LevelUploadResponse {

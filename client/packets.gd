@@ -1689,6 +1689,75 @@ class Door:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class GroundItem:
+	func _init():
+		var service
+		
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _name
+		data[_name.tag] = service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _x
+		data[_x.tag] = service
+		
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _y
+		data[_y.tag] = service
+		
+	var data = {}
+	
+	var _name: PBField
+	func get_name() -> String:
+		return _name.value
+	func clear_name() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_name(value : String) -> void:
+		_name.value = value
+	
+	var _x: PBField
+	func get_x() -> int:
+		return _x.value
+	func clear_x() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_x(value : int) -> void:
+		_x.value = value
+	
+	var _y: PBField
+	func get_y() -> int:
+		return _y.value
+	func clear_y() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_y(value : int) -> void:
+		_y.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class LevelUpload:
 	func _init():
 		var service
@@ -1720,6 +1789,12 @@ class LevelUpload:
 		service.field = _door
 		service.func_ref = Callable(self, "add_door")
 		data[_door.tag] = service
+		
+		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 6, true, [])
+		service = PBServiceField.new()
+		service.field = _ground_item
+		service.func_ref = Callable(self, "add_ground_item")
+		data[_ground_item.tag] = service
 		
 	var data = {}
 	
@@ -1772,6 +1847,17 @@ class LevelUpload:
 	func add_door() -> Door:
 		var element = Door.new()
 		_door.value.append(element)
+		return element
+	
+	var _ground_item: PBField
+	func get_ground_item() -> Array:
+		return _ground_item.value
+	func clear_ground_item() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = []
+	func add_ground_item() -> GroundItem:
+		var element = GroundItem.new()
+		_ground_item.value.append(element)
 		return element
 	
 	func _to_string() -> String:
