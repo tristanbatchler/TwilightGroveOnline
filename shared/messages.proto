@@ -82,23 +82,26 @@ message CollisionPoint {
 }
 
 message Shrub {
-    int32 x = 1;
-    int32 y = 2;
-    int32 strength = 3;
+    uint64 id = 1;
+    int32 x = 2;
+    int32 y = 3;
+    int32 strength = 4;
 }
 
 message Door {
-    string destination_level_gd_res_path = 1;
-    int32 destination_x = 2;
-    int32 destination_y = 3;
-    int32 x = 4;
-    int32 y = 5;
+    uint64 id = 1;
+    string destination_level_gd_res_path = 2;
+    int32 destination_x = 3;
+    int32 destination_y = 4;
+    int32 x = 5;
+    int32 y = 6;
 }
 
 message GroundItem {
-    string name = 1;
-    int32 x = 2;
-    int32 y = 3;
+    uint64 id = 1;
+    string name = 2;
+    int32 x = 3;
+    int32 y = 4;
 }
 
 message LevelUpload {
@@ -165,5 +168,8 @@ message Packet {
         ServerMessage server_message = 22;
         PickupGroundItemRequest pickup_ground_item_request = 23;
         PickupGroundItemResponse pickup_ground_item_response = 24;
+        Shrub shrub = 25;
+        Door door = 26;
+        GroundItem ground_item = 27;
     }
 }

@@ -7,8 +7,8 @@ const Scene: PackedScene = preload("res://objects/ground_item/ground_item.tscn")
 @export var item_name: String
 
 var _world_tile_size := Vector2i(8, 8)
-var sprite_region_x: int
-var sprite_region_y: int
+var sprite_region_x: int = 0
+var sprite_region_y: int = 0
 
 var x: int:
 	set(value):
@@ -34,7 +34,8 @@ func place(world: TileMapLayer) -> void:
 	world.add_child(self)
 
 func _ready() -> void:
-	sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, _world_tile_size.x, _world_tile_size.y)
+	if sprite != null:
+		sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, _world_tile_size.x, _world_tile_size.y)
 	
 	# Correctly set x and y if the ground item was manually placed in the level editor 
 	# (i.e. not received by the server)

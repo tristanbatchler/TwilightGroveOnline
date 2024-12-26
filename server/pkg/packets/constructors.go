@@ -62,6 +62,40 @@ func NewActor(actor *objs.Actor) Msg {
 	}
 }
 
+func NewShrub(id uint64, shrub *objs.Shrub) Msg {
+	return &Packet_Shrub{
+		Shrub: &Shrub{
+			Id: id,
+			X:  int32(shrub.X),
+			Y:  int32(shrub.Y),
+		},
+	}
+}
+
+func NewGroundItem(id uint64, groundItem *objs.GroundItem) Msg {
+	return &Packet_GroundItem{
+		GroundItem: &GroundItem{
+			Id:   id,
+			X:    int32(groundItem.X),
+			Y:    int32(groundItem.Y),
+			Name: groundItem.Name,
+		},
+	}
+}
+
+func NewDoor(id uint64, door *objs.Door, destinationLevelResPath string) Msg {
+	return &Packet_Door{
+		Door: &Door{
+			Id:                        id,
+			X:                         int32(door.X),
+			Y:                         int32(door.Y),
+			DestinationX:              int32(door.DestinationX),
+			DestinationY:              int32(door.DestinationY),
+			DestinationLevelGdResPath: destinationLevelResPath,
+		},
+	}
+}
+
 func NewDisconnect() Msg {
 	return &Packet_Disconnect{}
 }

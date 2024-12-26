@@ -219,6 +219,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 		}
 
 		g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
+		g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
 		g.client.Broadcast(message, g.othersInLevel)
 		g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 		return
@@ -272,6 +273,22 @@ func (g *InGame) sendLevel() {
 
 	g.logger.Printf("Sending level data...")
 	g.client.SocketSend(packets.NewLevelDownload(levelTscnData.TscnData))
+
+	g.logger.Printf("Sending shared game objects...")
+	g.client.SharedGameObjects().GroundItems.ForEach(func(id uint64, groundItem *objs.GroundItem) {
+		go g.client.SocketSend(packets.NewGroundItem(id, groundItem))
+	})
+	g.client.SharedGameObjects().Doors.ForEach(func(id uint64, door *objs.Door) {
+		destinationGdResPath, err := g.queries.GetLevelById(context.Background(), door.DestinationLevelId)
+		if err != nil {
+			g.logger.Printf("Failed to get destination level gd res path for door: %v", err)
+			return
+		}
+		go g.client.SocketSend(packets.NewDoor(id, door, destinationGdResPath.GdResPath))
+	})
+	g.client.SharedGameObjects().Shrubs.ForEach(func(id uint64, shrub *objs.Shrub) {
+		go g.client.SocketSend(packets.NewShrub(id, shrub))
+	})
 }
 
 func (g *InGame) playerUpdateLoop(ctx context.Context) {

@@ -43,17 +43,21 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		CollisionPointsImporter: levels.NewPacketDataImporter(
 			"collision points",
 			a.client.LevelPointMaps().Collisions,
+			nil,
 			func(c *packets.CollisionPoint) ds.Point { return ds.NewPoint(int64(c.GetX()), int64(c.GetY())) },
 			a.addCollisionPointToDb,
 			a.queries.DeleteLevelCollisionPointsByLevelId,
+			func(*struct{}, uint64) {},
 			func(c *packets.CollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 		),
 		ShrubsImporter: levels.NewPacketDataImporter(
 			"shrubs",
 			a.client.LevelPointMaps().Shrubs,
+			a.client.SharedGameObjects().Shrubs,
 			func(s *packets.Shrub) ds.Point { return ds.NewPoint(int64(s.X), int64(s.Y)) },
 			a.addShrubToDb,
 			a.queries.DeleteLevelShrubsByLevelId,
+			func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
 			func(s *packets.Shrub) (*objs.Shrub, error) {
 				return &objs.Shrub{X: int64(s.X), Y: int64(s.Y), Strength: s.Strength}, nil
 			},
@@ -61,9 +65,11 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		DoorsImporter: levels.NewPacketDataImporter(
 			"doors",
 			a.client.LevelPointMaps().Doors,
+			a.client.SharedGameObjects().Doors,
 			func(d *packets.Door) ds.Point { return ds.NewPoint(int64(d.X), int64(d.Y)) },
 			a.addDoorToDb,
 			a.queries.DeleteLevelDoorsByLevelId,
+			func(d *objs.Door, id uint64) { d.Id = id },
 			func(d *packets.Door) (*objs.Door, error) {
 				destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
 				if err != nil {
@@ -81,9 +87,11 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		GroundItemsImporter: levels.NewPacketDataImporter(
 			"ground items",
 			a.client.LevelPointMaps().GroundItems,
+			a.client.SharedGameObjects().GroundItems,
 			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(int64(g.X), int64(g.Y)) },
 			a.addGroundItemToDb,
 			a.queries.DeleteLevelGroundItemsByLevelId,
+			func(g *objs.GroundItem, id uint64) { g.Id = id },
 			func(g *packets.GroundItem) (*objs.GroundItem, error) {
 				return &objs.GroundItem{X: int64(g.X), Y: int64(g.Y), Name: g.Name}, nil
 			},

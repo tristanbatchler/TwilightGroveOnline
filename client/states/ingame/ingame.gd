@@ -17,6 +17,7 @@ var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
 
 var _actors: Dictionary[int, Actor]
+var _ground_items: Dictionary[int, GroundItem]
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
@@ -51,6 +52,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_pickup_ground_item_response(packet.get_pickup_ground_item_response())
 	elif packet.has_pickup_ground_item_request():
 		_handle_pickup_ground_item_request(sender_id, packet.get_pickup_ground_item_request())
+	elif packet.has_ground_item():
+		_handle_ground_item(packet.get_ground_item())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -108,7 +111,9 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 	for node: Node in _world.get_children():
 		if node is TileMapLayer:
 			_world_tilemap_layer = node
-			break
+		else:
+			# Remove everything except the tilemap because these will be sent to us from the server's dynamic data structure
+			node.queue_free()
 	
 	if _world_tilemap_layer == null:
 		_log.error("Invalid world file downloaded, no tilemap layer node. Please report this error.")
@@ -170,6 +175,19 @@ func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_reque
 	if sender_id in _actors:
 		_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, x, y])
 	_remove_ground_item_from_world(x, y)
+
+func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
+	var gid := ground_item_msg.get_id()
+	if gid in _ground_items:
+		return
+	var x := ground_item_msg.get_x()
+	var y := ground_item_msg.get_y()
+	var item_name := ground_item_msg.get_name()
+	
+	var ground_item_obj := GroundItem.instantiate(x, y, item_name)
+	
+	_ground_items[gid] = ground_item_obj
+	ground_item_obj.place(_world_tilemap_layer)
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:

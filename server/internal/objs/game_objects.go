@@ -8,11 +8,13 @@ type Actor struct {
 }
 
 type Shrub struct {
+	Id       uint64
 	Strength int32
 	X, Y     int64
 }
 
 type Door struct {
+	Id                 uint64
 	DestinationLevelId int64
 	DestinationX       int64
 	DestinationY       int64
@@ -20,6 +22,7 @@ type Door struct {
 }
 
 type GroundItem struct {
+	Id   uint64
 	Name string
 	X, Y int64
 }

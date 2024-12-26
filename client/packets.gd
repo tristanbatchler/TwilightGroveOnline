@@ -1527,28 +1527,42 @@ class Shrub:
 	func _init():
 		var service
 		
-		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		service = PBServiceField.new()
+		service.field = _id
+		data[_id.tag] = service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _x
 		data[_x.tag] = service
 		
-		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _y
 		data[_y.tag] = service
 		
-		_strength = PBField.new("strength", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_strength = PBField.new("strength", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _strength
 		data[_strength.tag] = service
 		
 	var data = {}
 	
+	var _id: PBField
+	func get_id() -> int:
+		return _id.value
+	func clear_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+	func set_id(value : int) -> void:
+		_id.value = value
+	
 	var _x: PBField
 	func get_x() -> int:
 		return _x.value
 	func clear_x() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_x(value : int) -> void:
 		_x.value = value
@@ -1557,7 +1571,7 @@ class Shrub:
 	func get_y() -> int:
 		return _y.value
 	func clear_y() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
@@ -1566,7 +1580,7 @@ class Shrub:
 	func get_strength() -> int:
 		return _strength.value
 	func clear_strength() -> void:
-		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		_strength.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_strength(value : int) -> void:
 		_strength.value = value
@@ -1596,38 +1610,52 @@ class Door:
 	func _init():
 		var service
 		
-		_destination_level_gd_res_path = PBField.new("destination_level_gd_res_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		service = PBServiceField.new()
+		service.field = _id
+		data[_id.tag] = service
+		
+		_destination_level_gd_res_path = PBField.new("destination_level_gd_res_path", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
 		service.field = _destination_level_gd_res_path
 		data[_destination_level_gd_res_path.tag] = service
 		
-		_destination_x = PBField.new("destination_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_destination_x = PBField.new("destination_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _destination_x
 		data[_destination_x.tag] = service
 		
-		_destination_y = PBField.new("destination_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_destination_y = PBField.new("destination_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _destination_y
 		data[_destination_y.tag] = service
 		
-		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _x
 		data[_x.tag] = service
 		
-		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _y
 		data[_y.tag] = service
 		
 	var data = {}
 	
+	var _id: PBField
+	func get_id() -> int:
+		return _id.value
+	func clear_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+	func set_id(value : int) -> void:
+		_id.value = value
+	
 	var _destination_level_gd_res_path: PBField
 	func get_destination_level_gd_res_path() -> String:
 		return _destination_level_gd_res_path.value
 	func clear_destination_level_gd_res_path() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_destination_level_gd_res_path.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_destination_level_gd_res_path(value : String) -> void:
 		_destination_level_gd_res_path.value = value
@@ -1636,7 +1664,7 @@ class Door:
 	func get_destination_x() -> int:
 		return _destination_x.value
 	func clear_destination_x() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_destination_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_destination_x(value : int) -> void:
 		_destination_x.value = value
@@ -1645,7 +1673,7 @@ class Door:
 	func get_destination_y() -> int:
 		return _destination_y.value
 	func clear_destination_y() -> void:
-		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		_destination_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_destination_y(value : int) -> void:
 		_destination_y.value = value
@@ -1654,7 +1682,7 @@ class Door:
 	func get_x() -> int:
 		return _x.value
 	func clear_x() -> void:
-		data[4].state = PB_SERVICE_STATE.UNFILLED
+		data[5].state = PB_SERVICE_STATE.UNFILLED
 		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_x(value : int) -> void:
 		_x.value = value
@@ -1663,7 +1691,7 @@ class Door:
 	func get_y() -> int:
 		return _y.value
 	func clear_y() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.UNFILLED
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
@@ -1693,28 +1721,42 @@ class GroundItem:
 	func _init():
 		var service
 		
-		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		service = PBServiceField.new()
+		service.field = _id
+		data[_id.tag] = service
+		
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
 		service.field = _name
 		data[_name.tag] = service
 		
-		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _x
 		data[_x.tag] = service
 		
-		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _y
 		data[_y.tag] = service
 		
 	var data = {}
 	
+	var _id: PBField
+	func get_id() -> int:
+		return _id.value
+	func clear_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+	func set_id(value : int) -> void:
+		_id.value = value
+	
 	var _name: PBField
 	func get_name() -> String:
 		return _name.value
 	func clear_name() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_name(value : String) -> void:
 		_name.value = value
@@ -1723,7 +1765,7 @@ class GroundItem:
 	func get_x() -> int:
 		return _x.value
 	func clear_x() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_x(value : int) -> void:
 		_x.value = value
@@ -1732,7 +1774,7 @@ class GroundItem:
 	func get_y() -> int:
 		return _y.value
 	func clear_y() -> void:
-		data[3].state = PB_SERVICE_STATE.UNFILLED
+		data[4].state = PB_SERVICE_STATE.UNFILLED
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
@@ -2365,6 +2407,24 @@ class Packet:
 		service.func_ref = Callable(self, "new_pickup_ground_item_response")
 		data[_pickup_ground_item_response.tag] = service
 		
+		_shrub = PBField.new("shrub", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 25, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _shrub
+		service.func_ref = Callable(self, "new_shrub")
+		data[_shrub.tag] = service
+		
+		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 26, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _door
+		service.func_ref = Callable(self, "new_door")
+		data[_door.tag] = service
+		
+		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 27, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _ground_item
+		service.func_ref = Callable(self, "new_ground_item")
+		data[_ground_item.tag] = service
+		
 	var data = {}
 	
 	var _sender_id: PBField
@@ -2430,6 +2490,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_client_id.value = ClientId.new()
 		return _client_id.value
 	
@@ -2487,6 +2553,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = LoginRequest.new()
 		return _login_request.value
 	
@@ -2544,6 +2616,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_login_response.value = LoginResponse.new()
 		return _login_response.value
 	
@@ -2601,6 +2679,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_register_request.value = RegisterRequest.new()
 		return _register_request.value
 	
@@ -2658,6 +2742,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_register_response.value = RegisterResponse.new()
 		return _register_response.value
 	
@@ -2715,6 +2805,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_logout.value = Logout.new()
 		return _logout.value
 	
@@ -2772,6 +2868,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_chat.value = Chat.new()
 		return _chat.value
 	
@@ -2829,6 +2931,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = Yell.new()
 		return _yell.value
 	
@@ -2886,6 +2994,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_actor.value = Actor.new()
 		return _actor.value
 	
@@ -2943,6 +3057,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = ActorMove.new()
 		return _actor_move.value
 	
@@ -3000,6 +3120,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_motd.value = Motd.new()
 		return _motd.value
 	
@@ -3057,6 +3183,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_disconnect.value = Disconnect.new()
 		return _disconnect.value
 	
@@ -3114,6 +3246,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_admin_login_granted.value = AdminLoginGranted.new()
 		return _admin_login_granted.value
 	
@@ -3171,6 +3309,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_sql_query.value = SqlQuery.new()
 		return _sql_query.value
 	
@@ -3228,6 +3372,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_sql_response.value = SqlResponse.new()
 		return _sql_response.value
 	
@@ -3285,6 +3435,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload.value = LevelUpload.new()
 		return _level_upload.value
 	
@@ -3342,6 +3498,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload_response.value = LevelUploadResponse.new()
 		return _level_upload_response.value
 	
@@ -3399,6 +3561,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_level_download.value = LevelDownload.new()
 		return _level_download.value
 	
@@ -3456,6 +3624,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_request.value = AdminJoinGameRequest.new()
 		return _admin_join_game_request.value
 	
@@ -3513,6 +3687,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = AdminJoinGameResponse.new()
 		return _admin_join_game_response.value
 	
@@ -3570,6 +3750,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_server_message.value = ServerMessage.new()
 		return _server_message.value
 	
@@ -3627,6 +3813,12 @@ class Packet:
 		data[23].state = PB_SERVICE_STATE.FILLED
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_request.value = PickupGroundItemRequest.new()
 		return _pickup_ground_item_request.value
 	
@@ -3684,8 +3876,203 @@ class Packet:
 		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[23].state = PB_SERVICE_STATE.UNFILLED
 		data[24].state = PB_SERVICE_STATE.FILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = PickupGroundItemResponse.new()
 		return _pickup_ground_item_response.value
+	
+	var _shrub: PBField
+	func has_shrub() -> bool:
+		return data[25].state == PB_SERVICE_STATE.FILLED
+	func get_shrub() -> Shrub:
+		return _shrub.value
+	func clear_shrub() -> void:
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_shrub() -> Shrub:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		data[25].state = PB_SERVICE_STATE.FILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = Shrub.new()
+		return _shrub.value
+	
+	var _door: PBField
+	func has_door() -> bool:
+		return data[26].state == PB_SERVICE_STATE.FILLED
+	func get_door() -> Door:
+		return _door.value
+	func clear_door() -> void:
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_door() -> Door:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		data[26].state = PB_SERVICE_STATE.FILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = Door.new()
+		return _door.value
+	
+	var _ground_item: PBField
+	func has_ground_item() -> bool:
+		return data[27].state == PB_SERVICE_STATE.FILLED
+	func get_ground_item() -> GroundItem:
+		return _ground_item.value
+	func clear_ground_item() -> void:
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_ground_item() -> GroundItem:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		data[27].state = PB_SERVICE_STATE.FILLED
+		_ground_item.value = GroundItem.new()
+		return _ground_item.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

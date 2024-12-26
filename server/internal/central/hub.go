@@ -48,7 +48,10 @@ type ClientStateHandler interface {
 
 type SharedGameObjects struct {
 	// The ID of the actor is the client ID of the client that owns it
-	Actors *ds.SharedCollection[*objs.Actor]
+	Actors      *ds.SharedCollection[*objs.Actor]
+	Shrubs      *ds.SharedCollection[*objs.Shrub]
+	Doors       *ds.SharedCollection[*objs.Door]
+	GroundItems *ds.SharedCollection[*objs.GroundItem]
 }
 
 // A collection of static data for the game
@@ -158,7 +161,10 @@ func NewHub(dataDirPath string) *Hub {
 		UnregisterChan: make(chan ClientInterfacer),
 		dbPool:         dbPool,
 		SharedGameObjects: &SharedGameObjects{
-			Actors: ds.NewSharedCollection[*objs.Actor](),
+			Actors:      ds.NewSharedCollection[*objs.Actor](),
+			Shrubs:      ds.NewSharedCollection[*objs.Shrub](),
+			Doors:       ds.NewSharedCollection[*objs.Door](),
+			GroundItems: ds.NewSharedCollection[*objs.GroundItem](),
 		},
 		GameData: &GameData{
 			MotdPath: path.Join(dataDirPath, "motd.txt"),
@@ -191,15 +197,19 @@ func (h *Hub) Run(adminPassword string) {
 	h.LevelDataImporters.CollisionPointsImporter = levels.NewDbDataImporter(
 		"collision point",
 		h.LevelPointMaps.Collisions,
+		nil,
 		func(message *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
 		queries.GetLevelCollisionPointsByLevelId,
+		func(*struct{}, uint64) {},
 		func(message *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 	)
 	h.LevelDataImporters.ShrubsImporter = levels.NewDbDataImporter(
 		"shrub",
 		h.LevelPointMaps.Shrubs,
+		h.SharedGameObjects.Shrubs,
 		func(message *db.LevelsShrub) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
 		queries.GetLevelShrubsByLevelId,
+		func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
 		func(message *db.LevelsShrub) (*objs.Shrub, error) {
 			return &objs.Shrub{Strength: int32(message.Strength), X: message.X, Y: message.Y}, nil
 		},
@@ -207,8 +217,10 @@ func (h *Hub) Run(adminPassword string) {
 	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
 		"door",
 		h.LevelPointMaps.Doors,
+		h.SharedGameObjects.Doors,
 		func(message *db.LevelsDoor) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
 		queries.GetLevelDoorsByLevelId,
+		func(door *objs.Door, id uint64) { door.Id = id },
 		func(message *db.LevelsDoor) (*objs.Door, error) {
 			return &objs.Door{DestinationLevelId: message.DestinationLevelID, DestinationX: message.DestinationX, DestinationY: message.DestinationY, X: message.X, Y: message.Y}, nil
 		},
@@ -216,8 +228,10 @@ func (h *Hub) Run(adminPassword string) {
 	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
 		"ground item",
 		h.LevelPointMaps.GroundItems,
+		h.SharedGameObjects.GroundItems,
 		func(message *db.LevelsGroundItem) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
 		queries.GetLevelGroundItemsByLevelId,
+		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
 		func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
 			return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y}, nil
 		},

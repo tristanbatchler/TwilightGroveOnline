@@ -9,31 +9,37 @@ import (
 )
 
 type PacketDataImporter[O any, M any] struct {
-	nameOfObject   string
-	levelPointMap  *ds.LevelPointMap[*O]
-	getPoint       func(message *M) ds.Point
-	addToDb        func(ctx context.Context, levelId int64, message *M) error
-	removeFromDb   func(ctx context.Context, levelId int64) error
-	makeGameObject func(*M) (*O, error)
-	logger         *log.Logger
+	nameOfObject     string
+	levelPointMap    *ds.LevelPointMap[*O]
+	sharedCollection *ds.SharedCollection[*O]
+	getPoint         func(message *M) ds.Point
+	addToDb          func(ctx context.Context, levelId int64, message *M) error
+	removeFromDb     func(ctx context.Context, levelId int64) error
+	setObjectId      func(object *O, id uint64)
+	makeGameObject   func(*M) (*O, error)
+	logger           *log.Logger
 }
 
 func NewPacketDataImporter[O any, M any](
 	nameOfObject string,
 	levelPointMap *ds.LevelPointMap[*O],
+	sharedCollection *ds.SharedCollection[*O],
 	getPoint func(message *M) ds.Point,
 	addToDb func(ctx context.Context, levelId int64, message *M) error,
 	removeFromDb func(ctx context.Context, levelId int64) error,
+	setObjectId func(object *O, id uint64),
 	makeGameObject func(*M) (*O, error),
 ) *PacketDataImporter[O, M] {
 	return &PacketDataImporter[O, M]{
-		nameOfObject:   nameOfObject,
-		levelPointMap:  levelPointMap,
-		getPoint:       getPoint,
-		addToDb:        addToDb,
-		removeFromDb:   removeFromDb,
-		makeGameObject: makeGameObject,
-		logger:         log.New(log.Writer(), "PacketLevelDataImporter: ", log.LstdFlags),
+		nameOfObject:     nameOfObject,
+		levelPointMap:    levelPointMap,
+		sharedCollection: sharedCollection,
+		getPoint:         getPoint,
+		addToDb:          addToDb,
+		removeFromDb:     removeFromDb,
+		setObjectId:      setObjectId,
+		makeGameObject:   makeGameObject,
+		logger:           log.New(log.Writer(), "PacketLevelDataImporter: ", log.LstdFlags),
 	}
 }
 
@@ -50,6 +56,13 @@ func (p *PacketDataImporter[O, M]) ImportObjects(
 		if err != nil {
 			p.logger.Printf("Failed to create a %s object from the message: %v", p.nameOfObject, err)
 			continue
+		}
+
+		// TODO: Make an AddBatch method for SharedCollection
+		if p.sharedCollection != nil {
+			objId := p.sharedCollection.Add(gameObject)
+			p.setObjectId(gameObject, objId)
+			p.logger.Printf("Added a %s object to the server's SharedCollection DS", p.nameOfObject)
 		}
 
 		batch[p.getPoint(objectMsg)] = gameObject
