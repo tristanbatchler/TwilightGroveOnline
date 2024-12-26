@@ -209,7 +209,7 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName s
 	a.logger.Printf("Cleared out old data for level %s", levelName)
 }
 
-func (a *Admin) importCollisionPoints(level db.Level, collisionPoints []*packets.LevelCollisionPoint) error {
+func (a *Admin) importCollisionPoints(level db.Level, collisionPoints []*packets.CollisionPoint) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 

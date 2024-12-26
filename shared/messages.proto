@@ -77,8 +77,7 @@ message SqlResponse {
     repeated SqlRow rows = 3;
 }
 
-// TODO: Rename to just CollisionPoint, as it's sent as part of LevelUpload
-message LevelCollisionPoint {
+message CollisionPoint {
     int32 x = 1;
     int32 y = 2;
 }
@@ -100,7 +99,7 @@ message Door {
 message LevelUpload {
     string gd_res_path = 1;
     bytes tscn_data = 2;
-    repeated LevelCollisionPoint collision_point = 3;
+    repeated CollisionPoint collision_point = 3;
     repeated Shrub shrub = 4;
     repeated Door door = 5;
 }

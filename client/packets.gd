@@ -1482,7 +1482,7 @@ class SqlResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class LevelCollisionPoint:
+class CollisionPoint:
 	func _init():
 		var service
 		
@@ -1761,8 +1761,8 @@ class LevelUpload:
 	func clear_collision_point() -> void:
 		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_collision_point.value = []
-	func add_collision_point() -> LevelCollisionPoint:
-		var element = LevelCollisionPoint.new()
+	func add_collision_point() -> CollisionPoint:
+		var element = CollisionPoint.new()
 		_collision_point.value.append(element)
 		return element
 	
