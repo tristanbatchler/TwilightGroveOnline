@@ -129,6 +129,16 @@ message ServerMessage {
     string msg = 1;
 }
 
+message PickupGroundItemRequest {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message PickupGroundItemResponse {
+    GroundItem ground_item = 1;
+    Response response = 2;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -153,5 +163,7 @@ message Packet {
         AdminJoinGameRequest admin_join_game_request = 20;
         AdminJoinGameResponse admin_join_game_response = 21;
         ServerMessage server_message = 22;
+        PickupGroundItemRequest pickup_ground_item_request = 23;
+        PickupGroundItemResponse pickup_ground_item_response = 24;
     }
 }

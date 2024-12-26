@@ -3,6 +3,7 @@ extends Node
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
 @export var download_destination_scene_path: String
 
@@ -46,6 +47,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_actor_move(sender_id, packet.get_actor_move())
 	elif packet.has_server_message():
 		_log.warning(packet.get_server_message().get_msg())
+	elif packet.has_pickup_ground_item_response():
+		_handle_pickup_ground_item_response(packet.get_pickup_ground_item_response())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -146,6 +149,16 @@ func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 		var dx := actor_move.get_dx()
 		var dy := actor_move.get_dy()
 		_actors[actor_id].move(dx, dy)
+
+func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.PickupGroundItemResponse) -> void:
+	var response := pickup_ground_item_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+	var ground_item_msg := pickup_ground_item_response.get_ground_item()
+	var ground_item_obj := GroundItem.instantiate(ground_item_msg.get_x(), ground_item_msg.get_y(), ground_item_msg.get_name())
+	_log.info("Picked up a %s at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:

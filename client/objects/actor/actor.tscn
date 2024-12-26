@@ -5,6 +5,7 @@
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_r0emk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_nf4m1"]
+resource_local_to_scene = true
 
 [node name="Actor" type="CharacterBody2D"]
 collision_mask = 2
@@ -40,6 +41,13 @@ horizontal_alignment = 1
 vertical_alignment = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, 4)
+scale = Vector2(0.39, 0.39)
+shape = SubResource("CircleShape2D_nf4m1")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 position = Vector2(4, 4)
 scale = Vector2(0.39, 0.39)
 shape = SubResource("CircleShape2D_nf4m1")

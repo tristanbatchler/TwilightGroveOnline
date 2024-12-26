@@ -22,12 +22,11 @@ var y: int:
 		if is_node_ready():
 			position.y = _world_tile_size.y * y
 
-static func instantiate(x: int, y: int, sprite_region_x: int, sprite_region_y: int) -> GroundItem:
+static func instantiate(x: int, y: int, item_name: String) -> GroundItem:
 	var ground_item := Scene.instantiate() as GroundItem
 	ground_item.x = x
 	ground_item.y = y
-	ground_item.sprite_region_x = sprite_region_x
-	ground_item.sprite_region_y = sprite_region_y
+	ground_item.item_name = item_name
 	return ground_item
 	
 func place(world: TileMapLayer) -> void:

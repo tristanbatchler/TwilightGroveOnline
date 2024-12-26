@@ -25,8 +25,11 @@
 
 ## TODO
 - [x] Items on the ground for the level
-- [ ] Refactor level parsing code - add interface to implement `ToGameObject()`? `ToDB()`?
-- [ ] Press G to pick up items when standing on them
+- [x] Refactor level parsing code - ~add interface to implement `ToGameObject()`? `ToDB()`?~ 
+    - Added some structs in `/internal/central/levels` to help 
+        - importing to DB and memory from a packet message, and
+        - importin to memory from the DB
+- [x] Press G to pick up items when standing on them
 - [ ] Storing items in the player's inventory, both on the server and in the database
 - [ ] Displaying the player's inventory on the client
 - [ ] Dropping items from the player's inventory onto the ground

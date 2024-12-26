@@ -3,6 +3,7 @@ package states
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -84,6 +85,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handleLogout(senderId, message)
 	case *packets.Packet_Disconnect:
 		g.handleDisconnect(senderId, message)
+	case *packets.Packet_PickupGroundItemRequest:
+		g.handlePickupGroundItemRequest(senderId, message)
 	}
 }
 
@@ -201,6 +204,22 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 
 	g.client.SocketSendAs(message, senderId)
 	g.removeFromOtherInLevel(senderId)
+}
+
+func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets.Packet_PickupGroundItemRequest) {
+	point := ds.Point{X: int64(message.PickupGroundItemRequest.X), Y: int64(message.PickupGroundItemRequest.Y)}
+
+	groundItem, exists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
+
+	if !exists {
+		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist", senderId)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+		return
+	}
+
+	g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
+	g.client.Broadcast(message, g.othersInLevel)
+	g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 }
 
 func (g *InGame) OnExit() {

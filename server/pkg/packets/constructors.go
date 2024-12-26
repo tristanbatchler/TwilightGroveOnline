@@ -11,14 +11,12 @@ func NewClientId(id uint64) Msg {
 }
 
 func newOptionalResponse(err error) *Response_Msg {
-	var responseMsg *Response_Msg = nil
-	if err != nil {
-		responseMsg = &Response_Msg{
-			Msg: err.Error(),
-		}
+	if err == nil {
+		return nil
 	}
-
-	return responseMsg
+	return &Response_Msg{
+		Msg: err.Error(),
+	}
 }
 
 func NewLoginResponse(success bool, err error) Msg {
@@ -128,6 +126,29 @@ func NewServerMessage(msg string) Msg {
 	return &Packet_ServerMessage{
 		ServerMessage: &ServerMessage{
 			Msg: msg,
+		},
+	}
+}
+
+func newOptionalGroundItem(groundItem *objs.GroundItem) *GroundItem {
+	if groundItem == nil {
+		return nil
+	}
+	return &GroundItem{
+		X:    int32(groundItem.X),
+		Y:    int32(groundItem.Y),
+		Name: groundItem.Name,
+	}
+}
+
+func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err error) Msg {
+	return &Packet_PickupGroundItemResponse{
+		PickupGroundItemResponse: &PickupGroundItemResponse{
+			GroundItem: newOptionalGroundItem(groundItem),
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
 		},
 	}
 }

@@ -4,6 +4,8 @@ const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 
+const GroundItem := preload("res://objects/ground_item/ground_item.gd")
+
 var target_pos: Vector2
 var _left_click_held: bool = false
 
@@ -26,6 +28,8 @@ var _world_tile_size := Vector2i(1, 1)
 
 @onready var _name_plate: Label = $NamePlate
 @onready var _camera: Camera2D = $Camera2D
+@onready var _area: Area2D = $Area2D
+
 
 static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> Actor:
 	var actor := Scene.instantiate() as Actor
@@ -70,6 +74,10 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
 		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		
+		if event.is_action_released("pickup_item"):
+			if _is_standing_on_ground_item():
+				_request_pickup_item()
 	
 	move_and_send(input_dir)
 		
@@ -134,3 +142,16 @@ func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
 			max_output = outputs[i]
 			corresponding_input = inputs[i]
 	return corresponding_input
+
+func _is_standing_on_ground_item() -> bool:
+	for area in _area.get_overlapping_areas():
+		if area is GroundItem:
+			return true
+	return false
+
+func _request_pickup_item() -> void:
+	var packet := Packets.Packet.new()
+	var pickup_ground_item_request := packet.new_pickup_ground_item_request()
+	pickup_ground_item_request.set_x(x)
+	pickup_ground_item_request.set_y(y)
+	WS.send(packet)

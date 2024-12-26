@@ -9,7 +9,7 @@ import (
 )
 
 type DbDataImporter[O any, M any] struct {
-	nameOfObject   string
+	NameOfObject   string
 	levelPointMap  *ds.LevelPointMap[*O]
 	getPoint       func(message *M) ds.Point
 	getFromDb      func(ctx context.Context, levelId int64) ([]M, error)
@@ -25,7 +25,7 @@ func NewDbDataImporter[O any, M any](
 	makeGameObject func(*M) (*O, error),
 ) *DbDataImporter[O, M] {
 	return &DbDataImporter[O, M]{
-		nameOfObject:   nameOfObject,
+		NameOfObject:   nameOfObject,
 		levelPointMap:  levelPointMap,
 		getPoint:       getPoint,
 		getFromDb:      getFromDb,
@@ -42,7 +42,7 @@ func (d *DbDataImporter[O, M]) ImportObjects(
 
 	objectModels, err := d.getFromDb(ctx, levelId)
 	if err != nil {
-		d.logger.Printf("Failed to get %s objects from the database: %v", d.nameOfObject, err)
+		d.logger.Printf("Failed to get %s objects from the database: %v", d.NameOfObject, err)
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (d *DbDataImporter[O, M]) ImportObjects(
 	for _, objectModel := range objectModels {
 		object, err := d.makeGameObject(&objectModel)
 		if err != nil {
-			d.logger.Printf("Failed to create a %s object from the model: %v", d.nameOfObject, err)
+			d.logger.Printf("Failed to create a %s object from the model: %v", d.NameOfObject, err)
 			continue
 		}
 
@@ -58,6 +58,6 @@ func (d *DbDataImporter[O, M]) ImportObjects(
 	}
 
 	d.levelPointMap.AddBatch(levelId, batch)
-	d.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), d.nameOfObject)
+	d.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), d.NameOfObject)
 	return nil
 }

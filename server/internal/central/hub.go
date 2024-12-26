@@ -169,42 +169,7 @@ func NewHub(dataDirPath string) *Hub {
 			Doors:       ds.NewLevelPointMap[*objs.Door](),
 			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
 		},
-		LevelDataImporters: &LevelDataImporters{
-			CollisionPointsImporter: levels.NewDbDataImporter(
-				"collision point",
-				ds.NewLevelPointMap[*struct{}](),
-				func(message *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
-				db.New(dbPool).GetLevelCollisionPointsByLevelId,
-				func(message *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
-			),
-			ShrubsImporter: levels.NewDbDataImporter(
-				"shrub",
-				ds.NewLevelPointMap[*objs.Shrub](),
-				func(message *db.LevelsShrub) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
-				db.New(dbPool).GetLevelShrubsByLevelId,
-				func(message *db.LevelsShrub) (*objs.Shrub, error) {
-					return &objs.Shrub{Strength: int32(message.Strength), X: message.X, Y: message.Y}, nil
-				},
-			),
-			DoorsImporter: levels.NewDbDataImporter(
-				"door",
-				ds.NewLevelPointMap[*objs.Door](),
-				func(message *db.LevelsDoor) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
-				db.New(dbPool).GetLevelDoorsByLevelId,
-				func(message *db.LevelsDoor) (*objs.Door, error) {
-					return &objs.Door{DestinationLevelId: message.DestinationLevelID, DestinationX: message.DestinationX, DestinationY: message.DestinationY, X: message.X, Y: message.Y}, nil
-				},
-			),
-			GroundItemsImporter: levels.NewDbDataImporter(
-				"ground item",
-				ds.NewLevelPointMap[*objs.GroundItem](),
-				func(message *db.LevelsGroundItem) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
-				db.New(dbPool).GetLevelGroundItemsByLevelId,
-				func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
-					return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y}, nil
-				},
-			),
-		},
+		LevelDataImporters: &LevelDataImporters{},
 	}
 }
 
@@ -216,20 +181,60 @@ func (h *Hub) Run(adminPassword string) {
 
 	h.addAdmin(adminPassword)
 
-	levelIds, err := h.NewDbTx().Queries.GetLevelIds(context.Background())
+	queries := h.NewDbTx().Queries
+
+	levelIds, err := queries.GetLevelIds(context.Background())
 	if err != nil {
 		log.Fatalf("Error getting level IDs: %v", err)
 	}
 
+	h.LevelDataImporters.CollisionPointsImporter = levels.NewDbDataImporter(
+		"collision point",
+		h.LevelPointMaps.Collisions,
+		func(message *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		queries.GetLevelCollisionPointsByLevelId,
+		func(message *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
+	)
+	h.LevelDataImporters.ShrubsImporter = levels.NewDbDataImporter(
+		"shrub",
+		h.LevelPointMaps.Shrubs,
+		func(message *db.LevelsShrub) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		queries.GetLevelShrubsByLevelId,
+		func(message *db.LevelsShrub) (*objs.Shrub, error) {
+			return &objs.Shrub{Strength: int32(message.Strength), X: message.X, Y: message.Y}, nil
+		},
+	)
+	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
+		"door",
+		h.LevelPointMaps.Doors,
+		func(message *db.LevelsDoor) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		queries.GetLevelDoorsByLevelId,
+		func(message *db.LevelsDoor) (*objs.Door, error) {
+			return &objs.Door{DestinationLevelId: message.DestinationLevelID, DestinationX: message.DestinationX, DestinationY: message.DestinationY, X: message.X, Y: message.Y}, nil
+		},
+	)
+	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
+		"ground item",
+		h.LevelPointMaps.GroundItems,
+		func(message *db.LevelsGroundItem) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		queries.GetLevelGroundItemsByLevelId,
+		func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
+			return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y}, nil
+		},
+	)
+
 	importFuncs := map[string]func(int64) error{
-		"collision points": h.LevelDataImporters.CollisionPointsImporter.ImportObjects,
-		"shrubs":           h.LevelDataImporters.ShrubsImporter.ImportObjects,
-		"doors":            h.LevelDataImporters.DoorsImporter.ImportObjects,
-		"ground items":     h.LevelDataImporters.GroundItemsImporter.ImportObjects,
+		h.LevelDataImporters.CollisionPointsImporter.NameOfObject: h.LevelDataImporters.CollisionPointsImporter.ImportObjects,
+		h.LevelDataImporters.ShrubsImporter.NameOfObject:          h.LevelDataImporters.ShrubsImporter.ImportObjects,
+		h.LevelDataImporters.DoorsImporter.NameOfObject:           h.LevelDataImporters.DoorsImporter.ImportObjects,
+		h.LevelDataImporters.GroundItemsImporter.NameOfObject:     h.LevelDataImporters.GroundItemsImporter.ImportObjects,
 	}
 
 	for _, levelId := range levelIds {
 		for objName, importFunc := range importFuncs {
+			if objName == "ground items" {
+				log.Printf("Importing %s for level %d...", objName, levelId)
+			}
 			if err := importFunc(levelId); err != nil {
 				log.Fatalf("Error importing %s: %v", objName, err)
 			}
