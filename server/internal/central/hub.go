@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"path"
-	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
@@ -103,6 +103,13 @@ type ClientInterfacer interface {
 	Close(reason string)
 }
 
+type LevelDataImporters struct {
+	CollisionPointsImporter *levels.DbDataImporter[struct{}, db.LevelsCollisionPoint]
+	ShrubsImporter          *levels.DbDataImporter[objs.Shrub, db.LevelsShrub]
+	DoorsImporter           *levels.DbDataImporter[objs.Door, db.LevelsDoor]
+	GroundItemsImporter     *levels.DbDataImporter[objs.GroundItem, db.LevelsGroundItem]
+}
+
 // The hub is the central point of communication between all connected clients
 type Hub struct {
 	Clients *ds.SharedCollection[ClientInterfacer]
@@ -127,6 +134,9 @@ type Hub struct {
 
 	// Stuff found at each point per level
 	LevelPointMaps *LevelPointMaps
+
+	// For importing inital level objects from the database to memory
+	LevelDataImporters *LevelDataImporters
 }
 
 func NewHub(dataDirPath string) *Hub {
@@ -159,6 +169,42 @@ func NewHub(dataDirPath string) *Hub {
 			Doors:       ds.NewLevelPointMap[*objs.Door](),
 			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
 		},
+		LevelDataImporters: &LevelDataImporters{
+			CollisionPointsImporter: levels.NewDbDataImporter(
+				"collision point",
+				ds.NewLevelPointMap[*struct{}](),
+				func(message *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+				db.New(dbPool).GetLevelCollisionPointsByLevelId,
+				func(message *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
+			),
+			ShrubsImporter: levels.NewDbDataImporter(
+				"shrub",
+				ds.NewLevelPointMap[*objs.Shrub](),
+				func(message *db.LevelsShrub) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+				db.New(dbPool).GetLevelShrubsByLevelId,
+				func(message *db.LevelsShrub) (*objs.Shrub, error) {
+					return &objs.Shrub{Strength: int32(message.Strength), X: message.X, Y: message.Y}, nil
+				},
+			),
+			DoorsImporter: levels.NewDbDataImporter(
+				"door",
+				ds.NewLevelPointMap[*objs.Door](),
+				func(message *db.LevelsDoor) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+				db.New(dbPool).GetLevelDoorsByLevelId,
+				func(message *db.LevelsDoor) (*objs.Door, error) {
+					return &objs.Door{DestinationLevelId: message.DestinationLevelID, DestinationX: message.DestinationX, DestinationY: message.DestinationY, X: message.X, Y: message.Y}, nil
+				},
+			),
+			GroundItemsImporter: levels.NewDbDataImporter(
+				"ground item",
+				ds.NewLevelPointMap[*objs.GroundItem](),
+				func(message *db.LevelsGroundItem) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+				db.New(dbPool).GetLevelGroundItemsByLevelId,
+				func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
+					return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y}, nil
+				},
+			),
+		},
 	}
 }
 
@@ -174,9 +220,21 @@ func (h *Hub) Run(adminPassword string) {
 	if err != nil {
 		log.Fatalf("Error getting level IDs: %v", err)
 	}
-	h.populateLevelCollisionPoints(levelIds)
-	h.populateLevelShrubs(levelIds)
-	h.populateLevelDoors(levelIds)
+
+	importFuncs := map[string]func(int64) error{
+		"collision points": h.LevelDataImporters.CollisionPointsImporter.ImportObjects,
+		"shrubs":           h.LevelDataImporters.ShrubsImporter.ImportObjects,
+		"doors":            h.LevelDataImporters.DoorsImporter.ImportObjects,
+		"ground items":     h.LevelDataImporters.GroundItemsImporter.ImportObjects,
+	}
+
+	for _, levelId := range levelIds {
+		for objName, importFunc := range importFuncs {
+			if err := importFunc(levelId); err != nil {
+				log.Fatalf("Error importing %s: %v", objName, err)
+			}
+		}
+	}
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -266,112 +324,6 @@ func (h *Hub) addAdmin(defaultPassword string) {
 		log.Printf("Error creating admin actor: %v (maybe no levels have been uploaded yet?)", err)
 	} else {
 		log.Printf("Admin actor already exists")
-	}
-}
-
-// Populates the level collision points from the database. These are stored in memory for quick access (constant time lookup)
-func (h *Hub) populateLevelCollisionPoints(levelIds []int64) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	for _, levelId := range levelIds {
-		levelCollisionPoints, err := h.NewDbTx().Queries.GetLevelCollisionPointsByLevelId(ctx, levelId)
-		if err != nil {
-			log.Fatalf("Error getting level collision pointss: %v", err)
-		}
-
-		batch := make(map[ds.Point]*struct{}, len(levelCollisionPoints))
-		for _, cPointModel := range levelCollisionPoints {
-			collisionPoint := ds.Point{
-				X: cPointModel.X,
-				Y: cPointModel.Y,
-			}
-
-			batch[collisionPoint] = &struct{}{}
-		}
-
-		h.LevelPointMaps.Collisions.AddBatch(levelId, batch)
-		log.Printf("Added %d collision points to the server for level %d", len(levelCollisionPoints), levelId)
-	}
-}
-
-func (h *Hub) populateLevelShrubs(levelIds []int64) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	for _, levelId := range levelIds {
-		shrubs, err := h.NewDbTx().Queries.GetLevelShrubsByLevelId(ctx, levelId)
-		if err != nil {
-			log.Fatalf("Error getting shrubs: %v", err)
-		}
-
-		batch := make(map[ds.Point]*objs.Shrub, len(shrubs))
-		for _, shrubModel := range shrubs {
-			shrub := &objs.Shrub{
-				Strength: int32(shrubModel.Strength),
-				X:        shrubModel.X,
-				Y:        shrubModel.Y,
-			}
-
-			batch[ds.Point{X: shrub.X, Y: shrub.Y}] = shrub
-		}
-
-		h.LevelPointMaps.Shrubs.AddBatch(levelId, batch)
-		log.Printf("Added %d shrubs to the server for level %d", len(shrubs), levelId)
-	}
-}
-
-func (h *Hub) populateLevelDoors(levelIds []int64) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	for _, levelId := range levelIds {
-		doors, err := h.NewDbTx().Queries.GetLevelDoorsByLevelId(ctx, levelId)
-		if err != nil {
-			log.Fatalf("Error getting doors: %v", err)
-		}
-
-		batch := make(map[ds.Point]*objs.Door, len(doors))
-		for _, doorModel := range doors {
-			door := &objs.Door{
-				DestinationLevelId: doorModel.DestinationLevelID,
-				DestinationX:       doorModel.DestinationX,
-				DestinationY:       doorModel.DestinationY,
-				X:                  doorModel.X,
-				Y:                  doorModel.Y,
-			}
-
-			batch[ds.Point{X: door.X, Y: door.Y}] = door
-		}
-
-		h.LevelPointMaps.Doors.AddBatch(levelId, batch)
-		log.Printf("Added %d doors to the server for level %d", len(doors), levelId)
-	}
-}
-
-func (h *Hub) populateLevelGroundItems(levelIds []int64) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	for _, levelId := range levelIds {
-		groundItems, err := h.NewDbTx().Queries.GetLevelGroundItemsByLevelId(ctx, levelId)
-		if err != nil {
-			log.Fatalf("Error getting shrubs: %v", err)
-		}
-
-		batch := make(map[ds.Point]*objs.GroundItem, len(groundItems))
-		for _, groundItemModel := range groundItems {
-			groundItem := &objs.GroundItem{
-				Name: groundItemModel.Name,
-				X:    groundItemModel.X,
-				Y:    groundItemModel.Y,
-			}
-
-			batch[ds.Point{X: groundItem.X, Y: groundItem.Y}] = groundItem
-		}
-
-		h.LevelPointMaps.GroundItems.AddBatch(levelId, batch)
-		log.Printf("Added %d ground items to the server for level %d", len(groundItems), levelId)
 	}
 }
 

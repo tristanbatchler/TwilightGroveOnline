@@ -16,10 +16,10 @@ import (
 )
 
 type LevelDataImporters struct {
-	CollisionPointsImporter *levels.DataImporter[struct{}, packets.CollisionPoint]
-	ShrubsImporter          *levels.DataImporter[objs.Shrub, packets.Shrub]
-	DoorsImporter           *levels.DataImporter[objs.Door, packets.Door]
-	GroundItemsImporter     *levels.DataImporter[objs.GroundItem, packets.GroundItem]
+	CollisionPointsImporter *levels.PacketDataImporter[struct{}, packets.CollisionPoint]
+	ShrubsImporter          *levels.PacketDataImporter[objs.Shrub, packets.Shrub]
+	DoorsImporter           *levels.PacketDataImporter[objs.Door, packets.Door]
+	GroundItemsImporter     *levels.PacketDataImporter[objs.GroundItem, packets.GroundItem]
 }
 
 type Admin struct {
@@ -40,7 +40,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 	a.queries = client.DbTx().Queries
 	a.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
 	a.levelDataImporters = &LevelDataImporters{
-		CollisionPointsImporter: levels.NewDataImporter(
+		CollisionPointsImporter: levels.NewPacketDataImporter(
 			"collision points",
 			a.client.LevelPointMaps().Collisions,
 			func(c *packets.CollisionPoint) ds.Point { return ds.NewPoint(int64(c.GetX()), int64(c.GetY())) },
@@ -48,7 +48,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			a.queries.DeleteLevelCollisionPointsByLevelId,
 			func(c *packets.CollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 		),
-		ShrubsImporter: levels.NewDataImporter(
+		ShrubsImporter: levels.NewPacketDataImporter(
 			"shrubs",
 			a.client.LevelPointMaps().Shrubs,
 			func(s *packets.Shrub) ds.Point { return ds.NewPoint(int64(s.X), int64(s.Y)) },
@@ -58,7 +58,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 				return &objs.Shrub{X: int64(s.X), Y: int64(s.Y), Strength: s.Strength}, nil
 			},
 		),
-		DoorsImporter: levels.NewDataImporter(
+		DoorsImporter: levels.NewPacketDataImporter(
 			"doors",
 			a.client.LevelPointMaps().Doors,
 			func(d *packets.Door) ds.Point { return ds.NewPoint(int64(d.X), int64(d.Y)) },
@@ -78,7 +78,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 				}, nil
 			},
 		),
-		GroundItemsImporter: levels.NewDataImporter(
+		GroundItemsImporter: levels.NewPacketDataImporter(
 			"ground items",
 			a.client.LevelPointMaps().GroundItems,
 			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(int64(g.X), int64(g.Y)) },
@@ -216,7 +216,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 
 	for _, importFunc := range importFuncs {
-		if importFunc() != nil {
+		if err = importFunc(); err != nil {
 			a.logger.Printf("Error importing object: %v", err)
 			a.client.SocketSend(packets.NewLevelUploadResponse(false, -1, level.GdResPath, err))
 			return
