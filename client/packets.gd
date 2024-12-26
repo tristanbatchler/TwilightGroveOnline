@@ -1079,7 +1079,7 @@ class Yell:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
-class ActorInfo:
+class Actor:
 	func _init():
 		var service
 		
@@ -1087,11 +1087,6 @@ class ActorInfo:
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
-		
-		_level_id = PBField.new("level_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
-		service = PBServiceField.new()
-		service.field = _level_id
-		data[_level_id.tag] = service
 		
 		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
@@ -1118,15 +1113,6 @@ class ActorInfo:
 		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
 	func set_id(value : int) -> void:
 		_id.value = value
-	
-	var _level_id: PBField
-	func get_level_id() -> int:
-		return _level_id.value
-	func clear_level_id() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_level_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
-	func set_level_id(value : int) -> void:
-		_level_id.value = value
 	
 	var _x: PBField
 	func get_x() -> int:
@@ -2089,11 +2075,11 @@ class Packet:
 		service.func_ref = Callable(self, "new_yell")
 		data[_yell.tag] = service
 		
-		_actor_info = PBField.new("actor_info", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_actor = PBField.new("actor", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 10, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = _actor_info
-		service.func_ref = Callable(self, "new_actor_info")
-		data[_actor_info.tag] = service
+		service.field = _actor
+		service.func_ref = Callable(self, "new_actor")
+		data[_actor.tag] = service
 		
 		_actor_move = PBField.new("actor_move", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 11, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
@@ -2202,7 +2188,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2255,7 +2241,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2308,7 +2294,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2361,7 +2347,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2414,7 +2400,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2467,7 +2453,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2520,7 +2506,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.FILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2573,7 +2559,7 @@ class Packet:
 		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		data[9].state = PB_SERVICE_STATE.FILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2602,15 +2588,15 @@ class Packet:
 		_yell.value = Yell.new()
 		return _yell.value
 	
-	var _actor_info: PBField
-	func has_actor_info() -> bool:
+	var _actor: PBField
+	func has_actor() -> bool:
 		return data[10].state == PB_SERVICE_STATE.FILLED
-	func get_actor_info() -> ActorInfo:
-		return _actor_info.value
-	func clear_actor_info() -> void:
+	func get_actor() -> Actor:
+		return _actor.value
+	func clear_actor() -> void:
 		data[10].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_actor_info() -> ActorInfo:
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_actor() -> Actor:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[2].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -2652,8 +2638,8 @@ class Packet:
 		data[21].state = PB_SERVICE_STATE.UNFILLED
 		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[22].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = ActorInfo.new()
-		return _actor_info.value
+		_actor.value = Actor.new()
+		return _actor.value
 	
 	var _actor_move: PBField
 	func has_actor_move() -> bool:
@@ -2680,7 +2666,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		data[11].state = PB_SERVICE_STATE.FILLED
 		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -2733,7 +2719,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2786,7 +2772,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2839,7 +2825,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2892,7 +2878,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2945,7 +2931,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -2998,7 +2984,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -3051,7 +3037,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -3104,7 +3090,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -3157,7 +3143,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -3210,7 +3196,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED
@@ -3263,7 +3249,7 @@ class Packet:
 		data[8].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[9].state = PB_SERVICE_STATE.UNFILLED
-		_actor_info.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[10].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[11].state = PB_SERVICE_STATE.UNFILLED

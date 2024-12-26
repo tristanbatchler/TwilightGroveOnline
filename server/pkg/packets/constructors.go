@@ -54,13 +54,12 @@ func NewAdminJoinGameResponse(success bool, err error) Msg {
 	}
 }
 
-func NewActorInfo(actor *objs.Actor) Msg {
-	return &Packet_ActorInfo{
-		ActorInfo: &ActorInfo{
-			LevelId: int32(actor.LevelId),
-			X:       int32(actor.X),
-			Y:       int32(actor.Y),
-			Name:    actor.Name,
+func NewActor(actor *objs.Actor) Msg {
+	return &Packet_Actor{
+		Actor: &Actor{
+			X:    int32(actor.X),
+			Y:    int32(actor.Y),
+			Name: actor.Name,
 		},
 	}
 }

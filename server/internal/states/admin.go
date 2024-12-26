@@ -160,7 +160,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
 }
 
-func (a *Admin) handleAdminJoinGameRequest(senderId uint64, message *packets.Packet_AdminJoinGameRequest) {
+func (a *Admin) handleAdminJoinGameRequest(senderId uint64, _ *packets.Packet_AdminJoinGameRequest) {
 	if senderId != a.client.Id() {
 		a.logger.Printf("Received request to join game from another client (%d)", senderId)
 		return

@@ -36,8 +36,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_chat(sender_id, packet.get_chat())
 	elif packet.has_yell():
 		_handle_yell(sender_id, packet.get_yell())
-	elif packet.has_actor_info():
-		_handle_actor_info(sender_id, packet.get_actor_info())
+	elif packet.has_actor():
+		_handle_actor(sender_id, packet.get_actor())
 	elif packet.has_logout():
 		_handle_logout(sender_id)
 	elif packet.has_disconnect():
@@ -118,11 +118,10 @@ func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 func _handle_yell(sender_id: int, yell: Packets.Yell) -> void:
 	_log.yell(yell.get_sender_name(), yell.get_msg())
 
-func _handle_actor_info(sender_id: int, actor_info: Packets.ActorInfo) -> void:
-	#var level_id := actor_info.get_level_id() # TODO: Don't need this?
-	var x := actor_info.get_x()
-	var y := actor_info.get_y()
-	var actor_name := actor_info.get_name()
+func _handle_actor(sender_id: int, actor: Packets.Actor) -> void:
+	var x := actor.get_x()
+	var y := actor.get_y()
+	var actor_name := actor.get_name()
 	
 	if sender_id in _actors:
 		_update_actor(sender_id, x, y)

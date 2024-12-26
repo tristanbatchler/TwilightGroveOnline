@@ -42,9 +42,8 @@ message Yell {
     string msg = 2;
 }
 
-message ActorInfo {
+message Actor {
     uint64 id = 1;
-    int32 level_id = 2;
     int32 x = 3;
     int32 y = 4;
     string name = 5;
@@ -134,7 +133,7 @@ message Packet {
         Logout logout = 7;
         Chat chat = 8;
         Yell yell = 9;
-        ActorInfo actor_info = 10;
+        Actor actor = 10;
         ActorMove actor_move = 11;
         Motd motd = 12;
         Disconnect disconnect = 13;

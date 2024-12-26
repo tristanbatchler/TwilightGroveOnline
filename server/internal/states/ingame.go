@@ -52,12 +52,12 @@ func (g *InGame) OnEnter() {
 	g.client.SharedGameObjects().Actors.Add(g.player, g.client.Id())
 
 	// Send our client info about all the other actors in the level (including ourselves!)
-	ourPlayerInfo := packets.NewActorInfo(g.player)
+	ourPlayerInfo := packets.NewActor(g.player)
 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint64, actor *objs.Actor) {
 		if actor.LevelId == g.levelId {
 			g.othersInLevel = append(g.othersInLevel, owner_client_id)
 			g.logger.Printf("Sending actor info for client %d", owner_client_id)
-			go g.client.SocketSendAs(packets.NewActorInfo(actor), owner_client_id)
+			go g.client.SocketSendAs(packets.NewActor(actor), owner_client_id)
 		}
 	})
 
@@ -78,7 +78,7 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handleYell(senderId, message)
 	case *packets.Packet_ActorMove:
 		g.handleActorMove(senderId, message)
-	case *packets.Packet_ActorInfo:
+	case *packets.Packet_Actor:
 		g.handleActorInfo(senderId, message)
 	case *packets.Packet_Logout:
 		g.handleLogout(senderId, message)
@@ -148,7 +148,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	// Check if the target position is in a collision point
 	if g.client.LevelPointMaps().Collisions.Contains(g.levelId, collisionPoint) {
 		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
-		go g.client.SocketSend(packets.NewActorInfo(g.player))
+		go g.client.SocketSend(packets.NewActor(g.player))
 		return
 	}
 
@@ -166,10 +166,10 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 
 	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
-	g.client.Broadcast(packets.NewActorInfo(g.player), g.othersInLevel)
+	g.client.Broadcast(packets.NewActor(g.player), g.othersInLevel)
 }
 
-func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_ActorInfo) {
+func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_Actor) {
 	if senderId == g.client.Id() {
 		g.logger.Printf("Received a player info message from ourselves, ignoring")
 		return
@@ -178,7 +178,7 @@ func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_ActorI
 	g.client.SocketSendAs(message, senderId)
 	if !g.isOtherKnown(senderId) {
 		g.othersInLevel = append(g.othersInLevel, senderId)
-		g.client.PassToPeer(packets.NewActorInfo(g.player), senderId)
+		g.client.PassToPeer(packets.NewActor(g.player), senderId)
 	}
 }
 
