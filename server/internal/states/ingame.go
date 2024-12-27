@@ -289,9 +289,14 @@ func (g *InGame) sendLevel() {
 
 	g.logger.Printf("Sending shared game objects...")
 	g.client.SharedGameObjects().GroundItems.ForEach(func(id uint64, groundItem *objs.GroundItem) {
-		go g.client.SocketSend(packets.NewGroundItem(id, groundItem))
+		if groundItem.LevelId == g.levelId {
+			go g.client.SocketSend(packets.NewGroundItem(id, groundItem))
+		}
 	})
 	g.client.SharedGameObjects().Doors.ForEach(func(id uint64, door *objs.Door) {
+		if door.LevelId != g.levelId {
+			return
+		}
 		destinationGdResPath, err := g.queries.GetLevelById(context.Background(), door.DestinationLevelId)
 		if err != nil {
 			g.logger.Printf("Failed to get destination level gd res path for door: %v", err)
@@ -300,7 +305,9 @@ func (g *InGame) sendLevel() {
 		go g.client.SocketSend(packets.NewDoor(id, door, destinationGdResPath.GdResPath))
 	})
 	g.client.SharedGameObjects().Shrubs.ForEach(func(id uint64, shrub *objs.Shrub) {
-		go g.client.SocketSend(packets.NewShrub(id, shrub))
+		if shrub.LevelId == g.levelId {
+			go g.client.SocketSend(packets.NewShrub(id, shrub))
+		}
 	})
 }
 
