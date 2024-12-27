@@ -76,8 +76,9 @@ func _input(event: InputEvent) -> void:
 		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
 		
 		if event.is_action_released("pickup_item"):
-			if _is_standing_on_ground_item():
-				_request_pickup_item()
+			var ground_item := _get_ground_item_standing_on()
+			if ground_item != null:
+				_request_pickup_item(ground_item.ground_item_id)
 	
 	move_and_send(input_dir)
 		
@@ -143,15 +144,14 @@ func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
 			corresponding_input = inputs[i]
 	return corresponding_input
 
-func _is_standing_on_ground_item() -> bool:
+func _get_ground_item_standing_on() -> GroundItem:
 	for area in _area.get_overlapping_areas():
 		if area is GroundItem:
-			return true
-	return false
+			return area as GroundItem
+	return null
 
-func _request_pickup_item() -> void:
+func _request_pickup_item(ground_item_id) -> void:
 	var packet := Packets.Packet.new()
 	var pickup_ground_item_request := packet.new_pickup_ground_item_request()
-	pickup_ground_item_request.set_x(x)
-	pickup_ground_item_request.set_y(y)
+	pickup_ground_item_request.set_ground_item_id(ground_item_id)
 	WS.send(packet)

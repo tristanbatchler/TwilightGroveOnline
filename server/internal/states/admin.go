@@ -93,7 +93,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			a.queries.DeleteLevelGroundItemsByLevelId,
 			func(g *objs.GroundItem, id uint64) { g.Id = id },
 			func(g *packets.GroundItem) (*objs.GroundItem, error) {
-				return &objs.GroundItem{X: int64(g.X), Y: int64(g.Y), Name: g.Name}, nil
+				return &objs.GroundItem{X: int64(g.X), Y: int64(g.Y), Name: g.Name, SpriteRegionX: g.SpriteRegionX, SpriteRegionY: g.SpriteRegionY}, nil
 			},
 		),
 	}
@@ -318,10 +318,12 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets
 
 func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *packets.GroundItem) error {
 	_, err := a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
-		LevelID: levelId,
-		X:       int64(message.X),
-		Y:       int64(message.Y),
-		Name:    message.Name,
+		LevelID:       levelId,
+		X:             int64(message.X),
+		Y:             int64(message.Y),
+		Name:          message.Name,
+		SpriteRegionX: int64(message.SpriteRegionX),
+		SpriteRegionY: int64(message.SpriteRegionY),
 	})
 	return err
 }

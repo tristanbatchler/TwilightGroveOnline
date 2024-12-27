@@ -208,13 +208,19 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 
 func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets.Packet_PickupGroundItemRequest) {
 	if senderId == g.client.Id() {
-		point := ds.Point{X: int64(message.PickupGroundItemRequest.X), Y: int64(message.PickupGroundItemRequest.Y)}
-
-		groundItem, exists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
-
+		groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 		if !exists {
-			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist", senderId)
+			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
 			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+			return
+		}
+
+		point := ds.Point{X: groundItem.X, Y: groundItem.Y}
+
+		groundItem, exists = g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
+		if !exists {
+			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
+			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, groundItem, errors.New("Ground item isn't at your location")))
 			return
 		}
 

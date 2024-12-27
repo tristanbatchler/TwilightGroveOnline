@@ -164,17 +164,23 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 			_log.error(response.get_msg())
 		return
 	var ground_item_msg := pickup_ground_item_response.get_ground_item()
-	var ground_item_obj := GroundItem.instantiate(ground_item_msg.get_x(), ground_item_msg.get_y(), ground_item_msg.get_name())
-	_log.info("Picked up a %s at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
-	_remove_ground_item_from_world(ground_item_obj.x, ground_item_obj.y)
+	
+	var ground_item_id := ground_item_msg.get_id()
+	if ground_item_id in _ground_items:
+		var ground_item := _ground_items[ground_item_id]
+		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item_name, ground_item.x, ground_item.y])
+		_remove_ground_item(ground_item_id)
 
 # This gets forwareded to us from the server only when the other player *successfully* picks up the item
 func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_request: Packets.PickupGroundItemRequest) -> void:
-	var x := pickup_ground_item_request.get_x()
-	var y := pickup_ground_item_request.get_y()
-	if sender_id in _actors:
-		_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, x, y])
-	_remove_ground_item_from_world(x, y)
+	var ground_item_id := pickup_ground_item_request.get_ground_item_id()
+	
+	if ground_item_id in _ground_items:
+		var ground_item := _ground_items[ground_item_id]
+	
+		if sender_id in _actors:
+			_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, ground_item.x, ground_item.y])
+		_remove_ground_item(ground_item_id)
 
 func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var gid := ground_item_msg.get_id()
@@ -183,11 +189,20 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var x := ground_item_msg.get_x()
 	var y := ground_item_msg.get_y()
 	var item_name := ground_item_msg.get_name()
+	var sprite_region_x := ground_item_msg.get_sprite_region_x()
+	var sprite_region_y := ground_item_msg.get_sprite_region_y()
 	
-	var ground_item_obj := GroundItem.instantiate(x, y, item_name)
+	var sprite := Sprite2D.new()
+	sprite.texture = load("res://resources/art/colored_tilemap_packed.png")
+	sprite.region_enabled = true
+	sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, 8, 8)
+	sprite.offset = Vector2(4, 4)
 	
+	var ground_item_obj := GroundItem.instantiate(gid, x, y, item_name, sprite)
 	_ground_items[gid] = ground_item_obj
 	ground_item_obj.place(_world_tilemap_layer)
+	
+	_log.info("Added %s to world at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
@@ -203,9 +218,8 @@ func _handle_disconnect(sender_id: int) -> void:
 	if sender_id in _actors:
 		_log.error("%s disconnected" % _actors[sender_id].actor_name)
 		_remove_actor(sender_id)
-
-func _remove_ground_item_from_world(x: int, y: int) -> void:
-	for node in _world.get_children():
-		if node is GroundItem:
-			if node.x == x and node.y == y:
-				node.queue_free()
+				
+func _remove_ground_item(ground_item_id: int) -> void:
+	if ground_item_id in _ground_items:
+		_ground_items[ground_item_id].queue_free()
+		_ground_items.erase(ground_item_id)

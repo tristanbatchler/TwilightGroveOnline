@@ -102,6 +102,8 @@ message GroundItem {
     string name = 2;
     int32 x = 3;
     int32 y = 4;
+    int32 sprite_region_x = 5;
+    int32 sprite_region_y = 6;
 }
 
 message LevelUpload {
@@ -133,8 +135,7 @@ message ServerMessage {
 }
 
 message PickupGroundItemRequest {
-    int32 x = 1;
-    int32 y = 2;
+    uint64 ground_item_id = 1;
 }
 
 message PickupGroundItemResponse {

@@ -1741,6 +1741,16 @@ class GroundItem:
 		service.field = _y
 		data[_y.tag] = service
 		
+		_sprite_region_x = PBField.new("sprite_region_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_x
+		data[_sprite_region_x.tag] = service
+		
+		_sprite_region_y = PBField.new("sprite_region_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_y
+		data[_sprite_region_y.tag] = service
+		
 	var data = {}
 	
 	var _id: PBField
@@ -1778,6 +1788,24 @@ class GroundItem:
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
+	
+	var _sprite_region_x: PBField
+	func get_sprite_region_x() -> int:
+		return _sprite_region_x.value
+	func clear_sprite_region_x() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_x(value : int) -> void:
+		_sprite_region_x.value = value
+	
+	var _sprite_region_y: PBField
+	func get_sprite_region_y() -> int:
+		return _sprite_region_y.value
+	func clear_sprite_region_y() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_y(value : int) -> void:
+		_sprite_region_y.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -2150,35 +2178,21 @@ class PickupGroundItemRequest:
 	func _init():
 		var service
 		
-		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		_ground_item_id = PBField.new("ground_item_id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
 		service = PBServiceField.new()
-		service.field = _x
-		data[_x.tag] = service
-		
-		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
-		service = PBServiceField.new()
-		service.field = _y
-		data[_y.tag] = service
+		service.field = _ground_item_id
+		data[_ground_item_id.tag] = service
 		
 	var data = {}
 	
-	var _x: PBField
-	func get_x() -> int:
-		return _x.value
-	func clear_x() -> void:
+	var _ground_item_id: PBField
+	func get_ground_item_id() -> int:
+		return _ground_item_id.value
+	func clear_ground_item_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
-	func set_x(value : int) -> void:
-		_x.value = value
-	
-	var _y: PBField
-	func get_y() -> int:
-		return _y.value
-	func clear_y() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
-	func set_y(value : int) -> void:
-		_y.value = value
+		_ground_item_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+	func set_ground_item_id(value : int) -> void:
+		_ground_item_id.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

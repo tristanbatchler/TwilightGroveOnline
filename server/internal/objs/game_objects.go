@@ -22,7 +22,8 @@ type Door struct {
 }
 
 type GroundItem struct {
-	Id   uint64
-	Name string
-	X, Y int64
+	Id                           uint64
+	Name                         string
+	X, Y                         int64
+	SpriteRegionX, SpriteRegionY int32
 }

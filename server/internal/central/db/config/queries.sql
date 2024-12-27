@@ -155,9 +155,9 @@ WHERE level_id = ?;
 
 -- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, name, x, y
+    level_id, name, x, y, sprite_region_x, sprite_region_y
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?
 )
 RETURNING *;
 

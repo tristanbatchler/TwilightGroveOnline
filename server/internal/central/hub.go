@@ -233,7 +233,7 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelGroundItemsByLevelId,
 		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
 		func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
-			return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y}, nil
+			return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y, SpriteRegionX: int32(message.SpriteRegionX), SpriteRegionY: int32(message.SpriteRegionY)}, nil
 		},
 	)
 

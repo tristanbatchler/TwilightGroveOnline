@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=4 uid="uid://dkoe1rn34sbf4"]
+[gd_scene load_steps=7 format=4 uid="uid://dkoe1rn34sbf4"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_12rrr"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="2_g8ril"]
+[ext_resource type="PackedScene" uid="uid://yow2aapvd2mj" path="res://objects/ground_item/ground_item.tscn" id="3_wh1jw"]
+[ext_resource type="PackedScene" uid="uid://dgtfkq31ugw5c" path="res://resources/art/sprite_texture_map.tscn" id="4_b76e4"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_12rrr")
@@ -208,3 +210,10 @@ tile_set = SubResource("TileSet_lqx7t")
 position = Vector2(264, 72)
 destination_level_res_path = "res://admin_levels/forest.tscn"
 destination_pos = Vector2i(19, 9)
+
+[node name="GroundItem" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("3_wh1jw")]
+position = Vector2(216, 88)
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" parent="GroundItem" instance=ExtResource("4_b76e4")]
+region_rect = Rect2(56, 16, 8, 8)
