@@ -26,7 +26,7 @@ var is_player: bool
 
 var _world_tile_size := Vector2i(1, 1)
 
-@onready var _name_plate: Label = $NamePlate
+@onready var _name_plate: Label = $CanvasLayer/NamePlate
 @onready var _camera: Camera2D = $Camera2D
 @onready var _area: Area2D = $Area2D
 

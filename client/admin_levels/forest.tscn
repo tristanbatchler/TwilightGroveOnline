@@ -250,8 +250,90 @@ region_rect = Rect2(80, 40, 8, 8)
 position = Vector2(200, 40)
 sprite = NodePath("Sprite2D")
 item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem3" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem6" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(256, 80)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem6" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem7" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(312, 56)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem7" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem8" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(88, 88)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem8" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem9" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(48, 64)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem9" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem10" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(72, 24)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem10" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem11" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(128, 8)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem11" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem12" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(48, 104)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem12" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem13" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(136, 120)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem13" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem14" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(136, 120)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem14" instance=ExtResource("5_nfja6")]
 region_rect = Rect2(48, 24, 8, 8)
 
 [node name="GroundItem4" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
@@ -261,6 +343,17 @@ item_name = "Bountiful chest"
 
 [node name="Sprite2D" parent="GroundItem4" instance=ExtResource("5_nfja6")]
 region_rect = Rect2(72, 24, 8, 8)
+metadata/_edit_group_ = true
+
+[node name="GroundItem15" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(224, 24)
+sprite = NodePath("Sprite2D")
+item_name = "Bountiful chest"
+
+[node name="Sprite2D" parent="GroundItem15" instance=ExtResource("5_nfja6")]
+position = Vector2(-144, 24)
+region_rect = Rect2(72, 24, 8, 8)
+metadata/_edit_group_ = true
 
 [node name="GroundItem5" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
 position = Vector2(272, 48)

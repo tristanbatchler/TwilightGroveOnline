@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3 uid="uid://d0lp1xh615hj6"]
+
+[ext_resource type="Script" path="res://ui/inventory/inventory_row.gd" id="1_4mfrv"]
+[ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_uwcfu"]
+
+[node name="InventoryRow" type="HBoxContainer"]
+script = ExtResource("1_4mfrv")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="PanelContainer/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="SubViewport" type="SubViewport" parent="PanelContainer/MarginContainer/SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(24, 24)
+render_target_update_mode = 4
+
+[node name="Sprite2D" type="Sprite2D" parent="PanelContainer/MarginContainer/SubViewportContainer/SubViewport"]
+texture_filter = 1
+scale = Vector2(3, 3)
+texture = ExtResource("1_uwcfu")
+centered = false
+region_enabled = true
+region_rect = Rect2(72, 40, 8, 8)
+
+[node name="QuantityLabel" type="Label" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "43
+"
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Iron ring"

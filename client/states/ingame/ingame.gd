@@ -11,6 +11,7 @@ const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
+@onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
 
 
 var _world: Node2D
@@ -169,6 +170,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
 		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item_name, ground_item.x, ground_item.y])
+		_inventory.add(ground_item, 1)
 		_remove_ground_item(ground_item_id)
 
 # This gets forwareded to us from the server only when the other player *successfully* picks up the item
