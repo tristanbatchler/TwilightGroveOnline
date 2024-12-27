@@ -68,14 +68,21 @@ CREATE TABLE IF NOT EXISTS levels_doors (
     FOREIGN KEY (destination_level_id) REFERENCES levels(id) ON DELETE RESTRICT -- do not allow deletion of levels that are destinations
 );
 
-CREATE TABLE IF NOT EXISTS levels_ground_items (
+CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    level_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    x INTEGER NOT NULL,
-    y INTEGER NOT NULL,
     sprite_region_x INTEGER NOT NULL,
     sprite_region_y INTEGER NOT NULL,
     respawn_seconds INTEGER NOT NULL,
-    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE 
+    CONSTRAINT unique_item_combination UNIQUE (name, sprite_region_x, sprite_region_y, respawn_seconds)
+);
+
+CREATE TABLE IF NOT EXISTS levels_ground_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level_id INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE -- delete from levels_ground_items when level with id level_id is deleted
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE -- delete from levels_ground_items when item with id item_id is deleted
 );

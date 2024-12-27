@@ -72,16 +72,25 @@ func NewShrub(id uint64, shrub *objs.Shrub) Msg {
 	}
 }
 
+func NewItem(item *objs.Item) Msg {
+	return &Packet_Item{
+		Item: &Item{
+			Name:           item.Name,
+			SpriteRegionX:  item.SpriteRegionX,
+			SpriteRegionY:  item.SpriteRegionY,
+			RespawnSeconds: item.RespawnSeconds,
+		},
+	}
+}
+
 func NewGroundItem(id uint64, groundItem *objs.GroundItem) Msg {
+	item := NewItem(groundItem.Item)
 	return &Packet_GroundItem{
 		GroundItem: &GroundItem{
-			Id:             id,
-			X:              int32(groundItem.X),
-			Y:              int32(groundItem.Y),
-			Name:           groundItem.Name,
-			SpriteRegionX:  groundItem.SpriteRegionX,
-			SpriteRegionY:  groundItem.SpriteRegionY,
-			RespawnSeconds: groundItem.RespawnSeconds,
+			Id:   id,
+			Item: item.(*Packet_Item).Item,
+			X:    int32(groundItem.X),
+			Y:    int32(groundItem.Y),
 		},
 	}
 }
@@ -173,9 +182,9 @@ func newOptionalGroundItem(groundItem *objs.GroundItem) *GroundItem {
 	}
 	return &GroundItem{
 		Id:   groundItem.Id,
+		Item: NewItem(groundItem.Item).(*Packet_Item).Item,
 		X:    int32(groundItem.X),
 		Y:    int32(groundItem.Y),
-		Name: groundItem.Name,
 	}
 }
 

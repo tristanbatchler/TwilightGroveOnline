@@ -97,14 +97,18 @@ message Door {
     int32 y = 6;
 }
 
+message Item {
+    string name = 2;
+    int32 sprite_region_x = 3;
+    int32 sprite_region_y = 4;
+    int32 respawn_seconds = 5;
+}
+
 message GroundItem {
     uint64 id = 1;
-    string name = 2;
+    Item item = 2;
     int32 x = 3;
     int32 y = 4;
-    int32 sprite_region_x = 5;
-    int32 sprite_region_y = 6;
-    int32 respawn_seconds = 7;
 }
 
 message LevelUpload {
@@ -172,6 +176,7 @@ message Packet {
         PickupGroundItemResponse pickup_ground_item_response = 24;
         Shrub shrub = 25;
         Door door = 26;
-        GroundItem ground_item = 27;
+        Item Item = 27;
+        GroundItem ground_item = 28;
     }
 }

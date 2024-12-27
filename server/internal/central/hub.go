@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
@@ -233,7 +234,14 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelGroundItemsByLevelId,
 		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
 		func(model *db.LevelsGroundItem) (*objs.GroundItem, error) {
-			return objs.NewGroundItem(0, model.LevelID, model.Name, model.X, model.Y, int32(model.SpriteRegionX), int32(model.SpriteRegionY), int32(model.RespawnSeconds)), nil
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			itemModel, err := queries.GetItemById(ctx, model.ItemID)
+			if err != nil {
+				return nil, err
+			}
+			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), int32(itemModel.RespawnSeconds), itemModel.ID)
+			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y), nil
 		},
 	)
 

@@ -36,5 +36,5 @@
 - [ ] Disable camera zoom while scrolling inside inventory/chat
 - [ ] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
-- [ ] Make ground items respawn after a while
+- [x] Make ground items respawn after a while
 - [ ] Audit use of int64 in game_objects.go and messages.proto

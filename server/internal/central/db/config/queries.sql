@@ -153,11 +153,29 @@ WHERE level_id = ?;
 SELECT * FROM levels_doors
 WHERE level_id = ?;
 
+-- name: CreateItemIfNotExists :one
+INSERT INTO items (
+    name, sprite_region_x, sprite_region_y, respawn_seconds
+) VALUES (
+    ?, ?, ?, ?
+)
+ON CONFLICT (name, sprite_region_x, sprite_region_y, respawn_seconds) DO NOTHING
+RETURNING *;
+
+-- name: GetItem :one
+SELECT * FROM items
+WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ? AND respawn_seconds = ?
+LIMIT 1;
+
+-- name: GetItemById :one
+SELECT * FROM items
+WHERE id = ? LIMIT 1;
+
 -- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, name, x, y, sprite_region_x, sprite_region_y, respawn_seconds
+    level_id, item_id, x, y
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -184,8 +202,8 @@ DELETE FROM levels_ground_items
 WHERE id IN (
     SELECT lgi.id FROM levels_ground_items lgi
     WHERE lgi.level_id = ?
+    AND lgi.item_id = ?
     AND lgi.x = ?
     AND lgi.y = ?
-    AND lgi.name = ?
     LIMIT 1
 );

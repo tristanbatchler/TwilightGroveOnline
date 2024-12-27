@@ -95,13 +95,14 @@ func _on_level_browser_file_selected(path: String) -> void:
 			
 		elif node is GroundItem:
 			var ground_item := level_upload.add_ground_item()
-			ground_item.set_name(node.item_name)
+			var item := ground_item.new_item()
+			item.set_name(node.item_name)
+			item.set_sprite_region_x(node.sprite.region_rect.position.x)
+			item.set_sprite_region_y(node.sprite.region_rect.position.y)
+			item.set_respawn_seconds(node.respawn_seconds)
 			ground_item.set_x(node.position.x / node._world_tile_size.x)
 			ground_item.set_y(node.position.y / node._world_tile_size.y)
-			ground_item.set_sprite_region_x(node.sprite.region_rect.position.x)
-			ground_item.set_sprite_region_y(node.sprite.region_rect.position.y)
-			ground_item.set_respawn_seconds(node.respawn_seconds)
-			print("Found ground item %s at (%d, %d)" % [ground_item.get_name(), ground_item.get_x(), ground_item.get_y()])
+			print("Found ground item %s at (%d, %d)" % [item.get_name(), ground_item.get_x(), ground_item.get_y()])
 			
 	
 	var file := FileAccess.open(path, FileAccess.READ)

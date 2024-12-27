@@ -191,11 +191,12 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var gid := ground_item_msg.get_id()
 	if gid in _ground_items:
 		return
+	var item_msg := ground_item_msg.get_item()
 	var x := ground_item_msg.get_x()
 	var y := ground_item_msg.get_y()
-	var item_name := ground_item_msg.get_name()
-	var sprite_region_x := ground_item_msg.get_sprite_region_x()
-	var sprite_region_y := ground_item_msg.get_sprite_region_y()
+	var item_name := item_msg.get_name()
+	var sprite_region_x := item_msg.get_sprite_region_x()
+	var sprite_region_y := item_msg.get_sprite_region_y()
 	
 	var sprite := Sprite2D.new()
 	sprite.texture = load("res://resources/art/colored_tilemap_packed.png")

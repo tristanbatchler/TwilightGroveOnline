@@ -55,24 +55,36 @@ func NewDoor(id uint64, levelId int64, destinationLevelId int64, destinationX, d
 	}
 }
 
-type GroundItem struct {
-	Id                           uint64
-	LevelId                      int64
+type Item struct {
 	Name                         string
-	X, Y                         int64
 	SpriteRegionX, SpriteRegionY int32
 	RespawnSeconds               int32
+	DbId                         int64
 }
 
-func NewGroundItem(id uint64, levelId int64, name string, x, y int64, spriteRegionX, spriteRegionY int32, respawnSeconds int32) *GroundItem {
-	return &GroundItem{
-		Id:             id,
-		LevelId:        levelId,
+func NewItem(name string, spriteRegionX, spriteRegionY int32, respawnSeconds int32, dbId int64) *Item {
+	return &Item{
 		Name:           name,
-		X:              x,
-		Y:              y,
 		SpriteRegionX:  spriteRegionX,
 		SpriteRegionY:  spriteRegionY,
 		RespawnSeconds: respawnSeconds,
+		DbId:           dbId,
+	}
+}
+
+type GroundItem struct {
+	Id      uint64
+	LevelId int64
+	Item    *Item
+	X, Y    int64
+}
+
+func NewGroundItem(id uint64, levelId int64, item *Item, x int64, y int64) *GroundItem {
+	return &GroundItem{
+		Id:      id,
+		LevelId: levelId,
+		Item:    item,
+		X:       x,
+		Y:       y,
 	}
 }

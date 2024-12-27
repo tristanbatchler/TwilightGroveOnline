@@ -222,7 +222,9 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		return objs.NewDoor(0, level.ID, destinationLevelId, int64(d.DestinationX), int64(d.DestinationY), int64(d.X), int64(d.Y)), nil
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
-		return objs.NewGroundItem(0, level.ID, g.Name, int64(g.X), int64(g.Y), g.SpriteRegionX, g.SpriteRegionY, g.RespawnSeconds), nil
+		itemMsg := g.Item
+		item := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, itemMsg.RespawnSeconds, 0)
+		return objs.NewGroundItem(0, level.ID, item, int64(g.X), int64(g.Y)), nil
 	}
 
 	for _, importFunc := range importFuncs {
@@ -314,14 +316,35 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets
 }
 
 func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *packets.GroundItem) error {
-	_, err := a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
-		LevelID:        levelId,
-		X:              int64(message.X),
-		Y:              int64(message.Y),
-		Name:           message.Name,
-		SpriteRegionX:  int64(message.SpriteRegionX),
-		SpriteRegionY:  int64(message.SpriteRegionY),
-		RespawnSeconds: int64(message.RespawnSeconds),
+	itemMsg := message.Item
+
+	item, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
+		Name:           itemMsg.Name,
+		SpriteRegionX:  int64(itemMsg.SpriteRegionX),
+		SpriteRegionY:  int64(itemMsg.SpriteRegionY),
+		RespawnSeconds: int64(itemMsg.RespawnSeconds),
+	})
+	if err != nil {
+		if err == sql.ErrNoRows { // Item already exists
+			item, err = a.queries.GetItem(ctx, db.GetItemParams{
+				Name:           itemMsg.Name,
+				SpriteRegionX:  int64(itemMsg.SpriteRegionX),
+				SpriteRegionY:  int64(itemMsg.SpriteRegionY),
+				RespawnSeconds: int64(itemMsg.RespawnSeconds),
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	_, err = a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
+		LevelID: levelId,
+		ItemID:  item.ID,
+		X:       int64(message.X),
+		Y:       int64(message.Y),
 	})
 	return err
 }

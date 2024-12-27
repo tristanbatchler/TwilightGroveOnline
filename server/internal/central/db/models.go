@@ -22,6 +22,14 @@ type Admin struct {
 	UserID int64
 }
 
+type Item struct {
+	ID             int64
+	Name           string
+	SpriteRegionX  int64
+	SpriteRegionY  int64
+	RespawnSeconds int64
+}
+
 type Level struct {
 	ID                  int64
 	GdResPath           string
@@ -50,14 +58,12 @@ type LevelsDoor struct {
 }
 
 type LevelsGroundItem struct {
-	ID             int64
-	LevelID        int64
-	Name           string
-	X              int64
-	Y              int64
-	SpriteRegionX  int64
-	SpriteRegionY  int64
-	RespawnSeconds int64
+	ID      int64
+	LevelID int64
+	X       int64
+	Y       int64
+	ItemID  int64
+	Foreign interface{}
 }
 
 type LevelsShrub struct {
