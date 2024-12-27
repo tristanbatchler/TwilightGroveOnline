@@ -196,7 +196,6 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var item_name := ground_item_msg.get_name()
 	var sprite_region_x := ground_item_msg.get_sprite_region_x()
 	var sprite_region_y := ground_item_msg.get_sprite_region_y()
-	var respawn_seconds := ground_item_msg.get_respawn_seconds()
 	
 	var sprite := Sprite2D.new()
 	sprite.texture = load("res://resources/art/colored_tilemap_packed.png")
@@ -204,7 +203,7 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, 8, 8)
 	sprite.offset = Vector2(4, 4)
 	
-	var ground_item_obj := GroundItem.instantiate(gid, x, y, item_name, sprite, respawn_seconds)
+	var ground_item_obj := GroundItem.instantiate(gid, x, y, item_name, sprite)
 	_ground_items[gid] = ground_item_obj
 	ground_item_obj.place(_world_tilemap_layer)
 	

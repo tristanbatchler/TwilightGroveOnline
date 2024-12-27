@@ -87,6 +87,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handleDisconnect(senderId, message)
 	case *packets.Packet_PickupGroundItemRequest:
 		g.handlePickupGroundItemRequest(senderId, message)
+	case *packets.Packet_GroundItem:
+		g.client.SocketSendAs(message, senderId)
 	}
 }
 
@@ -235,6 +237,29 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 
 		g.client.Broadcast(message, g.othersInLevel)
 		go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
+
+		g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
+
+		// Start the respawn time
+		timer := time.NewTimer(time.Duration(groundItem.RespawnSeconds) * time.Second)
+		go func() {
+			<-timer.C
+			g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
+			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
+			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
+				LevelID:        g.levelId,
+				Name:           groundItem.Name,
+				X:              groundItem.X,
+				Y:              groundItem.Y,
+				SpriteRegionX:  int64(groundItem.SpriteRegionX),
+				SpriteRegionY:  int64(groundItem.SpriteRegionY),
+				RespawnSeconds: int64(groundItem.RespawnSeconds),
+			})
+			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
+			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
+		}()
+
 		return
 	}
 
