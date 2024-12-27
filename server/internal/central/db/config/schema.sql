@@ -76,5 +76,6 @@ CREATE TABLE IF NOT EXISTS levels_ground_items (
     y INTEGER NOT NULL,
     sprite_region_x INTEGER NOT NULL,
     sprite_region_y INTEGER NOT NULL,
+    respawn_seconds INTEGER NOT NULL,
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE 
 );

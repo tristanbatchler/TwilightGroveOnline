@@ -12,3 +12,7 @@ script = ExtResource("1_gtvqe")
 position = Vector2(4, 4)
 scale = Vector2(0.4, 0.4)
 shape = SubResource("RectangleShape2D_wcujt")
+
+[node name="Label" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0

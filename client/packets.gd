@@ -1751,6 +1751,11 @@ class GroundItem:
 		service.field = _sprite_region_y
 		data[_sprite_region_y.tag] = service
 		
+		_respawn_seconds = PBField.new("respawn_seconds", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _respawn_seconds
+		data[_respawn_seconds.tag] = service
+		
 	var data = {}
 	
 	var _id: PBField
@@ -1806,6 +1811,15 @@ class GroundItem:
 		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_sprite_region_y(value : int) -> void:
 		_sprite_region_y.value = value
+	
+	var _respawn_seconds: PBField
+	func get_respawn_seconds() -> int:
+		return _respawn_seconds.value
+	func clear_respawn_seconds() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_respawn_seconds.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_respawn_seconds(value : int) -> void:
+		_respawn_seconds.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

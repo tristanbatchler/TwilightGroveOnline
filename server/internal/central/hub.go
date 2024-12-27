@@ -198,42 +198,42 @@ func (h *Hub) Run(adminPassword string) {
 		"collision point",
 		h.LevelPointMaps.Collisions,
 		nil,
-		func(message *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		func(model *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelCollisionPointsByLevelId,
 		func(*struct{}, uint64) {},
-		func(message *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
+		func(model *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 	)
 	h.LevelDataImporters.ShrubsImporter = levels.NewDbDataImporter(
 		"shrub",
 		h.LevelPointMaps.Shrubs,
 		h.SharedGameObjects.Shrubs,
-		func(message *db.LevelsShrub) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		func(model *db.LevelsShrub) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelShrubsByLevelId,
 		func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
-		func(message *db.LevelsShrub) (*objs.Shrub, error) {
-			return objs.NewShrub(0, message.LevelID, int32(message.Strength), message.X, message.Y), nil
+		func(model *db.LevelsShrub) (*objs.Shrub, error) {
+			return objs.NewShrub(0, model.LevelID, int32(model.Strength), model.X, model.Y), nil
 		},
 	)
 	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
 		"door",
 		h.LevelPointMaps.Doors,
 		h.SharedGameObjects.Doors,
-		func(message *db.LevelsDoor) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		func(model *db.LevelsDoor) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelDoorsByLevelId,
 		func(door *objs.Door, id uint64) { door.Id = id },
-		func(message *db.LevelsDoor) (*objs.Door, error) {
-			return objs.NewDoor(0, message.LevelID, message.DestinationLevelID, message.DestinationX, message.DestinationY, message.X, message.Y), nil
+		func(model *db.LevelsDoor) (*objs.Door, error) {
+			return objs.NewDoor(0, model.LevelID, model.DestinationLevelID, model.DestinationX, model.DestinationY, model.X, model.Y), nil
 		},
 	)
 	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
 		"ground item",
 		h.LevelPointMaps.GroundItems,
 		h.SharedGameObjects.GroundItems,
-		func(message *db.LevelsGroundItem) ds.Point { return ds.Point{X: message.X, Y: message.Y} },
+		func(model *db.LevelsGroundItem) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelGroundItemsByLevelId,
 		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
-		func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
-			return objs.NewGroundItem(0, message.LevelID, message.Name, message.X, message.Y, int32(message.SpriteRegionX), int32(message.SpriteRegionY)), nil
+		func(model *db.LevelsGroundItem) (*objs.GroundItem, error) {
+			return objs.NewGroundItem(0, model.LevelID, model.Name, model.X, model.Y, int32(model.SpriteRegionX), int32(model.SpriteRegionY), int32(model.RespawnSeconds)), nil
 		},
 	)
 

@@ -7,8 +7,10 @@ var _world_tile_size := Vector2i(8, 8)
 
 @export var sprite: Sprite2D
 @export var item_name: String
+@export var respawn_seconds: int = 120
 
 var ground_item_id: int
+@onready var label: Label = $Label
 
 var x: int:
 	set(value):
@@ -22,13 +24,14 @@ var y: int:
 		if is_node_ready():
 			position.y = _world_tile_size.y * y
 
-static func instantiate(ground_item_id: int, x: int, y: int, item_name: String, sprite: Sprite2D) -> GroundItem:
+static func instantiate(ground_item_id: int, x: int, y: int, item_name: String, sprite: Sprite2D, respawn_seconds: int) -> GroundItem:
 	var ground_item := Scene.instantiate() as GroundItem
 	ground_item.ground_item_id = ground_item_id
 	ground_item.x = x
 	ground_item.y = y
 	ground_item.item_name = item_name
 	ground_item.sprite = sprite
+	ground_item.respawn_seconds = respawn_seconds
 	return ground_item
 	
 func place(world: TileMapLayer) -> void:
@@ -47,3 +50,4 @@ func _ready() -> void:
 		y = position.y / _world_tile_size.y
 	elif y != 0 and position.y == 0:
 		position.y = y * _world_tile_size.y
+	label.text = str(respawn_seconds)

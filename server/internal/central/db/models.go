@@ -50,13 +50,14 @@ type LevelsDoor struct {
 }
 
 type LevelsGroundItem struct {
-	ID            int64
-	LevelID       int64
-	Name          string
-	X             int64
-	Y             int64
-	SpriteRegionX int64
-	SpriteRegionY int64
+	ID             int64
+	LevelID        int64
+	Name           string
+	X              int64
+	Y              int64
+	SpriteRegionX  int64
+	SpriteRegionY  int64
+	RespawnSeconds int64
 }
 
 type LevelsShrub struct {

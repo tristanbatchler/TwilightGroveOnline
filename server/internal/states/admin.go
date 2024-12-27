@@ -222,7 +222,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		return objs.NewDoor(0, level.ID, destinationLevelId, int64(d.DestinationX), int64(d.DestinationY), int64(d.X), int64(d.Y)), nil
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
-		return objs.NewGroundItem(0, level.ID, g.Name, int64(g.X), int64(g.Y), g.SpriteRegionX, g.SpriteRegionY), nil
+		return objs.NewGroundItem(0, level.ID, g.Name, int64(g.X), int64(g.Y), g.SpriteRegionX, g.SpriteRegionY, g.RespawnSeconds), nil
 	}
 
 	for _, importFunc := range importFuncs {

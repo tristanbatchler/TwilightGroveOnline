@@ -104,6 +104,7 @@ message GroundItem {
     int32 y = 4;
     int32 sprite_region_x = 5;
     int32 sprite_region_y = 6;
+    int32 respawn_seconds = 7;
 }
 
 message LevelUpload {

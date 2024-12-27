@@ -61,16 +61,18 @@ type GroundItem struct {
 	Name                         string
 	X, Y                         int64
 	SpriteRegionX, SpriteRegionY int32
+	RespawnSeconds               int32
 }
 
-func NewGroundItem(id uint64, levelId int64, name string, x, y int64, spriteRegionX, spriteRegionY int32) *GroundItem {
+func NewGroundItem(id uint64, levelId int64, name string, x, y int64, spriteRegionX, spriteRegionY int32, respawnSeconds int32) *GroundItem {
 	return &GroundItem{
-		Id:            id,
-		LevelId:       levelId,
-		Name:          name,
-		X:             x,
-		Y:             y,
-		SpriteRegionX: spriteRegionX,
-		SpriteRegionY: spriteRegionY,
+		Id:             id,
+		LevelId:        levelId,
+		Name:           name,
+		X:              x,
+		Y:              y,
+		SpriteRegionX:  spriteRegionX,
+		SpriteRegionY:  spriteRegionY,
+		RespawnSeconds: respawnSeconds,
 	}
 }
