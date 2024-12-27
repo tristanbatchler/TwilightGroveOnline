@@ -16,7 +16,8 @@ type PacketDataImporter[O any, M any] struct {
 	addToDb          func(ctx context.Context, levelId int64, message *M) error
 	removeFromDb     func(ctx context.Context, levelId int64) error
 	setObjectId      func(object *O, id uint64)
-	makeGameObject   func(*M) (*O, error)
+	MakeGameObject   func(*M) (*O, error)
+	getObjectLevelId func(object *O) int64
 	logger           *log.Logger
 }
 
@@ -29,6 +30,7 @@ func NewPacketDataImporter[O any, M any](
 	removeFromDb func(ctx context.Context, levelId int64) error,
 	setObjectId func(object *O, id uint64),
 	makeGameObject func(*M) (*O, error),
+	getObjectLevelId func(object *O) int64,
 ) *PacketDataImporter[O, M] {
 	return &PacketDataImporter[O, M]{
 		nameOfObject:     nameOfObject,
@@ -38,7 +40,8 @@ func NewPacketDataImporter[O any, M any](
 		addToDb:          addToDb,
 		removeFromDb:     removeFromDb,
 		setObjectId:      setObjectId,
-		makeGameObject:   makeGameObject,
+		MakeGameObject:   makeGameObject,
+		getObjectLevelId: getObjectLevelId,
 		logger:           log.New(log.Writer(), "PacketLevelDataImporter: ", log.LstdFlags),
 	}
 }
@@ -52,7 +55,7 @@ func (p *PacketDataImporter[O, M]) ImportObjects(
 
 	batch := make(map[ds.Point]*O)
 	for _, objectMsg := range objectMessages {
-		gameObject, err := p.makeGameObject(objectMsg)
+		gameObject, err := p.MakeGameObject(objectMsg)
 		if err != nil {
 			p.logger.Printf("Failed to create a %s object from the message: %v", p.nameOfObject, err)
 			continue
@@ -82,6 +85,13 @@ func (p *PacketDataImporter[O, M]) ClearObjects(levelId int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	p.levelPointMap.Clear(levelId)
+	if p.sharedCollection != nil {
+		p.sharedCollection.ForEach(func(id uint64, obj *O) {
+			if p.getObjectLevelId(obj) == levelId {
+				p.sharedCollection.Remove(id)
+			}
+		})
+	}
 	p.removeFromDb(ctx, levelId)
 
 	p.logger.Printf("Cleared all %s from the server's LevelPointMaps DS", p.nameOfObject)

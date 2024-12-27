@@ -170,7 +170,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
 		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item_name, ground_item.x, ground_item.y])
-		_inventory.add(ground_item, 1)
+		_inventory.add(ground_item.item_name, 1, ground_item.sprite.region_rect.position.x, ground_item.sprite.region_rect.position.y)
 		_remove_ground_item(ground_item_id)
 
 # This gets forwareded to us from the server only when the other player *successfully* picks up the item

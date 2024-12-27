@@ -226,8 +226,15 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 
 		g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
 		g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
+		go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
+			LevelID: g.levelId,
+			X:       groundItem.X,
+			Y:       groundItem.Y,
+			Name:    groundItem.Name,
+		})
+
 		g.client.Broadcast(message, g.othersInLevel)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
+		go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 		return
 	}
 

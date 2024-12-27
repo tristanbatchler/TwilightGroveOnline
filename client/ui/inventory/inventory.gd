@@ -2,22 +2,19 @@ extends VBoxContainer
 class_name Inventory
 
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
-const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
 var _rows: Dictionary[String, InventoryRow]
 
-func add(item: GroundItem, quantity: int) -> void:
-	var item_name := item.item_name
+func add(item_name: String, quantity: int, sprite_region_x: int, sprite_region_y: int) -> void:
 	if item_name in _rows:
 		var row := _rows[item_name]
 		row.item_quantity += quantity
 	else:
-		var row := InventoryRow.instantiate(item.item_name, quantity, item.sprite.region_rect.position.x, item.sprite.region_rect.position.y)
+		var row := InventoryRow.instantiate(item_name, quantity, sprite_region_x, sprite_region_y)
 		_rows[item_name] = row
 		add_child(row)
 
-func remove(item: GroundItem, quantity: int) -> void:
-	var item_name := item.item_name
+func remove(item_name: String, quantity: int) -> void:
 	if item_name in _rows:
 		var row := _rows[item_name]
 		row.item_quantity -= quantity

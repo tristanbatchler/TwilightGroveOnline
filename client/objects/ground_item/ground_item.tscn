@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://objects/ground_item/ground_item.gd" id="1_gtvqe"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wcujt"]
+resource_local_to_scene = true
 
 [node name="GroundItem" type="Area2D"]
 script = ExtResource("1_gtvqe")

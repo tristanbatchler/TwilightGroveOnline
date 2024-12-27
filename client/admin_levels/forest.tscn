@@ -1,8 +1,7 @@
-[gd_scene load_steps=8 format=4 uid="uid://b1gqqlouulpyn"]
+[gd_scene load_steps=7 format=4 uid="uid://b1gqqlouulpyn"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_rprl3"]
 [ext_resource type="PackedScene" uid="uid://7lm0b0ei76wc" path="res://objects/shrub/shrub.tscn" id="2_lfbik"]
-[ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="3_xd47s"]
 [ext_resource type="PackedScene" uid="uid://yow2aapvd2mj" path="res://objects/ground_item/ground_item.tscn" id="4_di3mq"]
 [ext_resource type="PackedScene" uid="uid://dgtfkq31ugw5c" path="res://resources/art/sprite_texture_map.tscn" id="5_nfja6"]
 
@@ -204,161 +203,359 @@ sources/0 = SubResource("TileSetAtlasSource_rjr36")
 [node name="Forest" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_map_data = PackedByteArray("AAATAAcAAAABAAEAAAATAAgAAAABAAEAAAAUAAcAAAABAAEAAAAVAAcAAAABAAEAAAAWAAcAAAADAAEAAAAXAAcAAAABAAEAAAARAAQAAAAAAAAAAAARAAUAAAAAAAEAAAARAAYAAAAAAAEAAAARAAcAAAAAAAEAAAARAAgAAAAAAAEAAAARAAkAAAAAAAIAAAAWAAkAAAADAAIAAAAWAAgAAAADAAEAAAAWAAYAAAADAAEAAAAWAAUAAAADAAEAAAAWAAQAAAADAAAAAAAVAAQAAAABAAAAAAAUAAQAAAABAAAAAAATAAQAAAABAAAAAAASAAQAAAABAAAAAAASAAkAAAABAAAAAAATAAkAAAACAAIAAAAUAAkAAAABAAAAAAAVAAkAAAABAAAAAAAaAAcAAAALAAcAAAAbAAcAAAAMAAcAAAAcAAcAAAAMAAcAAAAdAAcAAAANAAcAAAAdAAgAAAANAAgAAAAdAAkAAAANAAgAAAAdAAoAAAANAAgAAAAdAAsAAAANAAkAAAAcAAsAAAAMAAkAAAAbAAsAAAAMAAkAAAAaAAsAAAALAAkAAAAaAAoAAAALAAgAAAAaAAkAAAALAAgAAAAaAAgAAAALAAgAAAAQAAsAAAAFAAQAAAANAAcAAAAFAAQAAAAkAAoAAAAFAAQAAAAeAAQAAAAFAAQAAAAYAA4AAAAFAAQAAAAbAAgAAAAMAAgAAAAcAAgAAAAMAAgAAAAcAAkAAAAMAAgAAAAbAAkAAAAMAAgAAAAbAAoAAAAMAAgAAAAcAAoAAAAMAAgAAAAWAAwAAAAAAAEAAAAWAA0AAAAAAAEAAAAWAA4AAAAAAAEAAAAWABAAAAAAAAEAAAAWAA8AAAAAAAEAAAA=")
+tile_map_data = PackedByteArray("AAATAAcAAAABAAEAAAATAAgAAAABAAEAAAAUAAcAAAABAAEAAAAWAAcAAAADAAEAAAAXAAcAAAAFAAQAAAARAAQAAAAAAAAAAAARAAUAAAAAAAEAAAARAAYAAAAAAAEAAAARAAcAAAAAAAEAAAARAAgAAAAAAAEAAAARAAkAAAAAAAIAAAAWAAkAAAADAAIAAAAWAAgAAAADAAEAAAAWAAYAAAADAAEAAAAWAAUAAAADAAEAAAATAAQAAAADAAIAAAASAAQAAAABAAAAAAASAAkAAAABAAAAAAATAAkAAAACAAIAAAAUAAkAAAABAAAAAAAVAAkAAAABAAAAAAAbAAcAAAALAAcAAAAcAAcAAAAMAAcAAAAdAAcAAAANAAcAAAAdAAgAAAANAAgAAAAdAAkAAAANAAgAAAAdAAoAAAANAAgAAAAdAAsAAAAMAAgAAAAcAAsAAAAMAAgAAAAbAAsAAAAMAAgAAAAaAAsAAAALAAkAAAAaAAoAAAALAAgAAAAaAAkAAAALAAgAAAAQAAsAAAAFAAQAAAANAAcAAAAFAAQAAAAkAAoAAAAFAAQAAAAeAAQAAAAFAAQAAAAYAA4AAAAFAAQAAAAbAAoAAAAMAAgAAAAcAAoAAAAMAAgAAAAWAAwAAAAAAAEAAAAWAA0AAAAAAAEAAAAWAA4AAAAAAAEAAAAWABAAAAAAAAEAAAAWAA8AAAAAAAEAAAAPAA4AAAAEAAQAAAAdABEAAAAEAAQAAAAmAA4AAAAEAAQAAAAmAA8AAAAEAAQAAAAlAA8AAAAEAAQAAAAlABAAAAAEAAQAAAAmABAAAAAEAAQAAAAqAAoAAAAEAAQAAAAqAAkAAAAEAAQAAAApAAgAAAAEAAQAAAApAAcAAAAEAAQAAAApAAkAAAAEAAQAAAAqAAsAAAAEAAQAAAApAAsAAAAEAAQAAAAoAAsAAAAEAAQAAAAoAAwAAAAEAAQAAAAoAA0AAAAEAAQAAAApAAwAAAAEAAQAAAApAA0AAAAEAAQAAAAqAAwAAAAEAAQAAAAnAA4AAAAEAAQAAAAhABEAAAAEAAQAAAAiABEAAAAEAAQAAAAiABAAAAAEAAQAAAAjABAAAAAEAAQAAAAkABAAAAAEAAQAAAAhABAAAAAEAAQAAAAgABAAAAAEAAQAAAALAAoAAAAEAAQAAAAKAAoAAAAEAAQAAAAJAAoAAAAEAAQAAAAJAAkAAAAFAAQAAAAJAAgAAAAFAAQAAAAJAAcAAAAEAAQAAAAIAAcAAAAEAAQAAAAIAAkAAAAFAAQAAAAJAAQAAAAEAAQAAAAIAAQAAAAFAAQAAAAHAAQAAAAEAAQAAAAHAAMAAAAEAAQAAAAGAAMAAAAEAAQAAAAIAAMAAAAFAAQAAAAJAAMAAAAEAAQAAAAHAAUAAAAEAAQAAAAIAAYAAAAEAAQAAAAHAAYAAAAEAAQAAAAHAAcAAAAEAAQAAAAGAAcAAAAEAAQAAAAcAA4AAAAFAAQAAAAbAA4AAAAFAAQAAAAbAA8AAAAEAAQAAAAaAA8AAAAEAAQAAAAZABAAAAAEAAQAAAAcAA0AAAAMAAkAAAAbAA0AAAALAAkAAAAaAA0AAAAFAAQAAAAaAAwAAAAFAAQAAAAbAAwAAAALAAgAAAAcAAwAAAAMAAgAAAAeAAoAAAAFAAQAAAAfAAkAAAAEAAQAAAAfAAoAAAAFAAQAAAAfAAgAAAAEAAQAAAAeAAgAAAAEAAQAAAAeAAkAAAAFAAQAAAAZAAYAAAAEAAQAAAAYAAYAAAAEAAQAAAAYAAcAAAAEAAQAAAAYAAgAAAAFAAQAAAAYAAkAAAAEAAQAAAAYAAoAAAAEAAQAAAAQAAoAAAAEAAQAAAAQAAkAAAAEAAQAAAAPAAkAAAAEAAQAAAAPAAgAAAAEAAQAAAAPAAcAAAAEAAQAAAAPAAYAAAAEAAQAAAAQAAYAAAAFAAQAAAAQAAUAAAAFAAQAAAAQAAQAAAAFAAQAAAAQAAMAAAAEAAQAAAARAAMAAAAEAAQAAAASAAMAAAAEAAQAAAAoAAgAAAAEAAQAAAAoAAkAAAAEAAQAAAAoAAoAAAAEAAQAAAAoAAcAAAAEAAQAAAAoAAYAAAAEAAQAAAAoAAUAAAAEAAQAAAAnAAYAAAAEAAQAAAAnAAoAAAAEAAQAAAAnAAkAAAAEAAQAAAAnAAsAAAAEAAQAAAAmAAsAAAAEAAQAAAAnAAgAAAAEAAQAAAAnAAcAAAAEAAQAAAAlAAcAAAAEAAQAAAAkAAcAAAAEAAQAAAAkAAYAAAAEAAQAAAAMAAwAAAAFAAQAAAAMAAsAAAAFAAQAAAALAAQAAAAFAAQAAAAXAAkAAAAFAAQAAAAXAAgAAAAFAAQAAAAXAAYAAAAFAAQAAAAXAAUAAAAFAAQAAAAYAAUAAAAFAAQAAAAYAAQAAAAFAAQAAAAXAAQAAAAFAAQAAAAWABIAAAAFAAQAAAAVABIAAAAFAAQAAAAVABEAAAAFAAQAAAAVABAAAAAFAAQAAAAWABEAAAAFAAQAAAAMABAAAAAFAAQAAAALABAAAAAFAAQAAAAMAA8AAAAFAAQAAAALAA8AAAAFAAQAAAAKABEAAAAFAAQAAAAdAAwAAAAMAAgAAAAeAAwAAAANAAgAAAAeAAsAAAANAAcAAAAcAAYAAAAFAAQAAAAbAAYAAAAFAAQAAAAZAAsAAAAFAAQAAAAZAAwAAAAFAAQAAAAZAAcAAAAFAAQAAAAZAAgAAAAFAAQAAAAIAAgAAAAFAAQAAAACAAIAAAAFAAQAAAABAAMAAAAFAAQAAAACAAMAAAAFAAQAAAAAAAQAAAAFAAQAAAAAAAUAAAAFAAQAAAABAAUAAAAFAAQAAAABAAYAAAAFAAQAAAAAAAYAAAAFAAQAAAAAAAcAAAAFAAQAAAABAAcAAAAFAAQAAAABAAgAAAAFAAQAAAD//wcAAAAFAAQAAAD//wgAAAAFAAQAAAD//woAAAAFAAQAAAD//wsAAAAFAAQAAAD//wwAAAAFAAQAAAATAP7/AAAFAAQAAAAUAP7/AAAFAAQAAAAVAP7/AAAFAAQAAAAWAP7/AAAFAAQAAAAVAP3/AAAFAAQAAAAWAP3/AAAFAAQAAAAUAP3/AAAFAAQAAAATAPz/AAAFAAQAAAAUAPz/AAAFAAQAAAAVAPz/AAAFAAQAAAAWAPz/AAAFAAQAAAAYAP3/AAAFAAQAAAAgAAIAAAALAAYAAAAfAAEAAAAEAAQAAAAfAAIAAAAEAAQAAAAfAAMAAAAEAAQAAAAgAAMAAAAEAAQAAAAgAAEAAAAFAAQAAAAhAAEAAAAFAAQAAAAiAAIAAAAFAAQAAAATAAUAAAAJAAgAAAAVAAMAAAABAAAAAAATAAMAAAACAAMAAAAUAAMAAAABAAAAAAAWAAQAAAADAAEAAAAWAAMAAAADAAAAAAAVAAQAAAALAAUAAAAUAAQAAAAOAAMAAAAeAA0AAAANAAkAAAAdAA0AAAAMAAkAAAAbAAgAAAAMAAgAAAAaAAgAAAALAAcAAAAcAAgAAAAMAAgAAAAcAAkAAAAMAAgAAAAbAAkAAAAMAAgAAAAdAA8AAAALAAcAAAAdABAAAAALAAkAAAAeABAAAAANAAkAAAAeAA8AAAANAAcAAAACAAcAAAAFAAQAAAA=")
 tile_set = SubResource("TileSet_lqx7t")
 
-[node name="Shrub" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(96, 32)
-
-[node name="Shrub2" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(264, 104)
-
-[node name="Shrub3" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(248, 16)
-
-[node name="Shrub4" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(168, 104)
-
-[node name="Shrub5" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(72, 112)
-
-[node name="Shrub6" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(176, 8)
-
-[node name="Door" parent="." instance=ExtResource("3_xd47s")]
-position = Vector2(152, 72)
-destination_level_res_path = "res://admin_levels/room.tscn"
-destination_pos = Vector2i(33, 9)
-
 [node name="GroundItem" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(88, 72)
-sprite = NodePath("Sprite2D")
-item_name = "Ring"
-
-[node name="Sprite2D" parent="GroundItem" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(72, 40, 8, 8)
-
-[node name="GroundItem2" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(112, 96)
-sprite = NodePath("Sprite2D")
-item_name = "Key"
-
-[node name="Sprite2D" parent="GroundItem2" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(80, 40, 8, 8)
-
-[node name="GroundItem3" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(200, 40)
+position = Vector2(32, 32)
 sprite = NodePath("Sprite2D")
 item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem2" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(232, -16)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem2" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem18" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(40, 72)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem18" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem19" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(104, 8)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem19" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem20" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(264, 96)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem20" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem21" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(-32, 80)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem21" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem22" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(16, 120)
+sprite = NodePath("Sprite2D")
+item_name = "Suspicious mushroom"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem22" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 24, 8, 8)
+
+[node name="GroundItem3" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(32, 160)
+sprite = NodePath("Sprite2D")
+item_name = "Fortified chest"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem3" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(72, 24, 8, 8)
+
+[node name="GroundItem27" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(248, 48)
+sprite = NodePath("Sprite2D")
+item_name = "Fortified chest"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem27" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 24, 8, 8)
+
+[node name="GroundItem28" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(144, 40)
+sprite = NodePath("Sprite2D")
+item_name = "Fortified chest"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem28" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 24, 8, 8)
+
+[node name="GroundItem4" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(184, 96)
+sprite = NodePath("Sprite2D")
+item_name = "Crimson banner"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem4" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(120, 16, 8, 8)
+
+[node name="GroundItem5" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(-56, 48)
+sprite = NodePath("Sprite2D")
+item_name = "Broken septre"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem5" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(80, 32, 8, 8)
 
 [node name="GroundItem6" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(256, 80)
+position = Vector2(312, 152)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Rusty key"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem6" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(80, 40, 8, 8)
 
 [node name="GroundItem7" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(312, 56)
+position = Vector2(72, -16)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Vicious dagger"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem7" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(48, 32, 8, 8)
+
+[node name="GroundItem29" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(168, 104)
+sprite = NodePath("Sprite2D")
+item_name = "Vicious dagger"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem29" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(48, 32, 8, 8)
 
 [node name="GroundItem8" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(88, 88)
+position = Vector2(144, 136)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Padlock"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem8" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(56, 16, 8, 8)
 
 [node name="GroundItem9" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(48, 64)
+position = Vector2(160, 56)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Wooden table"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem9" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(56, 24, 8, 8)
 
 [node name="GroundItem10" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(72, 24)
+position = Vector2(352, -24)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Hardened battleaxe"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem10" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(56, 32, 8, 8)
 
 [node name="GroundItem11" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(128, 8)
+position = Vector2(208, 16)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Oak bow"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem11" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(64, 32, 8, 8)
 
 [node name="GroundItem12" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(48, 104)
+position = Vector2(144, 56)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Steel-tipped arrow"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem12" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(72, 32, 8, 8)
+
+[node name="GroundItem23" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(216, 40)
+sprite = NodePath("Sprite2D")
+item_name = "Steel-tipped arrow"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem23" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 32, 8, 8)
+
+[node name="GroundItem24" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(72, 104)
+sprite = NodePath("Sprite2D")
+item_name = "Steel-tipped arrow"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem24" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 32, 8, 8)
+
+[node name="GroundItem25" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(176, 8)
+sprite = NodePath("Sprite2D")
+item_name = "Steel-tipped arrow"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem25" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 32, 8, 8)
+
+[node name="GroundItem26" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(-24, 24)
+sprite = NodePath("Sprite2D")
+item_name = "Steel-tipped arrow"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem26" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 32, 8, 8)
 
 [node name="GroundItem13" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(136, 120)
+position = Vector2(208, 168)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Ruby band"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem13" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
+region_rect = Rect2(72, 40, 8, 8)
 
 [node name="GroundItem14" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(136, 120)
+position = Vector2(168, 48)
 sprite = NodePath("Sprite2D")
-item_name = "Suspicious mushroom"
+item_name = "Cooked chicken thigh"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="GroundItem14" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(48, 24, 8, 8)
-
-[node name="GroundItem4" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(224, 24)
-sprite = NodePath("Sprite2D")
-item_name = "Bountiful chest"
-
-[node name="Sprite2D" parent="GroundItem4" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(72, 24, 8, 8)
-metadata/_edit_group_ = true
+region_rect = Rect2(80, 64, 8, 8)
 
 [node name="GroundItem15" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(224, 24)
+position = Vector2(-24, -16)
 sprite = NodePath("Sprite2D")
-item_name = "Bountiful chest"
-
-[node name="Sprite2D" parent="GroundItem15" instance=ExtResource("5_nfja6")]
-position = Vector2(-144, 24)
-region_rect = Rect2(72, 24, 8, 8)
+item_name = "Unfinished pendant"
 metadata/_edit_group_ = true
 
-[node name="GroundItem5" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
-position = Vector2(272, 48)
-sprite = NodePath("Sprite2D")
-item_name = "Flaming dagger"
+[node name="Sprite2D" parent="GroundItem15" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(0, 64, 8, 8)
 
-[node name="Sprite2D" parent="GroundItem5" instance=ExtResource("5_nfja6")]
-region_rect = Rect2(40, 64, 8, 8)
+[node name="GroundItem16" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(-40, -24)
+sprite = NodePath("Sprite2D")
+item_name = "Sun pendant"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem16" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(64, 40, 8, 8)
+
+[node name="GroundItem17" parent="." node_paths=PackedStringArray("sprite") instance=ExtResource("4_di3mq")]
+position = Vector2(168, 80)
+sprite = NodePath("Sprite2D")
+item_name = "Dog food bowl"
+metadata/_edit_group_ = true
+
+[node name="Sprite2D" parent="GroundItem17" instance=ExtResource("5_nfja6")]
+region_rect = Rect2(72, 16, 8, 8)
+
+[node name="Shrub" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(112, 88)
+
+[node name="Shrub27" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(104, 152)
+
+[node name="Shrub2" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(152, 176)
+
+[node name="Shrub26" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(208, 136)
+
+[node name="Shrub28" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(288, 104)
+
+[node name="Shrub3" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(48, 176)
+
+[node name="Shrub4" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-16, 128)
+
+[node name="Shrub5" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-32, 104)
+
+[node name="Shrub6" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-48, 96)
+
+[node name="Shrub7" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-72, 88)
+
+[node name="Shrub8" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-72, 72)
+
+[node name="Shrub24" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(296, 8)
+
+[node name="Shrub29" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(288, 64)
+
+[node name="Shrub25" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(280, 40)
+
+[node name="Shrub9" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-56, 64)
+
+[node name="Shrub10" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-72, 48)
+
+[node name="Shrub11" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-72, 16)
+
+[node name="Shrub12" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-72, 16)
+
+[node name="Shrub13" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-104, 56)
+
+[node name="Shrub14" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-96, 32)
+
+[node name="Shrub15" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(-96, 32)
+
+[node name="Shrub16" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(120, -24)
+
+[node name="Shrub17" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(120, -24)
+
+[node name="Shrub20" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(256, -24)
+
+[node name="Shrub30" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(304, -16)
+
+[node name="Shrub21" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(104, -48)
+
+[node name="Shrub23" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(200, -56)
+
+[node name="Shrub31" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(160, -48)
+
+[node name="Shrub18" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(40, -48)
+
+[node name="Shrub19" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(40, -48)
+
+[node name="Shrub22" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(352, 80)

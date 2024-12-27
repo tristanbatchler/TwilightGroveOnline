@@ -122,12 +122,7 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 
 	c.client.SetState(&InGame{
 		levelId: actor.LevelID,
-		player: &objs.Actor{
-			Name: message.LoginRequest.Username,
-			X:    actor.X,
-			Y:    actor.Y,
-			DbId: actor.ID,
-		},
+		player:  objs.NewActor(actor.LevelID, actor.X, actor.Y, actor.Name, actor.ID),
 	})
 }
 

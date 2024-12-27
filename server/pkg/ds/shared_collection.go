@@ -6,7 +6,7 @@ import "sync"
 type SharedCollection[T any] struct {
 	objectsMap map[uint64]T
 	nextId     uint64
-	mapMux     sync.Mutex
+	mapMux     sync.RWMutex
 }
 
 func NewSharedCollection[T any](capacity ...int) *SharedCollection[T] {
@@ -50,12 +50,12 @@ func (s *SharedCollection[T]) Remove(id uint64) {
 // Call the callback function for each object in the map.
 func (s *SharedCollection[T]) ForEach(callback func(uint64, T)) {
 	// Create a local copy while holding the lock.
-	s.mapMux.Lock()
+	s.mapMux.RLock()
 	localCopy := make(map[uint64]T, len(s.objectsMap))
 	for id, obj := range s.objectsMap {
 		localCopy[id] = obj
 	}
-	s.mapMux.Unlock()
+	s.mapMux.RUnlock()
 
 	// Iterate over the local copy without holding the lock.
 	for id, obj := range localCopy {
@@ -66,8 +66,8 @@ func (s *SharedCollection[T]) ForEach(callback func(uint64, T)) {
 // Get the object with the given ID, if it exists, otherwise nil.
 // Also returns a boolean indicating whether the object was found.
 func (s *SharedCollection[T]) Get(id uint64) (T, bool) {
-	s.mapMux.Lock()
-	defer s.mapMux.Unlock()
+	s.mapMux.RLock()
+	defer s.mapMux.RUnlock()
 
 	obj, ok := s.objectsMap[id]
 	return obj, ok

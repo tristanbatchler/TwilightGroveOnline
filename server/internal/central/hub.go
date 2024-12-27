@@ -211,7 +211,7 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelShrubsByLevelId,
 		func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
 		func(message *db.LevelsShrub) (*objs.Shrub, error) {
-			return &objs.Shrub{Strength: int32(message.Strength), X: message.X, Y: message.Y}, nil
+			return objs.NewShrub(0, message.LevelID, int32(message.Strength), message.X, message.Y), nil
 		},
 	)
 	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
@@ -222,7 +222,7 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelDoorsByLevelId,
 		func(door *objs.Door, id uint64) { door.Id = id },
 		func(message *db.LevelsDoor) (*objs.Door, error) {
-			return &objs.Door{DestinationLevelId: message.DestinationLevelID, DestinationX: message.DestinationX, DestinationY: message.DestinationY, X: message.X, Y: message.Y}, nil
+			return objs.NewDoor(0, message.LevelID, message.DestinationLevelID, message.DestinationX, message.DestinationY, message.X, message.Y), nil
 		},
 	)
 	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
@@ -233,7 +233,7 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelGroundItemsByLevelId,
 		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
 		func(message *db.LevelsGroundItem) (*objs.GroundItem, error) {
-			return &objs.GroundItem{Name: message.Name, X: message.X, Y: message.Y, SpriteRegionX: int32(message.SpriteRegionX), SpriteRegionY: int32(message.SpriteRegionY)}, nil
+			return objs.NewGroundItem(0, message.LevelID, message.Name, message.X, message.Y, int32(message.SpriteRegionX), int32(message.SpriteRegionY)), nil
 		},
 	)
 

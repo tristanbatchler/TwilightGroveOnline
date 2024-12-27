@@ -178,3 +178,14 @@ WHERE ac.id = ? LIMIT 1;
 -- name: GetUserIdByActorId :one
 SELECT user_id FROM actors
 WHERE id = ? LIMIT 1;
+
+-- name: DeleteLevelGroundItem :exec
+DELETE FROM levels_ground_items
+WHERE id IN (
+    SELECT lgi.id FROM levels_ground_items lgi
+    WHERE lgi.level_id = ?
+    AND lgi.x = ?
+    AND lgi.y = ?
+    AND lgi.name = ?
+    LIMIT 1
+);

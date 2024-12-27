@@ -49,6 +49,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			a.queries.DeleteLevelCollisionPointsByLevelId,
 			func(*struct{}, uint64) {},
 			func(c *packets.CollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
+			nil,
 		),
 		ShrubsImporter: levels.NewPacketDataImporter(
 			"shrubs",
@@ -57,10 +58,9 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			func(s *packets.Shrub) ds.Point { return ds.NewPoint(int64(s.X), int64(s.Y)) },
 			a.addShrubToDb,
 			a.queries.DeleteLevelShrubsByLevelId,
-			func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
-			func(s *packets.Shrub) (*objs.Shrub, error) {
-				return &objs.Shrub{X: int64(s.X), Y: int64(s.Y), Strength: s.Strength}, nil
-			},
+			func(s *objs.Shrub, id uint64) { s.Id = id },
+			nil,
+			func(s *objs.Shrub) int64 { return s.LevelId },
 		),
 		DoorsImporter: levels.NewPacketDataImporter(
 			"doors",
@@ -70,19 +70,8 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			a.addDoorToDb,
 			a.queries.DeleteLevelDoorsByLevelId,
 			func(d *objs.Door, id uint64) { d.Id = id },
-			func(d *packets.Door) (*objs.Door, error) {
-				destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
-				if err != nil {
-					return nil, err
-				}
-				return &objs.Door{
-					X:                  int64(d.X),
-					Y:                  int64(d.Y),
-					DestinationX:       int64(d.DestinationX),
-					DestinationY:       int64(d.DestinationY),
-					DestinationLevelId: destinationLevelId,
-				}, nil
-			},
+			nil,
+			func(d *objs.Door) int64 { return d.LevelId },
 		),
 		GroundItemsImporter: levels.NewPacketDataImporter(
 			"ground items",
@@ -92,9 +81,8 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			a.addGroundItemToDb,
 			a.queries.DeleteLevelGroundItemsByLevelId,
 			func(g *objs.GroundItem, id uint64) { g.Id = id },
-			func(g *packets.GroundItem) (*objs.GroundItem, error) {
-				return &objs.GroundItem{X: int64(g.X), Y: int64(g.Y), Name: g.Name, SpriteRegionX: g.SpriteRegionX, SpriteRegionY: g.SpriteRegionY}, nil
-			},
+			nil,
+			func(g *objs.GroundItem) int64 { return g.LevelId },
 		),
 	}
 }
@@ -223,6 +211,20 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		},
 	}
 
+	a.levelDataImporters.ShrubsImporter.MakeGameObject = func(s *packets.Shrub) (*objs.Shrub, error) {
+		return objs.NewShrub(0, level.ID, s.Strength, int64(s.X), int64(s.Y)), nil
+	}
+	a.levelDataImporters.DoorsImporter.MakeGameObject = func(d *packets.Door) (*objs.Door, error) {
+		destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
+		if err != nil {
+			return nil, err
+		}
+		return objs.NewDoor(0, level.ID, destinationLevelId, int64(d.DestinationX), int64(d.DestinationY), int64(d.X), int64(d.Y)), nil
+	}
+	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
+		return objs.NewGroundItem(0, level.ID, g.Name, int64(g.X), int64(g.Y), g.SpriteRegionX, g.SpriteRegionY), nil
+	}
+
 	for _, importFunc := range importFuncs {
 		if err = importFunc(); err != nil {
 			a.logger.Printf("Error importing object: %v", err)
@@ -252,12 +254,7 @@ func (a *Admin) handleAdminJoinGameRequest(senderId uint64, _ *packets.Packet_Ad
 
 	a.client.SetState(&InGame{
 		levelId: actor.LevelID,
-		player: &objs.Actor{
-			Name: actor.Name,
-			X:    actor.X,
-			Y:    actor.Y,
-			DbId: actor.ID,
-		},
+		player:  objs.NewActor(actor.LevelID, actor.X, actor.Y, actor.Name, actor.ID),
 	})
 }
 
