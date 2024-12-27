@@ -19,6 +19,7 @@ var _world_tilemap_layer: TileMapLayer
 
 var _actors: Dictionary[int, Actor]
 var _ground_items: Dictionary[int, GroundItem]
+var _shrubs: Dictionary[int, Shrub]
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
@@ -55,6 +56,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_pickup_ground_item_request(sender_id, packet.get_pickup_ground_item_request())
 	elif packet.has_ground_item():
 		_handle_ground_item(packet.get_ground_item())
+	elif packet.has_shrub():
+		_handle_shrub(packet.get_shrub())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -206,6 +209,17 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	ground_item_obj.place(_world_tilemap_layer)
 	
 	_log.info("Added %s to world at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
+
+func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
+	var sid := shrub_msg.get_id()
+	if sid in _shrubs:
+		return
+	var x := shrub_msg.get_x()
+	var y := shrub_msg.get_y()
+	var strength := shrub_msg.get_strength()
+	var shrub_obj := Shrub.instantiate(sid, x, y, strength)
+	_shrubs[sid] = shrub_obj
+	shrub_obj.place(_world_tilemap_layer)
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
