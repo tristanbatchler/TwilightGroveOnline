@@ -26,9 +26,11 @@ var is_player: bool
 
 var _world_tile_size := Vector2i(1, 1)
 
+@onready var _canvas_layer: CanvasLayer = $CanvasLayer
 @onready var _name_plate: Label = $CanvasLayer/NamePlate
 @onready var _camera: Camera2D = $Camera2D
 @onready var _area: Area2D = $Area2D
+@onready var _name_plate_position: Marker2D = $NamePlatePosition
 
 
 static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> Actor:
@@ -88,6 +90,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_left_click_held = true
 		
 func _process(delta: float) -> void:
+	var np_view_rect := _name_plate.get_viewport_rect()
+	var np_view_pos := np_view_rect.position
+	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2, 0)
+	
 	if not is_player:
 		return
 	

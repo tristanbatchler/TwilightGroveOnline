@@ -13,7 +13,6 @@ const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
 @onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
 
-
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
 

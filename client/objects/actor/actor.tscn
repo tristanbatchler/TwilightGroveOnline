@@ -11,6 +11,9 @@ resource_local_to_scene = true
 collision_mask = 2
 script = ExtResource("1_v10g4")
 
+[node name="NamePlatePosition" type="Marker2D" parent="."]
+position = Vector2(4, 8)
+
 [node name="Camera2D" type="Camera2D" parent="."]
 offset = Vector2(4, 20)
 zoom = Vector2(3, 3)
@@ -36,20 +39,24 @@ shape = SubResource("CircleShape2D_nf4m1")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="NamePlate" type="Label" parent="CanvasLayer"]
+custom_minimum_size = Vector2(150, 0)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -11.5
-offset_right = 20.0
-offset_bottom = 11.5
+offset_left = -11.5
+offset_top = -10.5
+offset_right = 11.5
+offset_bottom = 10.5
 grow_horizontal = 2
 grow_vertical = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 6
 theme = ExtResource("2_r0emk")
 theme_override_font_sizes/font_size = 16
-text = "Test"
+text = "ReallySuperLongNameeeeeee"
 horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
