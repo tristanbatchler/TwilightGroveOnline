@@ -56,15 +56,6 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_player:
 		return
-		
-	# Camera zoom
-	if event is InputEventMouseButton and event.is_pressed():
-		match event.button_index:
-			MOUSE_BUTTON_WHEEL_UP:
-				_camera.zoom.x = min(4, _camera.zoom.x + 0.1)
-			MOUSE_BUTTON_WHEEL_DOWN:
-				_camera.zoom.x = max(0.1, _camera.zoom.x - 0.1)
-		_camera.zoom.y = _camera.zoom.x
 	
 	# Movement
 	if not _at_target():
@@ -75,7 +66,10 @@ func _input(event: InputEvent) -> void:
 	# Keyboard movement for PC
 	if event is InputEventKey:
 		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
 		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
+
 		
 		if event.is_action_released("pickup_item"):
 			var ground_item := _get_ground_item_standing_on()
@@ -85,9 +79,21 @@ func _input(event: InputEvent) -> void:
 	move_and_send(input_dir)
 		
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_player:
+		return
+	
 	# Use unhandled input to avoid moving when clicking inside chatbox or buttons, etc.
 	if event.is_action_pressed("left_click"):
 		_left_click_held = true
+		
+	# Camera zoom
+	elif event is InputEventMouseButton and event.is_pressed():
+		match event.button_index:
+			MOUSE_BUTTON_WHEEL_UP:
+				_camera.zoom.x = min(4, _camera.zoom.x + 0.1)
+			MOUSE_BUTTON_WHEEL_DOWN:
+				_camera.zoom.x = max(0.1, _camera.zoom.x - 0.1)
+		_camera.zoom.y = _camera.zoom.x
 		
 func _process(delta: float) -> void:
 	var np_view_rect := _name_plate.get_viewport_rect()

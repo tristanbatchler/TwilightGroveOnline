@@ -31,10 +31,10 @@
         - importing to memory from the DB
 - [x] Press G to pick up items when standing on them
 - [x] Storing items in the player's inventory, both on the server and in the database
-- [ ] Displaying the player's inventory on the client
+- [x] Displaying the player's inventory on the client
 - [ ] Dropping items from the player's inventory onto the ground
 - [ ] Disable camera zoom while scrolling inside inventory/chat
-- [ ] Disable cursor keys changing between chat and inventory
+- [x] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
 - [ ] Audit use of int64 in game_objects.go and messages.proto
