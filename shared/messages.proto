@@ -154,7 +154,9 @@ message DropItemRequest {
 }
 
 message DropItemResponse {
-    Response response = 1;
+    Item item = 1;
+    uint32 quantity = 2;
+    Response response = 3;
 }
 
 message ItemQuantity {

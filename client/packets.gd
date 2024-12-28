@@ -2392,7 +2392,18 @@ class DropItemResponse:
 	func _init():
 		var service
 		
-		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_item = PBField.new("item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _item
+		service.func_ref = Callable(self, "new_item")
+		data[_item.tag] = service
+		
+		_quantity = PBField.new("quantity", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = _quantity
+		data[_quantity.tag] = service
+		
+		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _response
 		service.func_ref = Callable(self, "new_response")
@@ -2400,11 +2411,30 @@ class DropItemResponse:
 		
 	var data = {}
 	
+	var _item: PBField
+	func get_item() -> Item:
+		return _item.value
+	func clear_item() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item() -> Item:
+		_item.value = Item.new()
+		return _item.value
+	
+	var _quantity: PBField
+	func get_quantity() -> int:
+		return _quantity.value
+	func clear_quantity() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_quantity(value : int) -> void:
+		_quantity.value = value
+	
 	var _response: PBField
 	func get_response() -> Response:
 		return _response.value
 	func clear_response() -> void:
-		data[1].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_response() -> Response:
 		_response.value = Response.new()

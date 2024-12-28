@@ -179,12 +179,7 @@ func newOptionalGroundItem(groundItem *objs.GroundItem) *GroundItem {
 	if groundItem == nil {
 		return nil
 	}
-	return &GroundItem{
-		Id:   groundItem.Id,
-		Item: NewItem(groundItem.Item).(*Packet_Item).Item,
-		X:    int32(groundItem.X),
-		Y:    int32(groundItem.Y),
-	}
+	return NewGroundItem(groundItem.Id, groundItem).(*Packet_GroundItem).GroundItem
 }
 
 func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err error) Msg {
@@ -199,9 +194,19 @@ func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err 
 	}
 }
 
-func NewDropItemResponse(success bool, err error) Msg {
+func newOptionalItem(item *objs.Item) *Item {
+	if item == nil {
+		return nil
+	}
+	return NewItem(item).(*Packet_Item).Item
+}
+
+func NewDropItemResponse(success bool, item *objs.Item, quantity uint32, err error) Msg {
 	return &Packet_DropItemResponse{
 		DropItemResponse: &DropItemResponse{
+			// Item:     NewItem(item).(*Packet_Item).Item,
+			Item:     newOptionalItem(item),
+			Quantity: quantity,
 			Response: &Response{
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),

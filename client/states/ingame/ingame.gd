@@ -65,6 +65,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_shrub(packet.get_shrub())
 	elif packet.has_actor_inventory():
 		_handle_actor_inventory(packet.get_actor_inventory())
+	elif packet.has_drop_item_response():
+		_handle_drop_item_response(packet.get_drop_item_response())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -184,6 +186,16 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		_inventory.add(ground_item.item_name, 1, ground_item.sprite.region_rect.position.x, ground_item.sprite.region_rect.position.y)
 		_remove_ground_item(ground_item_id)
 
+func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) -> void:
+	var response := drop_item_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+	var dropped_item_msg := drop_item_response.get_item()
+	
+	_inventory.remove(dropped_item_msg.get_name(), drop_item_response.get_quantity())
+
 # This gets forwareded to us from the server only when the other player *successfully* picks up the item
 func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_request: Packets.PickupGroundItemRequest) -> void:
 	var ground_item_id := pickup_ground_item_request.get_ground_item_id()
@@ -276,8 +288,8 @@ func _drop_item(item_name: String, item_qty: int, sprite_region_x: int, sprite_r
 	item_msg.set_sprite_region_x(sprite_region_x)
 	item_msg.set_sprite_region_y(sprite_region_y)
 	
-	if WS.send(packet) == OK:
-		_inventory.remove(item_name, item_qty)
+	WS.send(packet)
+
 
 func _process(delta: float) -> void:
 	if GameManager.client_id in _actors:

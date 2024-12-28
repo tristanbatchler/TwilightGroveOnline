@@ -301,6 +301,13 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 		return
 	}
 
+	point := ds.Point{X: g.player.X, Y: g.player.Y}
+	if g.client.LevelPointMaps().GroundItems.Contains(g.levelId, point) {
+		g.logger.Println("Tried to drop an item on top of another item")
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that - there's already something there")))
+		return
+	}
+
 	itemMsg := message.DropItemRequest.Item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
@@ -309,7 +316,7 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item from the database: %v", err)
-		g.client.SocketSend(packets.NewDropItemResponse(false, errors.New("Can't drop that right now")))
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that right now")))
 		return
 	}
 	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, itemModel.ID)
@@ -317,16 +324,17 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	// Check the item's in the player's inventory
 	if quantity, exists := g.inventory[*itemObj]; !exists || quantity < message.DropItemRequest.Quantity {
 		g.logger.Printf("Tried to drop %d of item %s, but only has %d", message.DropItemRequest.Quantity, itemObj.Name, quantity)
-		g.client.SocketSend(packets.NewDropItemResponse(false, errors.New("Don't have enough of that item to drop")))
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Don't have enough of that item to drop")))
 		return
 	}
+
+	// Tell the client the drop was successful
+	g.client.SocketSend(packets.NewDropItemResponse(true, itemObj, message.DropItemRequest.Quantity, nil))
 
 	// Remove the item from the player's inventory
 	g.removeInventoryItem(*itemObj, message.DropItemRequest.Quantity)
 
 	// Create the ground item
-	point := ds.Point{X: g.player.X, Y: g.player.Y}
-
 	groundItem := objs.NewGroundItem(0, g.levelId, itemObj, g.player.X, g.player.Y, 0)
 
 	g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
