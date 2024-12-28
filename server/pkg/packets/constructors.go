@@ -199,6 +199,17 @@ func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err 
 	}
 }
 
+func NewDropItemResponse(success bool, err error) Msg {
+	return &Packet_DropItemResponse{
+		DropItemResponse: &DropItemResponse{
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}
+
 func NewInventory(inventory map[objs.Item]uint32) Msg {
 	itemQtys := make([]*ItemQuantity, 0)
 	for itemObj, quantity := range inventory {

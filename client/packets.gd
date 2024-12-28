@@ -2331,6 +2331,106 @@ class PickupGroundItemResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class DropItemRequest:
+	func _init():
+		var service
+		
+		_item = PBField.new("item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _item
+		service.func_ref = Callable(self, "new_item")
+		data[_item.tag] = service
+		
+		_quantity = PBField.new("quantity", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = _quantity
+		data[_quantity.tag] = service
+		
+	var data = {}
+	
+	var _item: PBField
+	func get_item() -> Item:
+		return _item.value
+	func clear_item() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item() -> Item:
+		_item.value = Item.new()
+		return _item.value
+	
+	var _quantity: PBField
+	func get_quantity() -> int:
+		return _quantity.value
+	func clear_quantity() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_quantity(value : int) -> void:
+		_quantity.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class DropItemResponse:
+	func _init():
+		var service
+		
+		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _response
+		service.func_ref = Callable(self, "new_response")
+		data[_response.tag] = service
+		
+	var data = {}
+	
+	var _response: PBField
+	func get_response() -> Response:
+		return _response.value
+	func clear_response() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_response() -> Response:
+		_response.value = Response.new()
+		return _response.value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class ItemQuantity:
 	func _init():
 		var service
@@ -2609,6 +2709,18 @@ class Packet:
 		service.func_ref = Callable(self, "new_actor_inventory")
 		data[_actor_inventory.tag] = service
 		
+		_drop_item_request = PBField.new("drop_item_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 30, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _drop_item_request
+		service.func_ref = Callable(self, "new_drop_item_request")
+		data[_drop_item_request.tag] = service
+		
+		_drop_item_response = PBField.new("drop_item_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 31, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _drop_item_response
+		service.func_ref = Callable(self, "new_drop_item_response")
+		data[_drop_item_response.tag] = service
+		
 	var data = {}
 	
 	var _sender_id: PBField
@@ -2684,6 +2796,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_client_id.value = ClientId.new()
 		return _client_id.value
 	
@@ -2751,6 +2867,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = LoginRequest.new()
 		return _login_request.value
 	
@@ -2818,6 +2938,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_login_response.value = LoginResponse.new()
 		return _login_response.value
 	
@@ -2885,6 +3009,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_register_request.value = RegisterRequest.new()
 		return _register_request.value
 	
@@ -2952,6 +3080,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_register_response.value = RegisterResponse.new()
 		return _register_response.value
 	
@@ -3019,6 +3151,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_logout.value = Logout.new()
 		return _logout.value
 	
@@ -3086,6 +3222,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_chat.value = Chat.new()
 		return _chat.value
 	
@@ -3153,6 +3293,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = Yell.new()
 		return _yell.value
 	
@@ -3220,6 +3364,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_actor.value = Actor.new()
 		return _actor.value
 	
@@ -3287,6 +3435,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = ActorMove.new()
 		return _actor_move.value
 	
@@ -3354,6 +3506,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_motd.value = Motd.new()
 		return _motd.value
 	
@@ -3421,6 +3577,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_disconnect.value = Disconnect.new()
 		return _disconnect.value
 	
@@ -3488,6 +3648,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_admin_login_granted.value = AdminLoginGranted.new()
 		return _admin_login_granted.value
 	
@@ -3555,6 +3719,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_sql_query.value = SqlQuery.new()
 		return _sql_query.value
 	
@@ -3622,6 +3790,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_sql_response.value = SqlResponse.new()
 		return _sql_response.value
 	
@@ -3689,6 +3861,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload.value = LevelUpload.new()
 		return _level_upload.value
 	
@@ -3756,6 +3932,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload_response.value = LevelUploadResponse.new()
 		return _level_upload_response.value
 	
@@ -3823,6 +4003,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_level_download.value = LevelDownload.new()
 		return _level_download.value
 	
@@ -3890,6 +4074,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_request.value = AdminJoinGameRequest.new()
 		return _admin_join_game_request.value
 	
@@ -3957,6 +4145,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = AdminJoinGameResponse.new()
 		return _admin_join_game_response.value
 	
@@ -4024,6 +4216,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_server_message.value = ServerMessage.new()
 		return _server_message.value
 	
@@ -4091,6 +4287,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_request.value = PickupGroundItemRequest.new()
 		return _pickup_ground_item_request.value
 	
@@ -4158,6 +4358,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = PickupGroundItemResponse.new()
 		return _pickup_ground_item_response.value
 	
@@ -4225,6 +4429,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = Shrub.new()
 		return _shrub.value
 	
@@ -4292,6 +4500,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_door.value = Door.new()
 		return _door.value
 	
@@ -4359,6 +4571,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_Item.value = Item.new()
 		return _Item.value
 	
@@ -4426,6 +4642,10 @@ class Packet:
 		data[28].state = PB_SERVICE_STATE.FILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_ground_item.value = GroundItem.new()
 		return _ground_item.value
 	
@@ -4493,8 +4713,154 @@ class Packet:
 		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
 		data[29].state = PB_SERVICE_STATE.FILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = ActorInventory.new()
 		return _actor_inventory.value
+	
+	var _drop_item_request: PBField
+	func has_drop_item_request() -> bool:
+		return data[30].state == PB_SERVICE_STATE.FILLED
+	func get_drop_item_request() -> DropItemRequest:
+		return _drop_item_request.value
+	func clear_drop_item_request() -> void:
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_drop_item_request() -> DropItemRequest:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		data[30].state = PB_SERVICE_STATE.FILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DropItemRequest.new()
+		return _drop_item_request.value
+	
+	var _drop_item_response: PBField
+	func has_drop_item_response() -> bool:
+		return data[31].state == PB_SERVICE_STATE.FILLED
+	func get_drop_item_response() -> DropItemResponse:
+		return _drop_item_response.value
+	func clear_drop_item_response() -> void:
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_drop_item_response() -> DropItemResponse:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		data[31].state = PB_SERVICE_STATE.FILLED
+		_drop_item_response.value = DropItemResponse.new()
+		return _drop_item_response.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

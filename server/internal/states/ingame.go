@@ -94,6 +94,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handlePickupGroundItemRequest(senderId, message)
 	case *packets.Packet_GroundItem:
 		g.client.SocketSendAs(message, senderId)
+	case *packets.Packet_DropItemRequest:
+		g.handleDropItemRequest(senderId, message)
 	}
 }
 
@@ -263,26 +265,78 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	g.addInventoryItem(*groundItem.Item, 1)
 
 	// Start the respawn time
-	timer := time.NewTimer(time.Duration(groundItem.RespawnSeconds) * time.Second)
-	go func() {
-		<-timer.C
-		g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
-		groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
-		g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-			LevelID: g.levelId,
-			ItemID:  groundItem.Item.DbId,
-			X:       groundItem.X,
-			Y:       groundItem.Y,
-		})
-		g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
-		g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
-		g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
-	}()
+	if groundItem.RespawnSeconds > 0 {
+		timer := time.NewTimer(time.Duration(groundItem.RespawnSeconds) * time.Second)
+		go func() {
+			<-timer.C
+			g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
+			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
+			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
+				LevelID: g.levelId,
+				ItemID:  groundItem.Item.DbId,
+				X:       groundItem.X,
+				Y:       groundItem.Y,
+			})
+			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
+			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
+		}()
+	}
 
 	g.client.Broadcast(message, g.othersInLevel)
 	go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
+}
+
+func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_DropItemRequest) {
+	if senderId != g.client.Id() {
+		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
+		return
+	}
+
+	itemMsg := message.DropItemRequest.Item
+	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
+		Name:          itemMsg.Name,
+		SpriteRegionX: int64(itemMsg.SpriteRegionX),
+		SpriteRegionY: int64(itemMsg.SpriteRegionY),
+	})
+	if err != nil {
+		g.logger.Printf("Failed to get item from the database: %v", err)
+		g.client.SocketSend(packets.NewDropItemResponse(false, errors.New("Can't drop that right now")))
+		return
+	}
+	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, itemModel.ID)
+
+	// Check the item's in the player's inventory
+	if quantity, exists := g.inventory[*itemObj]; !exists || quantity < message.DropItemRequest.Quantity {
+		g.logger.Printf("Tried to drop %d of item %s, but only has %d", message.DropItemRequest.Quantity, itemObj.Name, quantity)
+		g.client.SocketSend(packets.NewDropItemResponse(false, errors.New("Don't have enough of that item to drop")))
+		return
+	}
+
+	// Remove the item from the player's inventory
+	g.removeInventoryItem(*itemObj, message.DropItemRequest.Quantity)
+
+	// Create the ground item
+	point := ds.Point{X: g.player.X, Y: g.player.Y}
+
+	groundItem := objs.NewGroundItem(0, g.levelId, itemObj, g.player.X, g.player.Y, 0)
+
+	g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
+
+	groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
+
+	go g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
+		LevelID:        g.levelId,
+		ItemID:         itemModel.ID,
+		X:              g.player.X,
+		Y:              g.player.Y,
+		RespawnSeconds: 0, // Player drops don't respawn
+	})
+
+	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
+	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
 }
 
 func (g *InGame) OnExit() {
@@ -461,6 +515,40 @@ func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
 			Quantity: int64(quantity),
 		})
 	}()
+}
+
+func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
+	if _, exists := g.inventory[item]; !exists {
+		return
+	}
+
+	var removed bool
+	if g.inventory[item] <= quantity {
+		delete(g.inventory, item)
+		removed = true
+	} else {
+		g.inventory[item] -= quantity
+		removed = false
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if removed {
+			g.queries.RemoveActorInventoryItem(ctx, db.RemoveActorInventoryItemParams{
+				ActorID: g.player.DbId,
+				ItemID:  item.DbId,
+			})
+		} else {
+			g.queries.UpsertActorInventoryItem(ctx, db.UpsertActorInventoryItemParams{
+				ActorID:  g.player.DbId,
+				ItemID:   item.DbId,
+				Quantity: int64(g.inventory[item]),
+			})
+		}
+	}()
+
 }
 
 func (g *InGame) syncInventory() {

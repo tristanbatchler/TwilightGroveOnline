@@ -148,6 +148,15 @@ message PickupGroundItemResponse {
     Response response = 2;
 }
 
+message DropItemRequest {
+    Item item = 1;
+    uint32 quantity = 2;
+}
+
+message DropItemResponse {
+    Response response = 1;
+}
+
 message ItemQuantity {
     Item item = 1;
     int32 quantity = 2;
@@ -188,5 +197,7 @@ message Packet {
         Item Item = 27;
         GroundItem ground_item = 28;
         ActorInventory actor_inventory = 29;
+        DropItemRequest drop_item_request = 30;
+        DropItemResponse drop_item_response = 31;
     }
 }

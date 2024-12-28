@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_uwcfu"]
 
 [node name="InventoryRow" type="HBoxContainer"]
+offset_right = 111.0
+offset_bottom = 40.0
 script = ExtResource("1_4mfrv")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]

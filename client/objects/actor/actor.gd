@@ -75,6 +75,9 @@ func _input(event: InputEvent) -> void:
 			var ground_item := _get_ground_item_standing_on()
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
+		#elif event.is_action_released("drop_item"):
+			# Drop item is handled in ingame.gd for access to the _inventory
+			
 	
 	move_and_send(input_dir)
 		

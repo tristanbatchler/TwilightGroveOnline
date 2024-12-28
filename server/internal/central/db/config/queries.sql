@@ -228,7 +228,6 @@ INSERT INTO actors_inventory (
 ON CONFLICT(actor_id, item_id) DO UPDATE
 SET quantity = actors_inventory.quantity + excluded.quantity;
 
-
 -- name: RemoveActorInventoryItem :exec
 DELETE FROM actors_inventory
 WHERE actor_id = ?

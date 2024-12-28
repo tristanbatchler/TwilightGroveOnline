@@ -4,6 +4,7 @@ const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
+const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 
 @export var download_destination_scene_path: String
 
@@ -28,8 +29,11 @@ func _ready() -> void:
 	_send_button.pressed.connect(_on_send_button_pressed)
 #
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.is_action_released("ui_accept"):
-		_line_edit.grab_focus()
+	if event is InputEventKey:
+		if event.is_action_released("ui_accept"):
+			_line_edit.grab_focus()
+		elif event.is_action_released("drop_item"):
+			_drop_selected_item()
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	var sender_id := packet.get_sender_id()
@@ -251,3 +255,21 @@ func _remove_ground_item(ground_item_id: int) -> void:
 	if ground_item_id in _ground_items:
 		_ground_items[ground_item_id].queue_free()
 		_ground_items.erase(ground_item_id)
+
+func _drop_selected_item() -> void:
+	var selected_inventory_row := _inventory.get_selected_row()
+	var item_qty := 1#selected_inventory_row.item_quantity
+	var item_name := selected_inventory_row.item_name
+	
+	var packet := Packets.Packet.new()
+	
+	var drop_item_request_msg := packet.new_drop_item_request()
+	drop_item_request_msg.set_quantity(item_qty)
+	
+	var item_msg := drop_item_request_msg.new_item()
+	item_msg.set_name(item_name)
+	item_msg.set_sprite_region_x(selected_inventory_row.sprite_region_x)
+	item_msg.set_sprite_region_y(selected_inventory_row.sprite_region_y)
+	
+	if WS.send(packet) == OK:
+		_inventory.remove(item_name, item_qty)
