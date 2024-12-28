@@ -222,38 +222,44 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 		return
 	}
 
-	groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
+	// sgo = SharedGameObject, ID is different from the one in lpm = LevelPointMap
+	sgoGroundItem, sgoExists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 
 	// Inject the DB ID of the item into the ground item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
-		Name:          groundItem.Item.Name,
-		SpriteRegionX: int64(groundItem.Item.SpriteRegionX),
-		SpriteRegionY: int64(groundItem.Item.SpriteRegionY),
+		Name:          sgoGroundItem.Item.Name,
+		SpriteRegionX: int64(sgoGroundItem.Item.SpriteRegionX),
+		SpriteRegionY: int64(sgoGroundItem.Item.SpriteRegionY),
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
 		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Failed to get item from the database")))
 		return
 	}
-	groundItem.Item.DbId = itemModel.ID
+	sgoGroundItem.Item.DbId = itemModel.ID
 
-	if !exists {
+	if !sgoExists {
 		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
 		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
 		return
 	}
 
-	point := ds.Point{X: groundItem.X, Y: groundItem.Y}
+	point := ds.Point{X: sgoGroundItem.X, Y: sgoGroundItem.Y}
 
-	groundItem, exists = g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
-	if !exists {
+	lpmGroundItem, lpmExists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
+	if !lpmExists {
 		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, groundItem, errors.New("Ground item isn't at your location")))
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, lpmGroundItem, errors.New("Ground item isn't at your location")))
 		return
 	}
+	lpmGroundItem.Item.DbId = itemModel.ID // Not sure if this is needed, but can't hurt
 
 	g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
-	g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
+	g.client.SharedGameObjects().GroundItems.Remove(sgoGroundItem.Id)
+
+	// Without loss of generality...
+	groundItem := lpmGroundItem
+
 	go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
 		LevelID: g.levelId,
 		ItemID:  groundItem.Item.DbId,

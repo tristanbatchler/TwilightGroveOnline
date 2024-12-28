@@ -1,6 +1,9 @@
 package ds
 
-import "sync"
+import (
+	"log"
+	"sync"
+)
 
 // Point represents a 2D point with integer coordinates.
 type Point struct {
@@ -56,6 +59,10 @@ func (p *PointMap[T]) AddBatch(batch map[Point]T) {
 func (p *PointMap[T]) Remove(point Point) {
 	p.mux.Lock()
 	defer p.mux.Unlock()
+	if _, ok := p.m[point]; !ok {
+		log.Printf("PointMap: point %v does not exist so can't be removed", point)
+		return
+	}
 	delete(p.m, point)
 }
 
@@ -176,6 +183,7 @@ func (l *LevelPointMap[T]) Remove(levelId int64, point Point) {
 
 	pm, exists := l.m[levelId]
 	if !exists {
+		log.Printf("LevelPointMap: levelId %d does not exist so can't remove point %v", levelId, point)
 		return
 	}
 	pm.Remove(point)

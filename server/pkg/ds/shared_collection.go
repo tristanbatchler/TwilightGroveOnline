@@ -1,6 +1,9 @@
 package ds
 
-import "sync"
+import (
+	"log"
+	"sync"
+)
 
 // A generic, thread-safe map of objects with auto-incrementing IDs.
 type SharedCollection[T any] struct {
@@ -44,6 +47,10 @@ func (s *SharedCollection[T]) Remove(id uint64) {
 	s.mapMux.Lock()
 	defer s.mapMux.Unlock()
 
+	if _, ok := s.objectsMap[id]; !ok {
+		log.Printf("SharedCollection: object ID %d does not exist so can't be removed", id)
+		return
+	}
 	delete(s.objectsMap, id)
 }
 
