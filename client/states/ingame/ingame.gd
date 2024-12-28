@@ -32,9 +32,9 @@ func _ready() -> void:
 #
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
-		if event.is_action_released("ui_accept"):
+		if event.is_action_released(&"ui_accept"):
 			_line_edit.grab_focus()
-		elif event.is_action_released("drop_item"):
+		elif event.is_action_released(&"drop_item"):
 			_drop_selected_item()
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:

@@ -4,7 +4,7 @@ class_name Inventory
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
-var _rows: Dictionary[String, InventoryRow]
+var _rows: Dictionary[StringName, InventoryRow]
 var _selected_idx: int = -1
 
 signal item_dropped(item_name: String, quantity: int, sprite_region_x: int, sprite_region_y: int)
@@ -51,9 +51,9 @@ func _input(event: InputEvent) -> void:
 			return
 		_set_selected_row_selected(false)
 		var num_rows := len(_rows)
-		if event.is_action_released("ui_up"):
+		if event.is_action_released(&"ui_up"):
 			_selected_idx = (_selected_idx - 1) % num_rows
-		elif event.is_action_released("ui_down"):
+		elif event.is_action_released(&"ui_down"):
 			_selected_idx = (_selected_idx + 1) % num_rows
 		_set_selected_row_selected(true)
 

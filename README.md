@@ -33,7 +33,7 @@
 - [x] Storing items in the player's inventory, both on the server and in the database
 - [x] Displaying the player's inventory on the client
 - [x] Dropping items from the player's inventory onto the ground
-- [ ] Disable camera zoom while scrolling inside inventory/chat
+- [x] Disable camera zoom while scrolling inside inventory/chat
 - [x] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
@@ -51,6 +51,7 @@
 - [ ] Add spawn point in levels
 - [ ] Speed up level uploading?
 - [ ] Translate to Japanese
-- [ ] Use StringNames for inventory script?
+- [x] Use StringNames for inventory script?
 - [ ] Allow customizing the player's appearance
 - [ ] Allow support for multiple items in LevelPointMap stacked on top of each other
+- [ ] Smooth camera zooming
