@@ -89,7 +89,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("left_click"):
 		_left_click_held = true
 		
-		var pos_diff := _get_mouse_diff_from_center_of_screen()
+		var pos_diff := _get_mouse_diff_from_player_pos()
 		if pos_diff.length_squared() < 400:
 			var ground_item := _get_ground_item_standing_on()
 			if ground_item != null:
@@ -117,15 +117,14 @@ func _process(delta: float) -> void:
 	if _left_click_held and _at_target():
 		print("Starting move")
 		
-		var pos_diff := _get_mouse_diff_from_center_of_screen()
-		
-		var strongest_dir: Vector2 = argmax(
-			[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
-			[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
-		)
-		
-		# If the strongest direction was only small, register that as a click on ourselves, which means pickup item
-		move_and_send(strongest_dir)
+		var pos_diff := _get_mouse_diff_from_player_pos()
+		if pos_diff.length_squared() > 400:
+			var strongest_dir: Vector2 = argmax(
+				[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
+				[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
+			)
+			
+			move_and_send(strongest_dir)
 		
 func _at_target() -> bool:
 	return position.distance_squared_to(target_pos) <= 0.1
@@ -176,7 +175,6 @@ func _request_pickup_item(ground_item_id) -> void:
 	pickup_ground_item_request.set_ground_item_id(ground_item_id)
 	WS.send(packet)
 
-func _get_mouse_diff_from_center_of_screen() -> Vector2:
-	var mouse_pos := _camera.get_global_mouse_position()
-	var screen_center := _camera.get_screen_center_position()
-	return mouse_pos - screen_center
+func _get_mouse_diff_from_player_pos() -> Vector2:
+	var mouse_pos := _camera.get_local_mouse_position()
+	return mouse_pos

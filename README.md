@@ -49,3 +49,4 @@
 - [ ] Add spawn point in levels
 - [ ] Speed up level uploading?
 - [ ] Translate to Japanese
+- [ ] Use StringNames for inventory script?
