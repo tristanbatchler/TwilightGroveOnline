@@ -37,7 +37,9 @@
 - [x] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
-- [ ] Add grab/drop controls for mobile
+- [x] Add UI scale setting
+- [x] Add grab controls for mobile
+- [ ] Add drop controls for mobile
 - [ ] Audit use of int64 in game_objects.go and messages.proto
 - [ ] Let players cut down trees with an axe
 - [ ] Add an XP system and leveling up woodcutting
@@ -50,3 +52,4 @@
 - [ ] Speed up level uploading?
 - [ ] Translate to Japanese
 - [ ] Use StringNames for inventory script?
+- [ ] Allow customizing the player's appearance

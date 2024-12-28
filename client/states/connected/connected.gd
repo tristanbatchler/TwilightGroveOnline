@@ -2,19 +2,34 @@ extends Node
 
 const Packets := preload("res://packets.gd")
 
+@onready var _settings_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/SettingsButton
+@onready var _settings_form: SettingsForm = $CanvasLayer/MarginContainer/VBoxContainer/SettingsForm
 @onready var _login_form: LoginForm = $CanvasLayer/MarginContainer/VBoxContainer/LoginForm
 @onready var _register_form: RegisterForm = $CanvasLayer/MarginContainer/VBoxContainer/RegisterForm
 @onready var _register_prompt: RichTextLabel = $CanvasLayer/MarginContainer/VBoxContainer/RegisterPrompt
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 
-
 func _ready() -> void:
+	_settings_button.pressed.connect(_on_settings_button_pressed)
+	_settings_form.form_closed.connect(_on_settings_form_closed)
 	_login_form.form_submitted.connect(_on_login_form_submitted)
 	_register_form.form_submitted.connect(_on_register_form_submitted)
 	_register_form.form_canceled.connect(_on_register_form_canceled)
 	_register_prompt.meta_clicked.connect(_on_register_prompt_meta_clicked)
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
+
+func _on_settings_button_pressed() -> void:
+	_login_form.hide()
+	_register_prompt.hide()
+	_settings_button.hide()
+	_settings_form.show()
+	
+func _on_settings_form_closed() -> void:
+	_settings_form.hide()
+	_settings_button.show()
+	_register_prompt.show()
+	_login_form.show()
 
 func _on_register_form_canceled() -> void:
 	_register_form.hide()

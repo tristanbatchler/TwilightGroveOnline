@@ -18,12 +18,14 @@ enum ConfigKey {
 	REMEMBER_ME_CHECKED,
 	SAVED_USERNAME,
 	SAVED_PASSWORD,
+	UI_SCALE,
 }
 
 var _config_key_names: Dictionary[ConfigKey, String] = {
 	ConfigKey.REMEMBER_ME_CHECKED: "REMEMBER_ME_CHECKED",
 	ConfigKey.SAVED_USERNAME: "SAVED_USERNAME",
 	ConfigKey.SAVED_PASSWORD: "SAVED_PASSWORD",
+	ConfigKey.UI_SCALE: "UI_SCALE",
 }
 
 
