@@ -32,10 +32,13 @@
 - [x] Press G to pick up items when standing on them
 - [x] Storing items in the player's inventory, both on the server and in the database
 - [x] Displaying the player's inventory on the client
-- [ ] Dropping items from the player's inventory onto the ground
+- [x] Dropping items from the player's inventory onto the ground
 - [ ] Disable camera zoom while scrolling inside inventory/chat
 - [x] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
 - [ ] Audit use of int64 in game_objects.go and messages.proto
 - [ ] Add grab/drop controls for mobile
+- [ ] Add spawn point in levels
+- [ ] Speed up level uploading?
+- [ ] Translate to Japanese
