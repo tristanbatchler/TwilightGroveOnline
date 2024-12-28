@@ -75,10 +75,9 @@ func NewShrub(id uint64, shrub *objs.Shrub) Msg {
 func NewItem(item *objs.Item) Msg {
 	return &Packet_Item{
 		Item: &Item{
-			Name:           item.Name,
-			SpriteRegionX:  item.SpriteRegionX,
-			SpriteRegionY:  item.SpriteRegionY,
-			RespawnSeconds: item.RespawnSeconds,
+			Name:          item.Name,
+			SpriteRegionX: item.SpriteRegionX,
+			SpriteRegionY: item.SpriteRegionY,
 		},
 	}
 }
@@ -200,17 +199,18 @@ func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err 
 	}
 }
 
-func NewInventory(inventory map[*objs.Item]uint32) Msg {
-	items := make([]*Item, 0)
+func NewInventory(inventory map[objs.Item]uint32) Msg {
+	itemQtys := make([]*ItemQuantity, 0)
 	for itemObj, quantity := range inventory {
-		for range quantity {
-			itemMsg := NewItem(itemObj)
-			items = append(items, itemMsg.(*Packet_Item).Item)
-		}
+		item := NewItem(&itemObj).(*Packet_Item).Item
+		itemQtys = append(itemQtys, &ItemQuantity{
+			Item:     item,
+			Quantity: int32(quantity),
+		})
 	}
 	return &Packet_ActorInventory{
 		ActorInventory: &ActorInventory{
-			Items: items,
+			ItemsQuantities: itemQtys,
 		},
 	}
 }

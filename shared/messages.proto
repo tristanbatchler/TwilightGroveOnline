@@ -101,7 +101,6 @@ message Item {
     string name = 2;
     int32 sprite_region_x = 3;
     int32 sprite_region_y = 4;
-    int32 respawn_seconds = 5;
 }
 
 message GroundItem {
@@ -109,6 +108,7 @@ message GroundItem {
     Item item = 2;
     int32 x = 3;
     int32 y = 4;
+    int32 respawn_seconds = 5;
 }
 
 message LevelUpload {
@@ -148,8 +148,13 @@ message PickupGroundItemResponse {
     Response response = 2;
 }
 
+message ItemQuantity {
+    Item item = 1;
+    int32 quantity = 2;
+}
+
 message ActorInventory {
-    repeated Item items = 1;
+    repeated ItemQuantity items_quantities = 1;
 }
 
 message Packet {

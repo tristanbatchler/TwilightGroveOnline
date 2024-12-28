@@ -38,3 +38,4 @@
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
 - [ ] Audit use of int64 in game_objects.go and messages.proto
+- [ ] Add grab/drop controls for mobile

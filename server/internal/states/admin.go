@@ -223,8 +223,8 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
 		itemMsg := g.Item
-		item := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, itemMsg.RespawnSeconds, 0)
-		return objs.NewGroundItem(0, level.ID, item, int64(g.X), int64(g.Y)), nil
+		item := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, 0)
+		return objs.NewGroundItem(0, level.ID, item, int64(g.X), int64(g.Y), g.RespawnSeconds), nil
 	}
 
 	for _, importFunc := range importFuncs {
@@ -319,18 +319,16 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 	itemMsg := message.Item
 
 	item, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
-		Name:           itemMsg.Name,
-		SpriteRegionX:  int64(itemMsg.SpriteRegionX),
-		SpriteRegionY:  int64(itemMsg.SpriteRegionY),
-		RespawnSeconds: int64(itemMsg.RespawnSeconds),
+		Name:          itemMsg.Name,
+		SpriteRegionX: int64(itemMsg.SpriteRegionX),
+		SpriteRegionY: int64(itemMsg.SpriteRegionY),
 	})
 	if err != nil {
 		if err == sql.ErrNoRows { // Item already exists
 			item, err = a.queries.GetItem(ctx, db.GetItemParams{
-				Name:           itemMsg.Name,
-				SpriteRegionX:  int64(itemMsg.SpriteRegionX),
-				SpriteRegionY:  int64(itemMsg.SpriteRegionY),
-				RespawnSeconds: int64(itemMsg.RespawnSeconds),
+				Name:          itemMsg.Name,
+				SpriteRegionX: int64(itemMsg.SpriteRegionX),
+				SpriteRegionY: int64(itemMsg.SpriteRegionY),
 			})
 			if err != nil {
 				return err

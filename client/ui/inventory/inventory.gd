@@ -21,3 +21,14 @@ func remove(item_name: String, quantity: int) -> void:
 		if row.item_quantity <= 0:
 			_rows.erase(item_name)
 			row.queue_free()
+
+func get_quantity(item_name: String) -> int:
+	if item_name not in _rows:
+		return 0
+	var row := _rows[item_name]
+	return row.item_quantity
+
+func clear() -> void:
+	for item_name in _rows:
+		_rows[item_name].queue_free()
+	_rows.clear()

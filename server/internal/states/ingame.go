@@ -22,7 +22,7 @@ type InGame struct {
 	client                 central.ClientInterfacer
 	queries                *db.Queries
 	player                 *objs.Actor
-	inventory              map[*objs.Item]uint32
+	inventory              map[objs.Item]uint32
 	levelId                int64
 	othersInLevel          []uint64
 	logger                 *log.Logger
@@ -224,10 +224,9 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 
 	// Inject the DB ID of the item into the ground item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
-		Name:           groundItem.Item.Name,
-		SpriteRegionX:  int64(groundItem.Item.SpriteRegionX),
-		SpriteRegionY:  int64(groundItem.Item.SpriteRegionY),
-		RespawnSeconds: int64(groundItem.Item.RespawnSeconds),
+		Name:          groundItem.Item.Name,
+		SpriteRegionX: int64(groundItem.Item.SpriteRegionX),
+		SpriteRegionY: int64(groundItem.Item.SpriteRegionY),
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
@@ -261,10 +260,10 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	})
 
 	// Add the item to the player's inventory
-	g.addInventoryItem(groundItem.Item, 1)
+	g.addInventoryItem(*groundItem.Item, 1)
 
 	// Start the respawn time
-	timer := time.NewTimer(time.Duration(groundItem.Item.RespawnSeconds) * time.Second)
+	timer := time.NewTimer(time.Duration(groundItem.RespawnSeconds) * time.Second)
 	go func() {
 		<-timer.C
 		g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
@@ -366,10 +365,10 @@ func (g *InGame) loadInventory() {
 		return
 	}
 
-	g.inventory = make(map[*objs.Item]uint32)
+	g.inventory = make(map[objs.Item]uint32)
 	for _, itemModel := range invItems {
-		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), int32(itemModel.RespawnSeconds), itemModel.ItemID)
-		g.inventory[item] = uint32(itemModel.Quantity)
+		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), itemModel.ItemID)
+		g.inventory[*item] = uint32(itemModel.Quantity)
 	}
 	g.logger.Printf("Loaded inventory with %d items", len(g.inventory))
 }
@@ -402,25 +401,26 @@ func (g *InGame) switchLevel(newLevelId int64) {
 		LevelID: newLevelId,
 	})
 	g.client.SetState(&InGame{
-		levelId: newLevelId,
-		player:  g.player,
+		levelId:   newLevelId,
+		player:    g.player,
+		inventory: g.inventory,
 	})
 }
 
 func (g *InGame) enterDoor(door *objs.Door) {
 	g.player.X = door.DestinationX
 	g.player.Y = door.DestinationY
-	go g.syncPlayerLocation(500 * time.Millisecond)
-
 	g.player.LevelId = door.DestinationLevelId
+	go g.syncPlayerLocation(500 * time.Millisecond)
 	go g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
 		ID:      g.player.DbId,
 		LevelID: door.DestinationLevelId,
 	})
 
 	g.client.SetState(&InGame{
-		levelId: door.DestinationLevelId,
-		player:  g.player,
+		levelId:   door.DestinationLevelId,
+		player:    g.player,
+		inventory: g.inventory,
 	})
 }
 
@@ -445,7 +445,7 @@ func (g *InGame) isOtherKnown(otherId uint64) bool {
 	return false
 }
 
-func (g *InGame) addInventoryItem(item *objs.Item, quantity uint32) {
+func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
 	if _, exists := g.inventory[item]; exists {
 		g.inventory[item] += quantity
 	} else {

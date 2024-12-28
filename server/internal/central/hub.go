@@ -240,8 +240,8 @@ func (h *Hub) Run(adminPassword string) {
 			if err != nil {
 				return nil, err
 			}
-			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), int32(itemModel.RespawnSeconds), itemModel.ID)
-			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y), nil
+			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), itemModel.ID)
+			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, int32(model.RespawnSeconds)), nil
 		},
 	)
 

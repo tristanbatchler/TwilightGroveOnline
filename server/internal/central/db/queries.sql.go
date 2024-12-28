@@ -15,6 +15,8 @@ INSERT INTO actors_inventory (
 ) VALUES (
     ?, ?, ?
 )
+ON CONFLICT(actor_id, item_id) DO UPDATE
+SET quantity = actors_inventory.quantity + excluded.quantity
 `
 
 type AddActorInventoryItemParams struct {
@@ -122,35 +124,28 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 
 const createItemIfNotExists = `-- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, sprite_region_x, sprite_region_y, respawn_seconds
+    name, sprite_region_x, sprite_region_y
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?
 )
-ON CONFLICT (name, sprite_region_x, sprite_region_y, respawn_seconds) DO NOTHING
-RETURNING id, name, sprite_region_x, sprite_region_y, respawn_seconds
+ON CONFLICT (name, sprite_region_x, sprite_region_y) DO NOTHING
+RETURNING id, name, sprite_region_x, sprite_region_y
 `
 
 type CreateItemIfNotExistsParams struct {
-	Name           string
-	SpriteRegionX  int64
-	SpriteRegionY  int64
-	RespawnSeconds int64
+	Name          string
+	SpriteRegionX int64
+	SpriteRegionY int64
 }
 
 func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNotExistsParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, createItemIfNotExists,
-		arg.Name,
-		arg.SpriteRegionX,
-		arg.SpriteRegionY,
-		arg.RespawnSeconds,
-	)
+	row := q.db.QueryRowContext(ctx, createItemIfNotExists, arg.Name, arg.SpriteRegionX, arg.SpriteRegionY)
 	var i Item
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
-		&i.RespawnSeconds,
 	)
 	return i, err
 }
@@ -254,18 +249,19 @@ func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams
 
 const createLevelGroundItem = `-- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, item_id, x, y
+    level_id, item_id, x, y, respawn_seconds
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
-RETURNING id, level_id, x, y, item_id, "foreign"
+RETURNING id, level_id, item_id, x, y, respawn_seconds, "foreign"
 `
 
 type CreateLevelGroundItemParams struct {
-	LevelID int64
-	ItemID  int64
-	X       int64
-	Y       int64
+	LevelID        int64
+	ItemID         int64
+	X              int64
+	Y              int64
+	RespawnSeconds int64
 }
 
 func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGroundItemParams) (LevelsGroundItem, error) {
@@ -274,14 +270,16 @@ func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGrou
 		arg.ItemID,
 		arg.X,
 		arg.Y,
+		arg.RespawnSeconds,
 	)
 	var i LevelsGroundItem
 	err := row.Scan(
 		&i.ID,
 		&i.LevelID,
+		&i.ItemID,
 		&i.X,
 		&i.Y,
-		&i.ItemID,
+		&i.RespawnSeconds,
 		&i.Foreign,
 	)
 	return i, err
@@ -468,7 +466,6 @@ SELECT
     i.name, 
     i.sprite_region_x, 
     i.sprite_region_y, 
-    i.respawn_seconds, 
     ai.quantity 
 FROM items i
 JOIN actors_inventory ai ON i.id = ai.item_id
@@ -476,12 +473,11 @@ WHERE ai.actor_id = ?
 `
 
 type GetActorInventoryItemsRow struct {
-	ItemID         int64
-	Name           string
-	SpriteRegionX  int64
-	SpriteRegionY  int64
-	RespawnSeconds int64
-	Quantity       int64
+	ItemID        int64
+	Name          string
+	SpriteRegionX int64
+	SpriteRegionY int64
+	Quantity      int64
 }
 
 func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]GetActorInventoryItemsRow, error) {
@@ -498,7 +494,6 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]
 			&i.Name,
 			&i.SpriteRegionX,
 			&i.SpriteRegionY,
-			&i.RespawnSeconds,
 			&i.Quantity,
 		); err != nil {
 			return nil, err
@@ -527,38 +522,31 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, name, sprite_region_x, sprite_region_y, respawn_seconds FROM items
-WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ? AND respawn_seconds = ?
+SELECT id, name, sprite_region_x, sprite_region_y FROM items
+WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ?
 LIMIT 1
 `
 
 type GetItemParams struct {
-	Name           string
-	SpriteRegionX  int64
-	SpriteRegionY  int64
-	RespawnSeconds int64
+	Name          string
+	SpriteRegionX int64
+	SpriteRegionY int64
 }
 
 func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, getItem,
-		arg.Name,
-		arg.SpriteRegionX,
-		arg.SpriteRegionY,
-		arg.RespawnSeconds,
-	)
+	row := q.db.QueryRowContext(ctx, getItem, arg.Name, arg.SpriteRegionX, arg.SpriteRegionY)
 	var i Item
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
-		&i.RespawnSeconds,
 	)
 	return i, err
 }
 
 const getItemById = `-- name: GetItemById :one
-SELECT id, name, sprite_region_x, sprite_region_y, respawn_seconds FROM items
+SELECT id, name, sprite_region_x, sprite_region_y FROM items
 WHERE id = ? LIMIT 1
 `
 
@@ -570,7 +558,6 @@ func (q *Queries) GetItemById(ctx context.Context, id int64) (Item, error) {
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
-		&i.RespawnSeconds,
 	)
 	return i, err
 }
@@ -685,7 +672,7 @@ func (q *Queries) GetLevelDoorsByLevelId(ctx context.Context, levelID int64) ([]
 }
 
 const getLevelGroundItemsByLevelId = `-- name: GetLevelGroundItemsByLevelId :many
-SELECT id, level_id, x, y, item_id, "foreign" FROM levels_ground_items
+SELECT id, level_id, item_id, x, y, respawn_seconds, "foreign" FROM levels_ground_items
 WHERE level_id = ?
 `
 
@@ -701,9 +688,10 @@ func (q *Queries) GetLevelGroundItemsByLevelId(ctx context.Context, levelID int6
 		if err := rows.Scan(
 			&i.ID,
 			&i.LevelID,
+			&i.ItemID,
 			&i.X,
 			&i.Y,
-			&i.ItemID,
+			&i.RespawnSeconds,
 			&i.Foreign,
 		); err != nil {
 			return nil, err

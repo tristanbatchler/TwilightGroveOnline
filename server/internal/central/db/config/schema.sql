@@ -73,16 +73,16 @@ CREATE TABLE IF NOT EXISTS items (
     name TEXT NOT NULL,
     sprite_region_x INTEGER NOT NULL,
     sprite_region_y INTEGER NOT NULL,
-    respawn_seconds INTEGER NOT NULL,
-    CONSTRAINT unique_item_combination UNIQUE (name, sprite_region_x, sprite_region_y, respawn_seconds)
+    CONSTRAINT unique_item_combination UNIQUE (name, sprite_region_x, sprite_region_y)
 );
 
 CREATE TABLE IF NOT EXISTS levels_ground_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
+    respawn_seconds INTEGER NOT NULL,
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE -- delete from levels_ground_items when level with id level_id is deleted
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE -- delete from levels_ground_items when item with id item_id is deleted
 );

@@ -224,8 +224,13 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 	shrub_obj.place(_world_tilemap_layer)
 
 func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
-	for item: Packets.Item in actor_inventory_msg.get_items():
-		_inventory.add(item.get_name(), 1, item.get_sprite_region_x(), item.get_sprite_region_y())
+	_inventory.clear()
+	for item_qty: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
+		var item := item_qty.get_item()
+		var item_name := item.get_name()
+		var qty := item_qty.get_quantity()
+		_inventory.add(item_name, qty, item.get_sprite_region_x(), item.get_sprite_region_y())
+
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:

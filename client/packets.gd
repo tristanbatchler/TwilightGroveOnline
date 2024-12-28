@@ -1736,11 +1736,6 @@ class Item:
 		service.field = _sprite_region_y
 		data[_sprite_region_y.tag] = service
 		
-		_respawn_seconds = PBField.new("respawn_seconds", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
-		service = PBServiceField.new()
-		service.field = _respawn_seconds
-		data[_respawn_seconds.tag] = service
-		
 	var data = {}
 	
 	var _name: PBField
@@ -1769,15 +1764,6 @@ class Item:
 		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_sprite_region_y(value : int) -> void:
 		_sprite_region_y.value = value
-	
-	var _respawn_seconds: PBField
-	func get_respawn_seconds() -> int:
-		return _respawn_seconds.value
-	func clear_respawn_seconds() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
-		_respawn_seconds.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
-	func set_respawn_seconds(value : int) -> void:
-		_respawn_seconds.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -1825,6 +1811,11 @@ class GroundItem:
 		service.field = _y
 		data[_y.tag] = service
 		
+		_respawn_seconds = PBField.new("respawn_seconds", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _respawn_seconds
+		data[_respawn_seconds.tag] = service
+		
 	var data = {}
 	
 	var _id: PBField
@@ -1863,6 +1854,15 @@ class GroundItem:
 		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_y(value : int) -> void:
 		_y.value = value
+	
+	var _respawn_seconds: PBField
+	func get_respawn_seconds() -> int:
+		return _respawn_seconds.value
+	func clear_respawn_seconds() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_respawn_seconds.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_respawn_seconds(value : int) -> void:
+		_respawn_seconds.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -2331,27 +2331,84 @@ class PickupGroundItemResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class ItemQuantity:
+	func _init():
+		var service
+		
+		_item = PBField.new("item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _item
+		service.func_ref = Callable(self, "new_item")
+		data[_item.tag] = service
+		
+		_quantity = PBField.new("quantity", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _quantity
+		data[_quantity.tag] = service
+		
+	var data = {}
+	
+	var _item: PBField
+	func get_item() -> Item:
+		return _item.value
+	func clear_item() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item() -> Item:
+		_item.value = Item.new()
+		return _item.value
+	
+	var _quantity: PBField
+	func get_quantity() -> int:
+		return _quantity.value
+	func clear_quantity() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_quantity(value : int) -> void:
+		_quantity.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class ActorInventory:
 	func _init():
 		var service
 		
-		_items = PBField.new("items", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 1, true, [])
+		_items_quantities = PBField.new("items_quantities", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 1, true, [])
 		service = PBServiceField.new()
-		service.field = _items
-		service.func_ref = Callable(self, "add_items")
-		data[_items.tag] = service
+		service.field = _items_quantities
+		service.func_ref = Callable(self, "add_items_quantities")
+		data[_items_quantities.tag] = service
 		
 	var data = {}
 	
-	var _items: PBField
-	func get_items() -> Array:
-		return _items.value
-	func clear_items() -> void:
+	var _items_quantities: PBField
+	func get_items_quantities() -> Array:
+		return _items_quantities.value
+	func clear_items_quantities() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_items.value = []
-	func add_items() -> Item:
-		var element = Item.new()
-		_items.value.append(element)
+		_items_quantities.value = []
+	func add_items_quantities() -> ItemQuantity:
+		var element = ItemQuantity.new()
+		_items_quantities.value.append(element)
 		return element
 	
 	func _to_string() -> String:

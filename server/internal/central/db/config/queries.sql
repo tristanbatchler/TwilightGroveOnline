@@ -155,16 +155,16 @@ WHERE level_id = ?;
 
 -- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, sprite_region_x, sprite_region_y, respawn_seconds
+    name, sprite_region_x, sprite_region_y
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?
 )
-ON CONFLICT (name, sprite_region_x, sprite_region_y, respawn_seconds) DO NOTHING
+ON CONFLICT (name, sprite_region_x, sprite_region_y) DO NOTHING
 RETURNING *;
 
 -- name: GetItem :one
 SELECT * FROM items
-WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ? AND respawn_seconds = ?
+WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ?
 LIMIT 1;
 
 -- name: GetItemById :one
@@ -173,9 +173,9 @@ WHERE id = ? LIMIT 1;
 
 -- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, item_id, x, y
+    level_id, item_id, x, y, respawn_seconds
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -214,7 +214,6 @@ SELECT
     i.name, 
     i.sprite_region_x, 
     i.sprite_region_y, 
-    i.respawn_seconds, 
     ai.quantity 
 FROM items i
 JOIN actors_inventory ai ON i.id = ai.item_id
@@ -225,7 +224,10 @@ INSERT INTO actors_inventory (
     actor_id, item_id, quantity
 ) VALUES (
     ?, ?, ?
-);
+)
+ON CONFLICT(actor_id, item_id) DO UPDATE
+SET quantity = actors_inventory.quantity + excluded.quantity;
+
 
 -- name: RemoveActorInventoryItem :exec
 DELETE FROM actors_inventory
