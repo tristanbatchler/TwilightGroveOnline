@@ -37,8 +37,15 @@
 - [x] Disable cursor keys changing between chat and inventory
 - [x] Fix nameplate positioning
 - [x] Make ground items respawn after a while
-- [ ] Audit use of int64 in game_objects.go and messages.proto
 - [ ] Add grab/drop controls for mobile
+- [ ] Audit use of int64 in game_objects.go and messages.proto
+- [ ] Let players cut down trees with an axe
+- [ ] Add an XP system and leveling up woodcutting
+- [ ] Add an NPC that buys wood
+- [ ] Add an NPC that sells faerie dust
+- [ ] Add a quest to heal a wounded soldier with faerie dust to get a key
+- [ ] Add a locked door that requires a key to open, with a reward inside
+- [ ] Add a special status symbol for players who have completed the quest
 - [ ] Add spawn point in levels
 - [ ] Speed up level uploading?
 - [ ] Translate to Japanese
