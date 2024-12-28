@@ -31,6 +31,10 @@ layout_mode = 2
 size_flags_horizontal = 0
 text = "Exit"
 
+[node name="DebugLabel" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Debug"
+
 [node name="TabContainer" type="TabContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 182)
 layout_mode = 2
@@ -46,8 +50,25 @@ metadata/_tab_index = 0
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 10
-mouse_filter = 2
+mouse_filter = 1
 bbcode_enabled = true
+text = "Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+Test
+"
 scroll_following = true
 script = ExtResource("5_perjg")
 

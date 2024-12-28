@@ -90,7 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_left_click_held = true
 		
 		var pos_diff := _get_mouse_diff_from_player_pos()
-		if pos_diff.length_squared() < 400:
+		if pos_diff.length_squared() < 100:
 			var ground_item := _get_ground_item_standing_on()
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
@@ -118,7 +118,7 @@ func _process(delta: float) -> void:
 		print("Starting move")
 		
 		var pos_diff := _get_mouse_diff_from_player_pos()
-		if pos_diff.length_squared() > 400:
+		if pos_diff.length_squared() > 100:
 			var strongest_dir: Vector2 = argmax(
 				[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
 				[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
@@ -176,5 +176,5 @@ func _request_pickup_item(ground_item_id) -> void:
 	WS.send(packet)
 
 func _get_mouse_diff_from_player_pos() -> Vector2:
-	var mouse_pos := _camera.get_local_mouse_position()
+	var mouse_pos := _camera.get_local_mouse_position() - Vector2(_world_tile_size) / 2
 	return mouse_pos

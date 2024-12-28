@@ -13,6 +13,7 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
 @onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
+@onready var _debug_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/DebugLabel
 
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
@@ -273,3 +274,10 @@ func _drop_selected_item() -> void:
 	
 	if WS.send(packet) == OK:
 		_inventory.remove(item_name, item_qty)
+
+func _process(delta: float) -> void:
+	if GameManager.client_id in _actors:
+		var player := _actors[GameManager.client_id]
+		var pos_diff := player._get_mouse_diff_from_player_pos()
+		_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
+			

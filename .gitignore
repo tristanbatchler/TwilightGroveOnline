@@ -6,3 +6,4 @@ server/main
 server/nohup.out
 client/godot
 server/certs/
+*.tmp
