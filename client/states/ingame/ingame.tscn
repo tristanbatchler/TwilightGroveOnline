@@ -39,9 +39,10 @@ text = "Debug"
 custom_minimum_size = Vector2(0, 182)
 layout_mode = 2
 size_flags_vertical = 10
-current_tab = 0
+current_tab = 1
 
 [node name="Chat" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 10
 metadata/_tab_index = 0
@@ -89,7 +90,6 @@ layout_mode = 2
 text = "Send"
 
 [node name="Inventory" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 

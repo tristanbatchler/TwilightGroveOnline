@@ -28,6 +28,7 @@ func _ready() -> void:
 	_logout_button.pressed.connect(_on_logout_button_pressed)
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
 	_send_button.pressed.connect(_on_send_button_pressed)
+	_inventory.item_dropped.connect(_drop_item)
 #
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
@@ -262,6 +263,9 @@ func _drop_selected_item() -> void:
 	var item_qty := 1#selected_inventory_row.item_quantity
 	var item_name := selected_inventory_row.item_name
 	
+	_drop_item(item_name, item_qty, selected_inventory_row.sprite_region_x, selected_inventory_row.sprite_region_y)
+
+func _drop_item(item_name: String, item_qty: int, sprite_region_x: int, sprite_region_y: int) -> void:
 	var packet := Packets.Packet.new()
 	
 	var drop_item_request_msg := packet.new_drop_item_request()
@@ -269,8 +273,8 @@ func _drop_selected_item() -> void:
 	
 	var item_msg := drop_item_request_msg.new_item()
 	item_msg.set_name(item_name)
-	item_msg.set_sprite_region_x(selected_inventory_row.sprite_region_x)
-	item_msg.set_sprite_region_y(selected_inventory_row.sprite_region_y)
+	item_msg.set_sprite_region_x(sprite_region_x)
+	item_msg.set_sprite_region_y(sprite_region_y)
 	
 	if WS.send(packet) == OK:
 		_inventory.remove(item_name, item_qty)

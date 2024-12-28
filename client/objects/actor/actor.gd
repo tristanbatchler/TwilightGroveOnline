@@ -95,7 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
 				_left_click_held = false
-		
+
 	# Camera zoom
 	elif event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
