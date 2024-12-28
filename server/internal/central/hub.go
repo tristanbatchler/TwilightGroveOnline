@@ -147,7 +147,7 @@ func NewHub(dataDirPath string) *Hub {
 	dbPath := path.Join(dataDirPath, "db.sqlite")
 
 	// Use WAL mode for better performance
-	dbPool, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL")
+	dbPool, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL&busy_timeout=10000")
 
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)

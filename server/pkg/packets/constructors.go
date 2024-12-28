@@ -199,3 +199,18 @@ func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err 
 		},
 	}
 }
+
+func NewInventory(inventory map[*objs.Item]uint32) Msg {
+	items := make([]*Item, 0)
+	for itemObj, quantity := range inventory {
+		for range quantity {
+			itemMsg := NewItem(itemObj)
+			items = append(items, itemMsg.(*Packet_Item).Item)
+		}
+	}
+	return &Packet_ActorInventory{
+		ActorInventory: &ActorInventory{
+			Items: items,
+		},
+	}
+}

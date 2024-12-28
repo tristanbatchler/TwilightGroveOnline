@@ -17,6 +17,12 @@ type Actor struct {
 	Y       int64
 }
 
+type ActorsInventory struct {
+	ActorID  int64
+	ItemID   int64
+	Quantity int64
+}
+
 type Admin struct {
 	ID     int64
 	UserID int64

@@ -30,7 +30,7 @@
         - importing to DB and memory from a packet message, and
         - importing to memory from the DB
 - [x] Press G to pick up items when standing on them
-- [ ] Storing items in the player's inventory, both on the server and in the database
+- [x] Storing items in the player's inventory, both on the server and in the database
 - [ ] Displaying the player's inventory on the client
 - [ ] Dropping items from the player's inventory onto the ground
 - [ ] Disable camera zoom while scrolling inside inventory/chat

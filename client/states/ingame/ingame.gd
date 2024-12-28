@@ -57,6 +57,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_ground_item(packet.get_ground_item())
 	elif packet.has_shrub():
 		_handle_shrub(packet.get_shrub())
+	elif packet.has_actor_inventory():
+		_handle_actor_inventory(packet.get_actor_inventory())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -220,6 +222,10 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 	var shrub_obj := Shrub.instantiate(sid, x, y, strength)
 	_shrubs[sid] = shrub_obj
 	shrub_obj.place(_world_tilemap_layer)
+
+func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
+	for item: Packets.Item in actor_inventory_msg.get_items():
+		_inventory.add(item.get_name(), 1, item.get_sprite_region_x(), item.get_sprite_region_y())
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:

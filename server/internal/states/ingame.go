@@ -22,6 +22,7 @@ type InGame struct {
 	client                 central.ClientInterfacer
 	queries                *db.Queries
 	player                 *objs.Actor
+	inventory              map[*objs.Item]uint32
 	levelId                int64
 	othersInLevel          []uint64
 	logger                 *log.Logger
@@ -61,6 +62,10 @@ func (g *InGame) OnEnter() {
 			go g.client.SocketSendAs(packets.NewActor(actor), owner_client_id)
 		}
 	})
+
+	// Load and send our inventory
+	g.loadInventory()
+	g.sendInventory()
 
 	// Send our info back to all the other clients in the level
 	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
@@ -209,65 +214,83 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 }
 
 func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets.Packet_PickupGroundItemRequest) {
-	if senderId == g.client.Id() {
-		groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
-		if !exists {
-			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
-			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
-			return
-		}
+	if senderId != g.client.Id() {
+		// If the client isn't us, we just forward the message
+		g.client.SocketSendAs(message, senderId)
+		return
+	}
 
-		point := ds.Point{X: groundItem.X, Y: groundItem.Y}
+	groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 
-		groundItem, exists = g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
-		if !exists {
-			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
-			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, groundItem, errors.New("Ground item isn't at your location")))
-			return
-		}
+	// Inject the DB ID of the item into the ground item
+	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
+		Name:           groundItem.Item.Name,
+		SpriteRegionX:  int64(groundItem.Item.SpriteRegionX),
+		SpriteRegionY:  int64(groundItem.Item.SpriteRegionY),
+		RespawnSeconds: int64(groundItem.Item.RespawnSeconds),
+	})
+	if err != nil {
+		g.logger.Printf("Failed to get item: %v", err)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Failed to get item from the database")))
+		return
+	}
+	groundItem.Item.DbId = itemModel.ID
 
-		g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
-		g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
-		go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
+	if !exists {
+		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+		return
+	}
+
+	point := ds.Point{X: groundItem.X, Y: groundItem.Y}
+
+	groundItem, exists = g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
+	if !exists {
+		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, groundItem, errors.New("Ground item isn't at your location")))
+		return
+	}
+
+	g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
+	g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
+	go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
+		LevelID: g.levelId,
+		ItemID:  groundItem.Item.DbId,
+		X:       groundItem.X,
+		Y:       groundItem.Y,
+	})
+
+	// Add the item to the player's inventory
+	g.addInventoryItem(groundItem.Item, 1)
+
+	// Start the respawn time
+	timer := time.NewTimer(time.Duration(groundItem.Item.RespawnSeconds) * time.Second)
+	go func() {
+		<-timer.C
+		g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
+		groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
+		g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
 			LevelID: g.levelId,
 			ItemID:  groundItem.Item.DbId,
 			X:       groundItem.X,
 			Y:       groundItem.Y,
 		})
+		g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
+		g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+		g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
+	}()
 
-		g.client.Broadcast(message, g.othersInLevel)
-		go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
+	g.client.Broadcast(message, g.othersInLevel)
+	go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
 
-		g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
-
-		// Start the respawn time
-		timer := time.NewTimer(time.Duration(groundItem.Item.RespawnSeconds) * time.Second)
-		go func() {
-			<-timer.C
-			g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
-			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
-			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-				LevelID: g.levelId,
-				ItemID:  groundItem.Item.DbId,
-				X:       groundItem.X,
-				Y:       groundItem.Y,
-			})
-			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
-			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
-			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
-		}()
-
-		return
-	}
-
-	// If the client isn't us, we just forward the message
-	g.client.SocketSendAs(message, senderId)
+	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
 
 func (g *InGame) OnExit() {
 	g.client.Broadcast(packets.NewLogout(), g.othersInLevel)
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
 	g.syncPlayerLocation(5 * time.Second)
+	g.syncInventory()
 	g.cancelPlayerUpdateLoop()
 }
 
@@ -333,6 +356,30 @@ func (g *InGame) sendLevel() {
 	})
 }
 
+func (g *InGame) loadInventory() {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	invItems, err := g.queries.GetActorInventoryItems(ctx, g.player.DbId)
+	if err != nil {
+		g.logger.Printf("Failed to get actor inventory: %v", err)
+		return
+	}
+
+	g.inventory = make(map[*objs.Item]uint32)
+	for _, itemModel := range invItems {
+		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), int32(itemModel.RespawnSeconds), itemModel.ItemID)
+		g.inventory[item] = uint32(itemModel.Quantity)
+	}
+	g.logger.Printf("Loaded inventory with %d items", len(g.inventory))
+}
+
+func (g *InGame) sendInventory() {
+	g.logger.Println("Sending inventory to client")
+	g.client.SocketSend(packets.NewInventory(g.inventory))
+	g.logger.Println("Sent inventory to client")
+}
+
 func (g *InGame) playerUpdateLoop(ctx context.Context) {
 	const delta float64 = 5 // Every 5 seconds
 	ticker := time.NewTicker(time.Duration(delta*1000) * time.Millisecond)
@@ -396,4 +443,32 @@ func (g *InGame) isOtherKnown(otherId uint64) bool {
 		}
 	}
 	return false
+}
+
+func (g *InGame) addInventoryItem(item *objs.Item, quantity uint32) {
+	if _, exists := g.inventory[item]; exists {
+		g.inventory[item] += quantity
+	} else {
+		g.inventory[item] = quantity
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		g.queries.AddActorInventoryItem(ctx, db.AddActorInventoryItemParams{
+			ActorID:  g.player.DbId,
+			ItemID:   item.DbId,
+			Quantity: int64(quantity),
+		})
+	}()
+}
+
+func (g *InGame) syncInventory() {
+	for item, quantity := range g.inventory {
+		g.queries.UpsertActorInventoryItem(context.Background(), db.UpsertActorInventoryItemParams{
+			ActorID:  g.player.DbId,
+			ItemID:   item.DbId,
+			Quantity: int64(quantity),
+		})
+	}
 }

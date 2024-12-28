@@ -86,3 +86,12 @@ CREATE TABLE IF NOT EXISTS levels_ground_items (
     FOREIGN KEY (level_id) REFERENCES levels(id) ON DELETE CASCADE -- delete from levels_ground_items when level with id level_id is deleted
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE -- delete from levels_ground_items when item with id item_id is deleted
 );
+
+CREATE TABLE IF NOT EXISTS actors_inventory (
+    actor_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    PRIMARY KEY (actor_id, item_id),
+    FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+);

@@ -9,6 +9,25 @@ import (
 	"context"
 )
 
+const addActorInventoryItem = `-- name: AddActorInventoryItem :exec
+INSERT INTO actors_inventory (
+    actor_id, item_id, quantity
+) VALUES (
+    ?, ?, ?
+)
+`
+
+type AddActorInventoryItemParams struct {
+	ActorID  int64
+	ItemID   int64
+	Quantity int64
+}
+
+func (q *Queries) AddActorInventoryItem(ctx context.Context, arg AddActorInventoryItemParams) error {
+	_, err := q.db.ExecContext(ctx, addActorInventoryItem, arg.ActorID, arg.ItemID, arg.Quantity)
+	return err
+}
+
 const createActor = `-- name: CreateActor :one
 INSERT INTO actors (
     user_id, name, level_id, x, y
@@ -443,6 +462,58 @@ func (q *Queries) GetActorByUserId(ctx context.Context, userID int64) (Actor, er
 	return i, err
 }
 
+const getActorInventoryItems = `-- name: GetActorInventoryItems :many
+SELECT 
+    i.id as item_id, 
+    i.name, 
+    i.sprite_region_x, 
+    i.sprite_region_y, 
+    i.respawn_seconds, 
+    ai.quantity 
+FROM items i
+JOIN actors_inventory ai ON i.id = ai.item_id
+WHERE ai.actor_id = ?
+`
+
+type GetActorInventoryItemsRow struct {
+	ItemID         int64
+	Name           string
+	SpriteRegionX  int64
+	SpriteRegionY  int64
+	RespawnSeconds int64
+	Quantity       int64
+}
+
+func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]GetActorInventoryItemsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getActorInventoryItems, actorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActorInventoryItemsRow
+	for rows.Next() {
+		var i GetActorInventoryItemsRow
+		if err := rows.Scan(
+			&i.ItemID,
+			&i.Name,
+			&i.SpriteRegionX,
+			&i.SpriteRegionY,
+			&i.RespawnSeconds,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAdminByUserId = `-- name: GetAdminByUserId :one
 SELECT id, user_id FROM admins
 WHERE user_id = ? LIMIT 1
@@ -759,6 +830,22 @@ func (q *Queries) IsActorAdmin(ctx context.Context, id int64) (int64, error) {
 	return column_1, err
 }
 
+const removeActorInventoryItem = `-- name: RemoveActorInventoryItem :exec
+DELETE FROM actors_inventory
+WHERE actor_id = ?
+AND item_id = ?
+`
+
+type RemoveActorInventoryItemParams struct {
+	ActorID int64
+	ItemID  int64
+}
+
+func (q *Queries) RemoveActorInventoryItem(ctx context.Context, arg RemoveActorInventoryItemParams) error {
+	_, err := q.db.ExecContext(ctx, removeActorInventoryItem, arg.ActorID, arg.ItemID)
+	return err
+}
+
 const updateActorLevel = `-- name: UpdateActorLevel :exec
 UPDATE actors
 SET level_id = ?
@@ -812,6 +899,26 @@ type UpdateLevelLastUpdatedParams struct {
 
 func (q *Queries) UpdateLevelLastUpdated(ctx context.Context, arg UpdateLevelLastUpdatedParams) error {
 	_, err := q.db.ExecContext(ctx, updateLevelLastUpdated, arg.LastUpdatedByUserID, arg.ID)
+	return err
+}
+
+const upsertActorInventoryItem = `-- name: UpsertActorInventoryItem :exec
+INSERT INTO actors_inventory (
+    actor_id, item_id, quantity
+) VALUES (
+    ?, ?, ?
+)
+ON CONFLICT (actor_id, item_id) DO UPDATE SET quantity = EXCLUDED.quantity
+`
+
+type UpsertActorInventoryItemParams struct {
+	ActorID  int64
+	ItemID   int64
+	Quantity int64
+}
+
+func (q *Queries) UpsertActorInventoryItem(ctx context.Context, arg UpsertActorInventoryItemParams) error {
+	_, err := q.db.ExecContext(ctx, upsertActorInventoryItem, arg.ActorID, arg.ItemID, arg.Quantity)
 	return err
 }
 

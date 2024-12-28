@@ -207,3 +207,35 @@ WHERE id IN (
     AND lgi.y = ?
     LIMIT 1
 );
+
+-- name: GetActorInventoryItems :many
+SELECT 
+    i.id as item_id, 
+    i.name, 
+    i.sprite_region_x, 
+    i.sprite_region_y, 
+    i.respawn_seconds, 
+    ai.quantity 
+FROM items i
+JOIN actors_inventory ai ON i.id = ai.item_id
+WHERE ai.actor_id = ?;
+
+-- name: AddActorInventoryItem :exec
+INSERT INTO actors_inventory (
+    actor_id, item_id, quantity
+) VALUES (
+    ?, ?, ?
+);
+
+-- name: RemoveActorInventoryItem :exec
+DELETE FROM actors_inventory
+WHERE actor_id = ?
+AND item_id = ?;
+
+-- name: UpsertActorInventoryItem :exec
+INSERT INTO actors_inventory (
+    actor_id, item_id, quantity
+) VALUES (
+    ?, ?, ?
+)
+ON CONFLICT (actor_id, item_id) DO UPDATE SET quantity = EXCLUDED.quantity;
