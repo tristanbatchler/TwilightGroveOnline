@@ -89,6 +89,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("left_click"):
 		_left_click_held = true
 		
+		var pos_diff := _get_mouse_diff_from_center_of_screen()
+		if pos_diff.length_squared() < 400:
+			var ground_item := _get_ground_item_standing_on()
+			if ground_item != null:
+				_request_pickup_item(ground_item.ground_item_id)
+				_left_click_held = false
+		
 	# Camera zoom
 	elif event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
@@ -99,8 +106,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_camera.zoom.y = _camera.zoom.x
 		
 func _process(delta: float) -> void:
-	var np_view_rect := _name_plate.get_viewport_rect()
-	var np_view_pos := np_view_rect.position
 	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2, 0)
 	
 	if not is_player:
@@ -111,15 +116,15 @@ func _process(delta: float) -> void:
 	
 	if _left_click_held and _at_target():
 		print("Starting move")
-		var mouse_pos := _camera.get_global_mouse_position()
-		var screen_center := _camera.get_screen_center_position()
-		var pos_diff := mouse_pos - screen_center
+		
+		var pos_diff := _get_mouse_diff_from_center_of_screen()
 		
 		var strongest_dir: Vector2 = argmax(
 			[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
 			[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
 		)
 		
+		# If the strongest direction was only small, register that as a click on ourselves, which means pickup item
 		move_and_send(strongest_dir)
 		
 func _at_target() -> bool:
@@ -170,3 +175,8 @@ func _request_pickup_item(ground_item_id) -> void:
 	var pickup_ground_item_request := packet.new_pickup_ground_item_request()
 	pickup_ground_item_request.set_ground_item_id(ground_item_id)
 	WS.send(packet)
+
+func _get_mouse_diff_from_center_of_screen() -> Vector2:
+	var mouse_pos := _camera.get_global_mouse_position()
+	var screen_center := _camera.get_screen_center_position()
+	return mouse_pos - screen_center
