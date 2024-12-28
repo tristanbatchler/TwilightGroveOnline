@@ -24,8 +24,9 @@ GameManager="*res://game_manager.gd"
 
 window/size/viewport_width=640
 window/size/viewport_height=640
-window/stretch/mode="viewport"
+window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [editor_plugins]
 
@@ -94,4 +95,7 @@ drop_item={
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/compress_with_gpu=false
+textures/vram_compression/cache_gpu_compressor=false
 environment/defaults/default_clear_color=Color(0.133333, 0.137255, 0.137255, 1)
+2d/snap/snap_2d_vertices_to_pixel=true
