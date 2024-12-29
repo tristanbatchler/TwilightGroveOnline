@@ -34,6 +34,12 @@ func remove(item_name: String, quantity: int) -> void:
 		if row.item_quantity <= 0:
 			_rows.erase(item_name)
 			row.queue_free()
+			var num_rows := len(_rows)
+			if num_rows > 0:
+				_selected_idx = (_selected_idx + 1) % num_rows
+				_set_selected_row_selected(true)
+			else:
+				_selected_idx = -1
 
 func get_quantity(item_name: String) -> int:
 	if item_name not in _rows:
@@ -60,12 +66,15 @@ func _input(event: InputEvent) -> void:
 		_set_selected_row_selected(true)
 
 func get_selected_row() -> InventoryRow:
+	if len(_rows) <= 0:
+		return null
 	var i := 0
 	for item_name in _rows:
 		if i == _selected_idx:
 			return _rows[item_name]
 		i += 1
-	return null
+		
+	return _rows[_rows.keys()[0]]
 	
 func _set_selected_row_selected(selected: bool) -> void:
 	var selected_row := get_selected_row()

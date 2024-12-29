@@ -17,8 +17,3 @@ script = ExtResource("1_b7411")
 visible = false
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-
-[node name="InventoryRow2" parent="." instance=ExtResource("1_hesmb")]
-visible = false
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
