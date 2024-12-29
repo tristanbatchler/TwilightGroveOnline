@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS tool_properties (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     strength INTEGER NOT NULL,
     level_required INTEGER NOT NULL,
-    harvests INTEGER NOT NULL -- 0 = NONE, 1 = SHRUB, ...
+    harvests INTEGER NOT NULL, -- 0 = NONE, 1 = SHRUB, ...
+    CONSTRAINT unique_tool_properties_combination UNIQUE (strength, level_required, harvests)
 );
 
 CREATE TABLE IF NOT EXISTS items (

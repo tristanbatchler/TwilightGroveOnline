@@ -335,6 +335,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 	toolPropsMsg := itemMsg.ToolProps
 
 	toolPropsId := sql.NullInt64{}
+
 	if toolPropsMsg != nil {
 		toolPropsModel, err := a.queries.CreateToolPropertiesIfNotExists(ctx, db.CreateToolPropertiesIfNotExistsParams{
 			Strength:      int64(toolPropsMsg.Strength),
@@ -364,6 +365,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 		SpriteRegionY:    int64(itemMsg.SpriteRegionY),
 		ToolPropertiesID: toolPropsId,
 	})
+
 	if err != nil {
 		if err == sql.ErrNoRows { // Item already exists
 			itemModel, err = a.queries.GetItem(ctx, db.GetItemParams{
@@ -380,10 +382,11 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 	}
 
 	_, err = a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
-		LevelID: levelId,
-		ItemID:  itemModel.ID,
-		X:       int64(message.X),
-		Y:       int64(message.Y),
+		LevelID:        levelId,
+		ItemID:         itemModel.ID,
+		X:              int64(message.X),
+		Y:              int64(message.Y),
+		RespawnSeconds: int64(message.RespawnSeconds),
 	})
 	return err
 }

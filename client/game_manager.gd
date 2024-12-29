@@ -31,10 +31,12 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 }
 
 enum Harvestable {
-	SHRUB,
+	NONE = 0,
+	SHRUB = 1,
 }
 
 var _harvestables_classes: Dictionary[Harvestable, Variant] = {
+	Harvestable.NONE: null,
 	Harvestable.SHRUB: Shrub,
 }
 

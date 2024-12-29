@@ -95,10 +95,20 @@ func _on_level_browser_file_selected(path: String) -> void:
 			
 		elif node is GroundItem:
 			var ground_item := level_upload.add_ground_item()
+			
 			var item := ground_item.new_item()
 			item.set_name(node.item_name)
 			item.set_sprite_region_x(node.sprite.region_rect.position.x)
 			item.set_sprite_region_y(node.sprite.region_rect.position.y)
+			
+			if node.tool_properties != null:
+				var tool_props := item.new_tool_props()
+				tool_props.set_strength(node.tool_properties.strength)
+				tool_props.set_level_required(node.tool_properties.strength)
+				var harvests := int(node.tool_properties.harvests)
+				tool_props.set_harvests(harvests)
+				
+				
 			ground_item.set_respawn_seconds(node.respawn_seconds)
 			ground_item.set_x(node.position.x / node._world_tile_size.x)
 			ground_item.set_y(node.position.y / node._world_tile_size.y)

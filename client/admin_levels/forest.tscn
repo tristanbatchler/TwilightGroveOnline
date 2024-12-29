@@ -206,7 +206,7 @@ sources/0 = SubResource("TileSetAtlasSource_rjr36")
 script = ExtResource("6_e0sd5")
 strength = 1
 level_required = 1
-harvests = 0
+harvests = 1
 
 [node name="Forest" type="Node2D"]
 
