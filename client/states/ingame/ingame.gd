@@ -189,7 +189,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item := ground_item.item
 		_log.info("Picked up a %s at (%d, %d)" % [item.item_name, ground_item.x, ground_item.y])
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
-		var item_copy := Item.instantiate(item.item_name, item.sprite_region_x, item.sprite_region_x, item.tool_properties)
+		var item_copy := Item.instantiate(item.item_name, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 

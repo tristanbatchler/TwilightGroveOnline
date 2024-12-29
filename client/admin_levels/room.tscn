@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=4 uid="uid://dkoe1rn34sbf4"]
+[gd_scene load_steps=9 format=4 uid="uid://dkoe1rn34sbf4"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_12rrr"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="2_g8ril"]
 [ext_resource type="PackedScene" uid="uid://yow2aapvd2mj" path="res://objects/ground_item/ground_item.tscn" id="3_wh1jw"]
 [ext_resource type="PackedScene" uid="uid://d03ug02ej8y74" path="res://objects/item/item.tscn" id="4_71104"]
+[ext_resource type="Script" path="res://resources/properties/tool_properties.gd" id="5_fgfqf"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_12rrr")
@@ -200,6 +201,12 @@ physics_layer_0/collision_layer = 2
 physics_layer_0/collision_mask = 0
 sources/0 = SubResource("TileSetAtlasSource_rjr36")
 
+[sub_resource type="Resource" id="Resource_tpngs"]
+script = ExtResource("5_fgfqf")
+strength = 1
+level_required = 1
+harvests = 1
+
 [node name="Room" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
@@ -218,3 +225,13 @@ respawn_seconds = 2
 
 [node name="Item" parent="GroundItem" instance=ExtResource("4_71104")]
 item_name = "A heart <3"
+
+[node name="GroundItem2" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
+position = Vector2(-40, 24)
+item = NodePath("Item")
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem2" instance=ExtResource("4_71104")]
+region_rect = Rect2(128, 32, 8, 8)
+item_name = "Rusy hatchet"
+tool_properties = SubResource("Resource_tpngs")
