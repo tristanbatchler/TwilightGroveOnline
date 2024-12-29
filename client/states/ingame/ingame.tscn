@@ -54,23 +54,6 @@ custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 10
 bbcode_enabled = true
-text = "Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-Test
-"
 scroll_following = true
 script = ExtResource("5_perjg")
 

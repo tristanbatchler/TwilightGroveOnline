@@ -3,7 +3,7 @@ extends Area2D
 const Door := preload("res://objects/door/door.gd")
 const Scene: PackedScene = preload("res://objects/door/door.tscn")
 
-@export var destination_level_res_path: String
+@export_file("*.tscn") var destination_level_res_path: String
 @export var destination_pos: Vector2i
 
 var _world_tile_size := Vector2i(8, 8)

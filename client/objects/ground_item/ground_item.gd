@@ -8,6 +8,7 @@ var _world_tile_size := Vector2i(8, 8)
 @export var sprite: Sprite2D
 @export var item_name: String
 @export var respawn_seconds: int = 120
+@export var tool_properties: ToolProperties
 
 var ground_item_id: int
 

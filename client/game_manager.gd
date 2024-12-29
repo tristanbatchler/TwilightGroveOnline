@@ -1,5 +1,7 @@
 extends Node
 
+const Shrub := preload("res://objects/shrub/shrub.gd")
+
 enum State {
 	ENTERED,
 	CONNECTED,
@@ -28,6 +30,13 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 	ConfigKey.UI_SCALE: "UI_SCALE",
 }
 
+enum Harvistable {
+	SHRUB,
+}
+
+var _harvistables_classes: Dictionary[Harvistable, Variant] = {
+	Harvistable.SHRUB: Shrub,
+}
 
 # DB Level IDs - Godot scene resource paths
 var levels: Dictionary[int, String] = {}
