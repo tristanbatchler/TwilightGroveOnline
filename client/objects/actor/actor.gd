@@ -73,7 +73,7 @@ func _input(event: InputEvent) -> void:
 
 		
 		if event.is_action_released("pickup_item"):
-			var ground_item := _get_ground_item_standing_on()
+			var ground_item := get_ground_item_standing_on()
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
 		#elif event.is_action_released("drop_item"):
@@ -92,7 +92,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_released("left_click"):
 		var pos_diff := _get_mouse_diff_from_player_pos()
 		if pos_diff.length_squared() < 100:
-			var ground_item := _get_ground_item_standing_on()
+			var ground_item := get_ground_item_standing_on()
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
 				_left_click_held = false
@@ -168,7 +168,7 @@ func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
 			corresponding_input = inputs[i]
 	return corresponding_input
 
-func _get_ground_item_standing_on() -> GroundItem:
+func get_ground_item_standing_on() -> GroundItem:
 	for area in _area.get_overlapping_areas():
 		if area is GroundItem:
 			return area as GroundItem

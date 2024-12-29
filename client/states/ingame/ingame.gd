@@ -9,7 +9,8 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 
 @export var download_destination_scene_path: String
 
-@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/LogoutButton
+@onready var _ground_hint_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/GroundHintLabel
+@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/LogoutButton
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
@@ -325,9 +326,18 @@ func _drop_item(item: Item, item_qty: int) -> void:
 func _process(delta: float) -> void:
 	if GameManager.client_id in _actors:
 		var player := _actors[GameManager.client_id]
+		
+		# Debug stuff
 		var pos_diff := player._get_mouse_diff_from_player_pos()
 		_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
 			
+		# Hint at what's on the ground underneath you
+		var ground_item := player.get_ground_item_standing_on()
+		if ground_item == null or ground_item.item == null:
+			_ground_hint_label.text = ""
+		else:
+			_ground_hint_label.text = ground_item.item.item_name
+		
 
 	# Level transition effect
 	if _level_transition.visible:
@@ -335,3 +345,4 @@ func _process(delta: float) -> void:
 			_level_transition.color.a += 0.05
 		else:
 			_level_transition.hide()
+			
