@@ -60,4 +60,4 @@
 - [ ] Fix bug where dropping a tool doesn't work
     - Is going to require re-thinking how the inventory is stored in server memory
     - Currently storing a map of objs.Item, but these don't hash well due to holding a pointer to a ToolsProps struct, which in turns holds a pointer to a Harvestable struct... Differing memory addresses for the same item in different maps. Need to think of a way to store the inventory in a way that can be hashed and compared, but can also communicate all the necessary information to the client.
-- [ ] Fix bug where dropping an item on the ground causes some kind of null pointer exception in Godot because it seems the item is null before it goes into the InGame._drop_item method. I think it's getting garbage collected or something.
+- [x] Fix bug where dropping an item on the ground causes some kind of null pointer exception in Godot because it seems the item is null before it goes into the InGame._drop_item method. I think it's getting garbage collected or something.

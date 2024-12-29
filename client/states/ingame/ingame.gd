@@ -186,8 +186,11 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	var ground_item_id := ground_item_msg.get_id()
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
-		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item.item_name, ground_item.x, ground_item.y])
-		_inventory.add(ground_item.item, 1)
+		var item := ground_item.item
+		_log.info("Picked up a %s at (%d, %d)" % [item.item_name, ground_item.x, ground_item.y])
+		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
+		var item_copy := Item.instantiate(item.item_name, item.sprite_region_x, item.sprite_region_x, item.tool_properties)
+		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 
 func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) -> void:
@@ -290,10 +293,13 @@ func _drop_selected_item() -> void:
 	var selected_inventory_row := _inventory.get_selected_row()
 	var item_qty := 1#selected_inventory_row.item_quantity
 	
-	if selected_inventory_row.item != null:
-		_drop_item(selected_inventory_row.item, item_qty)
-	else:
+	if selected_inventory_row == null:
+		_log.error("No inventory item selected, can't drop")
+	elif selected_inventory_row.item == null:
 		_log.error("Selected inventory row's item is null for some reason...")
+	else:
+		_drop_item(selected_inventory_row.item, item_qty)
+		
 
 func _drop_item(item: Item, item_qty: int) -> void:
 	var packet := Packets.Packet.new()
