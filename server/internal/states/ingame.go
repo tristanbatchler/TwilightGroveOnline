@@ -23,7 +23,7 @@ type InGame struct {
 	client                 central.ClientInterfacer
 	queries                *db.Queries
 	player                 *objs.Actor
-	inventory              map[objs.Item]uint32
+	inventory              *ds.Inventory
 	levelId                int64
 	othersInLevel          []uint64
 	logger                 *log.Logger
@@ -330,7 +330,7 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
 
 	// Check the item's in the player's inventory
-	if quantity, exists := g.inventory[*itemObj]; !exists || quantity < message.DropItemRequest.Quantity {
+	if quantity := g.inventory.GetItemQuantity(*itemObj); quantity < message.DropItemRequest.Quantity {
 		g.logger.Printf("Tried to drop %d of item %s, but only has %d", message.DropItemRequest.Quantity, itemObj.Name, quantity)
 		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Don't have enough of that item to drop")))
 		return
@@ -441,7 +441,7 @@ func (g *InGame) loadInventory() {
 		return
 	}
 
-	g.inventory = make(map[objs.Item]uint32)
+	g.inventory = ds.NewInventory()
 	for _, itemModel := range invItems {
 		var toolProps *props.ToolProps = nil
 		if itemModel.ToolPropertiesID.Valid {
@@ -459,9 +459,9 @@ func (g *InGame) loadInventory() {
 			}
 		}
 		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ItemID)
-		g.inventory[*item] = uint32(itemModel.Quantity)
+		g.addInventoryItem(*item, uint32(itemModel.Quantity))
 	}
-	g.logger.Printf("Loaded inventory with %d items", len(g.inventory))
+	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())
 }
 
 func (g *InGame) sendInventory() {
@@ -537,11 +537,7 @@ func (g *InGame) isOtherKnown(otherId uint64) bool {
 }
 
 func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
-	if _, exists := g.inventory[item]; exists {
-		g.inventory[item] += quantity
-	} else {
-		g.inventory[item] = quantity
-	}
+	g.inventory.AddItem(item, quantity)
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -555,24 +551,13 @@ func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
 }
 
 func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
-	if _, exists := g.inventory[item]; !exists {
-		return
-	}
-
-	var removed bool
-	if g.inventory[item] <= quantity {
-		delete(g.inventory, item)
-		removed = true
-	} else {
-		g.inventory[item] -= quantity
-		removed = false
-	}
+	qtyRemaining := g.inventory.RemoveItem(item, quantity)
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if removed {
+		if qtyRemaining <= 0 {
 			g.queries.RemoveActorInventoryItem(ctx, db.RemoveActorInventoryItemParams{
 				ActorID: g.player.DbId,
 				ItemID:  item.DbId,
@@ -581,7 +566,7 @@ func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
 			g.queries.UpsertActorInventoryItem(ctx, db.UpsertActorInventoryItemParams{
 				ActorID:  g.player.DbId,
 				ItemID:   item.DbId,
-				Quantity: int64(g.inventory[item]),
+				Quantity: int64(qtyRemaining),
 			})
 		}
 	}()
@@ -589,11 +574,11 @@ func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
 }
 
 func (g *InGame) syncInventory() {
-	for item, quantity := range g.inventory {
+	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
 		g.queries.UpsertActorInventoryItem(context.Background(), db.UpsertActorInventoryItemParams{
 			ActorID:  g.player.DbId,
 			ItemID:   item.DbId,
 			Quantity: int64(quantity),
 		})
-	}
+	})
 }

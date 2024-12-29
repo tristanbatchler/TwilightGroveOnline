@@ -3,6 +3,7 @@ package packets
 import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
 
 func NewClientId(id uint64) Msg {
@@ -240,15 +241,15 @@ func NewDropItemResponse(success bool, item *objs.Item, quantity uint32, err err
 	}
 }
 
-func NewInventory(inventory map[objs.Item]uint32) Msg {
+func NewInventory(inventory *ds.Inventory) Msg {
 	itemQtys := make([]*ItemQuantity, 0)
-	for itemObj, quantity := range inventory {
+	inventory.ForEach(func(itemObj objs.Item, quantity uint32) {
 		item := NewItem(&itemObj).(*Packet_Item).Item
 		itemQtys = append(itemQtys, &ItemQuantity{
 			Item:     item,
 			Quantity: int32(quantity),
 		})
-	}
+	})
 	return &Packet_ActorInventory{
 		ActorInventory: &ActorInventory{
 			ItemsQuantities: itemQtys,
