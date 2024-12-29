@@ -20,19 +20,21 @@ func NewActor(levelId int64, x, y int64, name string, dbId int64) *Actor {
 }
 
 type Shrub struct {
-	Id       uint64
-	LevelId  int64
-	Strength int32
-	X, Y     int64
+	Id             uint64
+	LevelId        int64
+	Strength       int32
+	X, Y           int64
+	RespawnSeconds int32
 }
 
 func NewShrub(id uint64, levelId int64, strength int32, x, y int64) *Shrub {
 	return &Shrub{
-		Id:       id,
-		LevelId:  levelId,
-		Strength: strength,
-		X:        x,
-		Y:        y,
+		Id:             id,
+		LevelId:        levelId,
+		Strength:       strength,
+		X:              x,
+		Y:              y,
+		RespawnSeconds: 5, // TODO: Make this receivable from the client and stored in the db
 	}
 }
 

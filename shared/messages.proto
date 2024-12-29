@@ -156,7 +156,7 @@ message PickupGroundItemRequest {
 }
 
 message PickupGroundItemResponse {
-    GroundItem ground_item = 1;
+    GroundItem ground_item = 1; // TODO: use ID instead of the whole object to save bandwidth
     Response response = 2;
 }
 
@@ -178,6 +178,15 @@ message ItemQuantity {
 
 message ActorInventory {
     repeated ItemQuantity items_quantities = 1;
+}
+
+message ChopShrubRequest {
+    uint64 shrub_id = 1;
+}
+
+message ChopShrubResponse {
+    uint64 shrub_id = 1;
+    Response response = 2;
 }
 
 message Packet {
@@ -213,5 +222,7 @@ message Packet {
         ActorInventory actor_inventory = 29;
         DropItemRequest drop_item_request = 30;
         DropItemResponse drop_item_response = 31;
+        ChopShrubRequest chop_shrub_request = 32;
+        ChopShrubResponse chop_shrub_response = 33;
     }
 }

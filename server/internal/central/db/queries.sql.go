@@ -457,6 +457,28 @@ func (q *Queries) DeleteLevelGroundItemsByLevelId(ctx context.Context, levelID i
 	return err
 }
 
+const deleteLevelShrub = `-- name: DeleteLevelShrub :exec
+DELETE FROM levels_shrubs
+WHERE id IN (
+    SELECT ls.id FROM levels_shrubs ls
+    WHERE ls.level_id = ?
+    AND ls.x = ?
+    AND ls.y = ?
+    LIMIT 1
+)
+`
+
+type DeleteLevelShrubParams struct {
+	LevelID int64
+	X       int64
+	Y       int64
+}
+
+func (q *Queries) DeleteLevelShrub(ctx context.Context, arg DeleteLevelShrubParams) error {
+	_, err := q.db.ExecContext(ctx, deleteLevelShrub, arg.LevelID, arg.X, arg.Y)
+	return err
+}
+
 const deleteLevelShrubsByLevelId = `-- name: DeleteLevelShrubsByLevelId :exec
 DELETE FROM levels_shrubs
 WHERE level_id = ?

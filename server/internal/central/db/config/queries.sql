@@ -259,3 +259,13 @@ INSERT INTO actors_inventory (
     ?, ?, ?
 )
 ON CONFLICT (actor_id, item_id) DO UPDATE SET quantity = EXCLUDED.quantity;
+
+-- name: DeleteLevelShrub :exec
+DELETE FROM levels_shrubs
+WHERE id IN (
+    SELECT ls.id FROM levels_shrubs ls
+    WHERE ls.level_id = ?
+    AND ls.x = ?
+    AND ls.y = ?
+    LIMIT 1
+);

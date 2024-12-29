@@ -97,6 +97,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.client.SocketSendAs(message, senderId)
 	case *packets.Packet_DropItemRequest:
 		g.handleDropItemRequest(senderId, message)
+	case *packets.Packet_ChopShrubRequest:
+		g.handleChopShrubRequest(senderId, message)
 	}
 }
 
@@ -249,7 +251,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 
 	lpmGroundItem, lpmExists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
 	if !lpmExists {
-		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location, gonna check if its X-Y match in sgo", senderId)
+		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
 		if sgoGroundItem.X != g.player.X || sgoGroundItem.Y != g.player.Y {
 			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
 			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist at your location")))
@@ -299,6 +301,97 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
 
+func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet_ChopShrubRequest) {
+	if senderId != g.client.Id() {
+		// If the client isn't us, we just forward the message
+		g.client.SocketSendAs(message, senderId)
+	}
+
+	sgoShrub, sgoExists := g.client.SharedGameObjects().Shrubs.Get(message.ChopShrubRequest.ShrubId)
+	if !sgoExists {
+		g.logger.Println("Client tried to chop a shrub that doesn't exist in the shared game object collection")
+		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Shrub doesn't exist")))
+		return
+	}
+
+	// Check if the player has a tool that can chop the shrub
+	shrubStrength := sgoShrub.Strength
+	if shrubStrength > 0 {
+		canChop := false
+		g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+			if canChop {
+				return
+			}
+			if item.ToolProps == nil {
+				return
+			}
+			if item.ToolProps.Harvests.Shrub == nil {
+				return
+			}
+			if item.ToolProps.Strength >= shrubStrength {
+				canChop = true
+				return
+			}
+		})
+		if !canChop {
+			g.logger.Printf("Client %d tried to chop a shrub with strength %d, but doesn't have a tool with enough strength", senderId, shrubStrength)
+			g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("No tool with enough strength to chop that shrub")))
+			return
+		}
+	}
+
+	point := ds.Point{X: sgoShrub.X, Y: sgoShrub.Y}
+
+	_, lpmExists := g.client.LevelPointMaps().Shrubs.Get(g.levelId, point)
+	if !lpmExists {
+		g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
+		if sgoShrub.X != g.player.X || sgoShrub.Y != g.player.Y {
+			g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location", senderId)
+			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Shrub doesn't exist at your location")))
+			return
+		}
+	} else {
+		g.client.LevelPointMaps().Shrubs.Remove(g.levelId, point)
+	}
+
+	g.client.SharedGameObjects().Shrubs.Remove(sgoShrub.Id)
+
+	shrub := sgoShrub
+
+	go g.queries.DeleteLevelShrub(context.Background(), db.DeleteLevelShrubParams{
+		LevelID: g.levelId,
+		X:       shrub.X,
+		Y:       shrub.Y,
+	})
+
+	// TODO: Add some wood to the player's inventory
+	go g.client.SocketSend(packets.NewServerMessage("I'll give you some wood in the next update"))
+
+	// Start the respawn time
+	if shrub.RespawnSeconds > 0 {
+		timer := time.NewTimer(time.Duration(shrub.RespawnSeconds) * time.Second)
+		go func() {
+			<-timer.C
+			g.client.LevelPointMaps().Shrubs.Add(g.levelId, point, shrub)
+			shrub.Id = g.client.SharedGameObjects().Shrubs.Add(shrub)
+			g.queries.CreateLevelShrub(context.Background(), db.CreateLevelShrubParams{
+				LevelID: g.levelId,
+				X:       shrub.X,
+				Y:       shrub.Y,
+			})
+			g.client.Broadcast(packets.NewShrub(shrub.Id, shrub), g.othersInLevel)
+			g.client.SocketSend(packets.NewShrub(shrub.Id, shrub))
+			g.logger.Printf("Shrub %d respawned at (%d, %d)", shrub.Id, shrub.X, shrub.Y)
+		}()
+	}
+
+	// Tell all the clients in the level that the shrub was chopped
+	g.client.Broadcast(message, g.othersInLevel)
+	go g.client.SocketSend(packets.NewChopShrubResponse(true, shrub.Id, nil))
+
+	g.logger.Printf("Client %d chopped shrub %d", senderId, shrub.Id)
+}
+
 func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_DropItemRequest) {
 	if senderId != g.client.Id() {
 		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
@@ -328,6 +421,12 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	var toolProps *props.ToolProps
 	if toolPropsMsg != nil {
 		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int64)
+		switch toolPropsMsg.Harvests {
+		case packets.Harvestable_NONE:
+			toolProps.Harvests = props.NoneHarvestable
+		case packets.Harvestable_SHRUB:
+			toolProps.Harvests = props.ShrubHarvestable
+		}
 	}
 
 	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)

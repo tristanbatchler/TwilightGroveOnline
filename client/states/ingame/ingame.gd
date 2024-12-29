@@ -39,6 +39,8 @@ func _input(event: InputEvent) -> void:
 			_line_edit.grab_focus()
 		elif event.is_action_released("drop_item"):
 			_drop_selected_item()
+		elif event.is_action_released("harvest"):
+			_harvest_nearby_resource()
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	var sender_id := packet.get_sender_id()
@@ -70,6 +72,10 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_actor_inventory(packet.get_actor_inventory())
 	elif packet.has_drop_item_response():
 		_handle_drop_item_response(packet.get_drop_item_response())
+	elif packet.has_chop_shrub_response():
+		_handle_chop_shrub_response(packet.get_chop_shrub_response())
+	elif packet.has_chop_shrub_request():
+		_handle_chop_shrub_request(sender_id, packet.get_chop_shrub_request())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -215,6 +221,17 @@ func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_reque
 			_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, ground_item.x, ground_item.y])
 		_remove_ground_item(ground_item_id)
 
+# This gets forwarded to us from the server only when the other player *successfully* chops down the shrub
+func _handle_chop_shrub_request(sender_id: int, chop_shrub_request: Packets.ChopShrubRequest) -> void:
+	var shrub_id := chop_shrub_request.get_shrub_id()
+	
+	if shrub_id in _shrubs:
+		var shrub := _shrubs[shrub_id]
+		
+		if sender_id in _actors:
+			_log.info("%s chopped down the shrub at (%d, %d)" % [_actors[sender_id].actor_name, shrub.x, shrub.y])
+		_remove_shrub(shrub_id)
+
 func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var gid := ground_item_msg.get_id()
 	if gid in _ground_items:
@@ -274,6 +291,11 @@ func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
 		_actors[actor_id].queue_free()
 		_actors.erase(actor_id)
+		
+func _remove_shrub(shrub_id: int) -> void:
+	if shrub_id in _shrubs:
+		_shrubs[shrub_id].queue_free()
+		_shrubs.erase(shrub_id)
 	
 func _handle_logout(sender_id: int) -> void:
 	if sender_id in _actors:
@@ -321,7 +343,32 @@ func _drop_item(item: Item, item_qty: int) -> void:
 		tool_props_msg.set_harvests(int(tool_properties.harvests))
 	
 	WS.send(packet)
+	
+	
+func _harvest_nearby_resource() -> void:
+	var shrub: Shrub
+	if GameManager.client_id in _actors:
+		var player := _actors[GameManager.client_id]
+		shrub = player.get_shrub_standing_on()
+		if shrub == null:
+			_log.warning("No trees to chop down")
+			return
+		
+	var packet := Packets.Packet.new()
+	var harvest_request_msg := packet.new_chop_shrub_request()
+	harvest_request_msg.set_shrub_id(shrub.shrub_id)
+	
+	WS.send(packet)		
 
+func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
+	var response := chop_shrub_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+	var shrub_id := chop_shrub_response.get_shrub_id()
+	_remove_shrub(shrub_id)
+	_log.success("You manage to chop down the shrub")
 
 func _process(delta: float) -> void:
 	if GameManager.client_id in _actors:

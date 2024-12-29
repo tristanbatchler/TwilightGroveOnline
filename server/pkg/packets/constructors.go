@@ -256,3 +256,15 @@ func NewInventory(inventory *ds.Inventory) Msg {
 		},
 	}
 }
+
+func NewChopShrubResponse(success bool, shrubId uint64, err error) Msg {
+	return &Packet_ChopShrubResponse{
+		ChopShrubResponse: &ChopShrubResponse{
+			ShrubId: shrubId,
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}

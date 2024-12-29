@@ -5,6 +5,7 @@ const Actor := preload("res://objects/actor/actor.gd")
 const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
+const Shrub := preload("res://objects/shrub/shrub.gd")
 
 var target_pos: Vector2
 var _left_click_held: bool = false
@@ -183,3 +184,9 @@ func _request_pickup_item(ground_item_id) -> void:
 func _get_mouse_diff_from_player_pos() -> Vector2:
 	var mouse_pos := _camera.get_local_mouse_position() - Vector2(_world_tile_size) / 2
 	return mouse_pos
+
+func get_shrub_standing_on() -> Shrub:
+	for area in _area.get_overlapping_areas():
+		if area is Shrub:
+			return area as Shrub
+	return null
