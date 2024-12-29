@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_12rrr"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="2_g8ril"]
 [ext_resource type="PackedScene" uid="uid://yow2aapvd2mj" path="res://objects/ground_item/ground_item.tscn" id="3_wh1jw"]
-[ext_resource type="PackedScene" uid="uid://dgtfkq31ugw5c" path="res://resources/art/sprite_texture_map.tscn" id="4_b76e4"]
+[ext_resource type="PackedScene" uid="uid://d03ug02ej8y74" path="res://objects/item/item.tscn" id="4_71104"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_12rrr")
@@ -206,20 +206,15 @@ sources/0 = SubResource("TileSetAtlasSource_rjr36")
 tile_map_data = PackedByteArray("AAATAAgAAAABAAEAAAAXAAcAAAABAAEAAAD///7/AAABAAAAAAAAAP7/AAABAAAAAAABAP7/AAADAAAAAAABAP//AAADAAEAAAABAAAAAAADAAEAAAABAAEAAAADAAEAAAABAAIAAAADAAEAAAABAAMAAAADAAEAAAABAAQAAAADAAEAAAABAAUAAAADAAUAAAAAAAUAAAABAAIAAAD//wUAAAADAAQAAAD+/wUAAAABAAAAAAD9/wUAAAABAAIAAAD8/wUAAAABAAAAAAD7/wUAAAADAAQAAAD6/wUAAAABAAIAAAD5/wUAAAACAAUAAAD5/wQAAAAAAAEAAAD5/wMAAAAAAAEAAAD5/wIAAAAAAAEAAAD5/wEAAAAAAAEAAAD5/wAAAAAAAAEAAAD5////AAAAAAEAAAD5//7/AAAAAAAAAAD6//7/AAABAAAAAAD7//7/AAABAAAAAAD8//7/AAABAAAAAAD9//7/AAABAAAAAAD+//7/AAABAAAAAAAAAP//AAALAAUAAAD9/wIAAAAHAAMAAAD+/wIAAAAIAAMAAAD8/wIAAAAIAAMAAAD6////AAAGAAUAAAD7////AAAGAAMAAAD6/wAAAAAOAAMAAAD6/wMAAAAIAAIAAAD9////AAAJAAMAAAA=")
 tile_set = SubResource("TileSet_lqx7t")
 
-[node name="GroundItem" parent="." instance=ExtResource("3_wh1jw")]
-position = Vector2(-8, 24)
-
-[node name="Sprite2D" parent="GroundItem" instance=ExtResource("4_b76e4")]
-region_rect = Rect2(56, 64, 8, 8)
-
 [node name="Door" parent="." instance=ExtResource("2_g8ril")]
 position = Vector2(0, -8)
 destination_level_res_path = "res://admin_levels/forest.tscn"
 destination_pos = Vector2i(21, 4)
 
-[node name="GroundItem2" parent="." instance=ExtResource("3_wh1jw")]
+[node name="GroundItem" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
 position = Vector2(-8, 8)
-metadata/_edit_group_ = true
+item = NodePath("Item")
+respawn_seconds = 2
 
-[node name="Sprite2D" parent="GroundItem2" instance=ExtResource("4_b76e4")]
-region_rect = Rect2(128, 32, 8, 8)
+[node name="Item" parent="GroundItem" instance=ExtResource("4_71104")]
+item_name = "A heart <3"

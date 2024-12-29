@@ -257,10 +257,12 @@ func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> voi
 		var item_name := item_msg.get_name()
 		var qty := item_qty_msg.get_quantity()
 		var tool_props_msg := item_msg.get_tool_props()
-		var tool_properties := ToolProperties.new()
-		tool_properties.strength = tool_props_msg.get_strength()
-		tool_properties.level_required = tool_props_msg.get_level_required()
-		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
+		var tool_properties: ToolProperties = null
+		if tool_props_msg != null:
+			tool_properties = ToolProperties.new()
+			tool_properties.strength = tool_props_msg.get_strength()
+			tool_properties.level_required = tool_props_msg.get_level_required()
+			tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
 		var item := Item.instantiate(item_name, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 		_inventory.add(item, qty)
 
@@ -288,7 +290,10 @@ func _drop_selected_item() -> void:
 	var selected_inventory_row := _inventory.get_selected_row()
 	var item_qty := 1#selected_inventory_row.item_quantity
 	
-	_drop_item(selected_inventory_row.item, item_qty)
+	if selected_inventory_row.item != null:
+		_drop_item(selected_inventory_row.item, item_qty)
+	else:
+		_log.error("Selected inventory row's item is null for some reason...")
 
 func _drop_item(item: Item, item_qty: int) -> void:
 	var packet := Packets.Packet.new()
@@ -302,10 +307,11 @@ func _drop_item(item: Item, item_qty: int) -> void:
 	item_msg.set_sprite_region_y(item.sprite_region_y)
 	
 	var tool_properties := item.tool_properties
-	var tool_props_msg := item_msg.new_tool_props()
-	tool_props_msg.set_strength(tool_properties.strength)
-	tool_props_msg.set_level_required(tool_properties.level_required)
-	tool_props_msg.set_harvests(int(tool_properties.harvests))
+	if tool_properties != null:
+		var tool_props_msg := item_msg.new_tool_props()
+		tool_props_msg.set_strength(tool_properties.strength)
+		tool_props_msg.set_level_required(tool_properties.level_required)
+		tool_props_msg.set_harvests(int(tool_properties.harvests))
 	
 	WS.send(packet)
 

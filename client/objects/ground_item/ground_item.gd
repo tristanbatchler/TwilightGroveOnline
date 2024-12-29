@@ -24,7 +24,7 @@ var y: int:
 			position.y = _world_tile_size.y * y
 
 static func instantiate(ground_item_id: int, x: int, y: int, item: Item) -> GroundItem:
-	var ground_item := Scene.instantiate() as GroundItem
+	var ground_item := Scene.instantiate()
 	ground_item.ground_item_id = ground_item_id
 	ground_item.x = x
 	ground_item.y = y

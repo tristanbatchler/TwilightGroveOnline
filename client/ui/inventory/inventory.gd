@@ -16,8 +16,8 @@ func add(item: Item, quantity: int) -> void:
 		row.item_quantity += quantity
 	else:
 		var row := InventoryRow.instantiate(item, quantity)
-		_rows[item.item_name] = row
 		add_child(row)
+		_rows[item.item_name] = row
 		
 		# Connect the new row's drop signal
 		row.drop_button_pressed.connect(func(): item_dropped.emit(row.item, 1))
