@@ -66,17 +66,17 @@ func _input(event: InputEvent) -> void:
 	
 	# Keyboard movement for PC
 	if event is InputEventKey:
-		input_dir.x = int(event.is_action(&"move_right")) - int(event.is_action(&"move_left"))
-		input_dir.x -= int(event.is_action(&"ui_right")) - int(event.is_action(&"ui_left"))
-		input_dir.y = int(event.is_action(&"move_down")) - int(event.is_action(&"move_up"))
-		input_dir.y -= int(event.is_action(&"ui_down")) - int(event.is_action(&"ui_up"))
+		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
+		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
 
 		
-		if event.is_action_released(&"pickup_item"):
+		if event.is_action_released("pickup_item"):
 			var ground_item := _get_ground_item_standing_on()
 			if ground_item != null:
 				_request_pickup_item(ground_item.ground_item_id)
-		#elif event.is_action_released(&"drop_item"):
+		#elif event.is_action_released("drop_item"):
 			# Drop item is handled in ingame.gd for access to the _inventory
 			
 	
@@ -87,9 +87,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	
 	# Use unhandled input to avoid moving when clicking inside chatbox or buttons, etc.
-	if event.is_action_pressed(&"left_click"):
+	if event.is_action_pressed("left_click"):
 		_left_click_held = true
-	elif event.is_action_released(&"left_click"):
+	elif event.is_action_released("left_click"):
 		var pos_diff := _get_mouse_diff_from_player_pos()
 		if pos_diff.length_squared() < 100:
 			var ground_item := _get_ground_item_standing_on()
@@ -116,7 +116,7 @@ func _process(delta: float) -> void:
 		_camera.zoom.x += zoom_diff * 0.1
 		_camera.zoom.y = _camera.zoom.x
 	
-	if Input.is_action_just_released(&"left_click"):
+	if Input.is_action_just_released("left_click"):
 		_left_click_held = false
 	
 	if _left_click_held and _at_target():

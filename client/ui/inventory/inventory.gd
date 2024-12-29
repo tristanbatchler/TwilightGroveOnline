@@ -51,9 +51,10 @@ func _input(event: InputEvent) -> void:
 			return
 		_set_selected_row_selected(false)
 		var num_rows := len(_rows)
-		if event.is_action_released(&"ui_up"):
+		
+		if event.is_action_released("ui_up"):
 			_selected_idx = (_selected_idx - 1) % num_rows
-		elif event.is_action_released(&"ui_down"):
+		elif event.is_action_released("ui_down"):
 			_selected_idx = (_selected_idx + 1) % num_rows
 		_set_selected_row_selected(true)
 
