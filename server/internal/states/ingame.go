@@ -322,7 +322,10 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	}
 
 	toolPropsMsg := itemMsg.ToolProps
-	toolProps := props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int64)
+	var toolProps *props.ToolProps
+	if toolPropsMsg != nil {
+		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int64)
+	}
 
 	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
 

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://d03ug02ej8y74"]
+
+[ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_ig7c7"]
+[ext_resource type="Script" path="res://objects/item/item.gd" id="2_422ph"]
+
+[node name="Item" type="Sprite2D"]
+texture = ExtResource("1_ig7c7")
+centered = false
+region_enabled = true
+region_rect = Rect2(48, 48, 8, 8)
+script = ExtResource("2_422ph")

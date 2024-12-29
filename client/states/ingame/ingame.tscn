@@ -80,3 +80,12 @@ metadata/_tab_index = 1
 
 [node name="Inventory" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory" instance=ExtResource("4_wlbng")]
 layout_mode = 2
+
+[node name="LevelTransition" type="ColorRect" parent="CanvasLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

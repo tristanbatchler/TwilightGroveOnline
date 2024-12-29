@@ -1,14 +1,13 @@
 extends Area2D
 
+const Item := preload("res://objects/item/item.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const Scene: PackedScene = preload("res://objects/ground_item/ground_item.tscn")
 
 var _world_tile_size := Vector2i(8, 8)
 
-@export var sprite: Sprite2D
-@export var item_name: String
+@export var item: Item
 @export var respawn_seconds: int = 120
-@export var tool_properties: ToolProperties
 
 var ground_item_id: int
 
@@ -24,18 +23,17 @@ var y: int:
 		if is_node_ready():
 			position.y = _world_tile_size.y * y
 
-static func instantiate(ground_item_id: int, x: int, y: int, item_name: String, sprite: Sprite2D) -> GroundItem:
+static func instantiate(ground_item_id: int, x: int, y: int, item: Item) -> GroundItem:
 	var ground_item := Scene.instantiate() as GroundItem
 	ground_item.ground_item_id = ground_item_id
 	ground_item.x = x
 	ground_item.y = y
-	ground_item.item_name = item_name
-	ground_item.sprite = sprite
+	ground_item.item = item
 	return ground_item
 	
 func place(world: TileMapLayer) -> void:
 	_world_tile_size = world.tile_set.tile_size
-	add_child(sprite)
+	add_child(item)
 	world.add_child(self)
 
 func _ready() -> void:

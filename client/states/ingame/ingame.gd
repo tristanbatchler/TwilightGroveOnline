@@ -3,6 +3,7 @@ extends Node
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Item := preload("res://objects/item/item.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 
@@ -14,6 +15,7 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
 @onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
 @onready var _debug_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/DebugLabel
+@onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
 
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
@@ -109,7 +111,9 @@ func _on_ws_connection_closed() -> void:
 
 func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 	# If we're getting a new level, remove the old one
-	if _world != null:		
+	if _world != null:
+		#_level_transition.color = Color(_level_transition.color, 0)
+		#_level_transition.show()
 		remove_child(_world)
 		_world.queue_free()
 		_actors.clear()
@@ -182,8 +186,8 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	var ground_item_id := ground_item_msg.get_id()
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
-		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item_name, ground_item.x, ground_item.y])
-		_inventory.add(ground_item.item_name, 1, ground_item.sprite.region_rect.position.x, ground_item.sprite.region_rect.position.y)
+		_log.info("Picked up a %s at (%d, %d)" % [ground_item.item.item_name, ground_item.x, ground_item.y])
+		_inventory.add(ground_item.item, 1)
 		_remove_ground_item(ground_item_id)
 
 func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) -> void:
@@ -214,21 +218,26 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var item_msg := ground_item_msg.get_item()
 	var x := ground_item_msg.get_x()
 	var y := ground_item_msg.get_y()
+	
 	var item_name := item_msg.get_name()
 	var sprite_region_x := item_msg.get_sprite_region_x()
 	var sprite_region_y := item_msg.get_sprite_region_y()
 	
-	var sprite := Sprite2D.new()
-	sprite.texture = load("res://resources/art/colored_tilemap_packed.png")
-	sprite.region_enabled = true
-	sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, 8, 8)
-	sprite.offset = Vector2(4, 4)
+	var tool_properties_msg := item_msg.get_tool_props()
+	var tool_properties: ToolProperties = null
+	if tool_properties_msg != null:
+		tool_properties = ToolProperties.new()
+		tool_properties.strength = tool_properties_msg.get_strength()
+		tool_properties.level_required = tool_properties_msg.get_level_required()
+		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
 	
-	var ground_item_obj := GroundItem.instantiate(gid, x, y, item_name, sprite)
+	var item := Item.instantiate(item_name, sprite_region_x, sprite_region_y, tool_properties)
+	
+	var ground_item_obj := GroundItem.instantiate(gid, x, y, item)
 	_ground_items[gid] = ground_item_obj
 	ground_item_obj.place(_world_tilemap_layer)
 	
-	_log.info("Added %s to world at (%d, %d)" % [ground_item_obj.item_name, ground_item_obj.x, ground_item_obj.y])
+	_log.info("Added %s to world at (%d, %d)" % [ground_item_obj.item.item_name, ground_item_obj.x, ground_item_obj.y])
 
 func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 	var sid := shrub_msg.get_id()
@@ -243,12 +252,17 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 
 func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
 	_inventory.clear()
-	for item_qty: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
-		var item := item_qty.get_item()
-		var item_name := item.get_name()
-		var qty := item_qty.get_quantity()
-		_inventory.add(item_name, qty, item.get_sprite_region_x(), item.get_sprite_region_y())
-
+	for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
+		var item_msg := item_qty_msg.get_item()
+		var item_name := item_msg.get_name()
+		var qty := item_qty_msg.get_quantity()
+		var tool_props_msg := item_msg.get_tool_props()
+		var tool_properties := ToolProperties.new()
+		tool_properties.strength = tool_props_msg.get_strength()
+		tool_properties.level_required = tool_props_msg.get_level_required()
+		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
+		var item := Item.instantiate(item_name, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+		_inventory.add(item, qty)
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
@@ -273,20 +287,25 @@ func _remove_ground_item(ground_item_id: int) -> void:
 func _drop_selected_item() -> void:
 	var selected_inventory_row := _inventory.get_selected_row()
 	var item_qty := 1#selected_inventory_row.item_quantity
-	var item_name := selected_inventory_row.item_name
 	
-	_drop_item(item_name, item_qty, selected_inventory_row.sprite_region_x, selected_inventory_row.sprite_region_y)
+	_drop_item(selected_inventory_row.item, item_qty)
 
-func _drop_item(item_name: String, item_qty: int, sprite_region_x: int, sprite_region_y: int) -> void:
+func _drop_item(item: Item, item_qty: int) -> void:
 	var packet := Packets.Packet.new()
 	
 	var drop_item_request_msg := packet.new_drop_item_request()
 	drop_item_request_msg.set_quantity(item_qty)
 	
 	var item_msg := drop_item_request_msg.new_item()
-	item_msg.set_name(item_name)
-	item_msg.set_sprite_region_x(sprite_region_x)
-	item_msg.set_sprite_region_y(sprite_region_y)
+	item_msg.set_name(item.item_name)
+	item_msg.set_sprite_region_x(item.sprite_region_x)
+	item_msg.set_sprite_region_y(item.sprite_region_y)
+	
+	var tool_properties := item.tool_properties
+	var tool_props_msg := item_msg.new_tool_props()
+	tool_props_msg.set_strength(tool_properties.strength)
+	tool_props_msg.set_level_required(tool_properties.level_required)
+	tool_props_msg.set_harvests(int(tool_properties.harvests))
 	
 	WS.send(packet)
 
@@ -297,3 +316,10 @@ func _process(delta: float) -> void:
 		var pos_diff := player._get_mouse_diff_from_player_pos()
 		_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
 			
+
+	# Level transition effect
+	if _level_transition.visible:
+		if _level_transition.color.a < 1:
+			_level_transition.color.a += 0.05
+		else:
+			_level_transition.hide()

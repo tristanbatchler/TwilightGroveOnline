@@ -3,23 +3,24 @@ class_name Inventory
 
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
+const Item := preload("res://objects/item/item.gd")
 
 var _rows: Dictionary[StringName, InventoryRow]
 var _selected_idx: int = -1
 
-signal item_dropped(item_name: String, quantity: int, sprite_region_x: int, sprite_region_y: int)
+signal item_dropped(item: Item, quantity: int)
 
-func add(item_name: String, quantity: int, sprite_region_x: int, sprite_region_y: int) -> void:
-	if item_name in _rows:
-		var row := _rows[item_name]
+func add(item: Item, quantity: int) -> void:
+	if item.item_name in _rows:
+		var row := _rows[item.item_name]
 		row.item_quantity += quantity
 	else:
-		var row := InventoryRow.instantiate(item_name, quantity, sprite_region_x, sprite_region_y)
-		_rows[item_name] = row
+		var row := InventoryRow.instantiate(item, quantity)
+		_rows[item.item_name] = row
 		add_child(row)
 		
 		# Connect the new row's drop signal
-		row.drop_button_pressed.connect(func(): item_dropped.emit(row.item_name, 1, row.sprite_region_x, row.sprite_region_y))
+		row.drop_button_pressed.connect(func(): item_dropped.emit(row.item, 1))
 		
 		# If this was the first item added, set the selected index
 		if len(_rows) == 1:

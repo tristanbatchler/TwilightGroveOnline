@@ -94,25 +94,25 @@ func _on_level_browser_file_selected(path: String) -> void:
 			print("Found door at (%d, %d)" % [door.get_x(), door.get_y()])
 			
 		elif node is GroundItem:
-			var ground_item := level_upload.add_ground_item()
+			var ground_item_msg := level_upload.add_ground_item()
 			
-			var item := ground_item.new_item()
-			item.set_name(node.item_name)
-			item.set_sprite_region_x(node.sprite.region_rect.position.x)
-			item.set_sprite_region_y(node.sprite.region_rect.position.y)
+			var item_msg := ground_item_msg.new_item()
+			item_msg.set_name(node.item.item_name)
+			item_msg.set_sprite_region_x(node.item.region_rect.position.x)
+			item_msg.set_sprite_region_y(node.item.region_rect.position.y)
 			
-			if node.tool_properties != null:
-				var tool_props := item.new_tool_props()
-				tool_props.set_strength(node.tool_properties.strength)
-				tool_props.set_level_required(node.tool_properties.strength)
-				var harvests := int(node.tool_properties.harvests)
-				tool_props.set_harvests(harvests)
+			if node.item.tool_properties != null:
+				var tool_props_msg := item_msg.new_tool_props()
+				tool_props_msg.set_strength(node.item.tool_properties.strength)
+				tool_props_msg.set_level_required(node.item.tool_properties.strength)
+				var harvests := int(node.item.tool_properties.harvests)
+				tool_props_msg.set_harvests(harvests)
 				
 				
-			ground_item.set_respawn_seconds(node.respawn_seconds)
-			ground_item.set_x(node.position.x / node._world_tile_size.x)
-			ground_item.set_y(node.position.y / node._world_tile_size.y)
-			print("Found ground item %s at (%d, %d)" % [item.get_name(), ground_item.get_x(), ground_item.get_y()])
+			ground_item_msg.set_respawn_seconds(node.respawn_seconds)
+			ground_item_msg.set_x(node.position.x / node._world_tile_size.x)
+			ground_item_msg.set_y(node.position.y / node._world_tile_size.y)
+			print("Found ground item %s at (%d, %d)" % [item_msg.get_name(), ground_item_msg.get_x(), ground_item_msg.get_y()])
 			
 	
 	var file := FileAccess.open(path, FileAccess.READ)

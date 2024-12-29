@@ -31,14 +31,22 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 }
 
 enum Harvestable {
-	NONE = 0,
-	SHRUB = 1,
+	NONE,
+	SHRUB,
 }
 
 var _harvestables_classes: Dictionary[Harvestable, Variant] = {
 	Harvestable.NONE: null,
 	Harvestable.SHRUB: Shrub,
 }
+
+var _ids_harvestables: Dictionary[int, Harvestable] = {
+	0: Harvestable.NONE,
+	1: Harvestable.SHRUB,
+}
+
+func get_harvestable_enum_from_int(id: int) -> Harvestable:
+	return _ids_harvestables[id]
 
 # DB Level IDs - Godot scene resource paths
 var levels: Dictionary[int, String] = {}
