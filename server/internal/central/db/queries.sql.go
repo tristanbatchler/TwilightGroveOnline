@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const addActorInventoryItem = `-- name: AddActorInventoryItem :exec
@@ -124,28 +125,35 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 
 const createItemIfNotExists = `-- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, sprite_region_x, sprite_region_y
+    name, sprite_region_x, sprite_region_y, tool_properties_id
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 )
-ON CONFLICT (name, sprite_region_x, sprite_region_y) DO NOTHING
-RETURNING id, name, sprite_region_x, sprite_region_y
+ON CONFLICT (name, sprite_region_x, sprite_region_y, tool_properties_id) DO NOTHING
+RETURNING id, name, sprite_region_x, sprite_region_y, tool_properties_id
 `
 
 type CreateItemIfNotExistsParams struct {
-	Name          string
-	SpriteRegionX int64
-	SpriteRegionY int64
+	Name             string
+	SpriteRegionX    int64
+	SpriteRegionY    int64
+	ToolPropertiesID sql.NullInt64
 }
 
 func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNotExistsParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, createItemIfNotExists, arg.Name, arg.SpriteRegionX, arg.SpriteRegionY)
+	row := q.db.QueryRowContext(ctx, createItemIfNotExists,
+		arg.Name,
+		arg.SpriteRegionX,
+		arg.SpriteRegionY,
+		arg.ToolPropertiesID,
+	)
 	var i Item
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
+		&i.ToolPropertiesID,
 	)
 	return i, err
 }
@@ -319,6 +327,34 @@ func (q *Queries) CreateLevelShrub(ctx context.Context, arg CreateLevelShrubPara
 	return i, err
 }
 
+const createToolPropertiesIfNotExists = `-- name: CreateToolPropertiesIfNotExists :one
+INSERT INTO tool_properties (
+    strength, level_required, harvests
+) VALUES (
+    ?, ?, ?
+)
+ON CONFLICT (strength, level_required, harvests) DO NOTHING
+RETURNING id, strength, level_required, harvests
+`
+
+type CreateToolPropertiesIfNotExistsParams struct {
+	Strength      int64
+	LevelRequired int64
+	Harvests      int64
+}
+
+func (q *Queries) CreateToolPropertiesIfNotExists(ctx context.Context, arg CreateToolPropertiesIfNotExistsParams) (ToolProperty, error) {
+	row := q.db.QueryRowContext(ctx, createToolPropertiesIfNotExists, arg.Strength, arg.LevelRequired, arg.Harvests)
+	var i ToolProperty
+	err := row.Scan(
+		&i.ID,
+		&i.Strength,
+		&i.LevelRequired,
+		&i.Harvests,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username, password_hash
@@ -466,6 +502,7 @@ SELECT
     i.name, 
     i.sprite_region_x, 
     i.sprite_region_y, 
+    i.tool_properties_id,
     ai.quantity 
 FROM items i
 JOIN actors_inventory ai ON i.id = ai.item_id
@@ -473,11 +510,12 @@ WHERE ai.actor_id = ?
 `
 
 type GetActorInventoryItemsRow struct {
-	ItemID        int64
-	Name          string
-	SpriteRegionX int64
-	SpriteRegionY int64
-	Quantity      int64
+	ItemID           int64
+	Name             string
+	SpriteRegionX    int64
+	SpriteRegionY    int64
+	ToolPropertiesID sql.NullInt64
+	Quantity         int64
 }
 
 func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]GetActorInventoryItemsRow, error) {
@@ -494,6 +532,7 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]
 			&i.Name,
 			&i.SpriteRegionX,
 			&i.SpriteRegionY,
+			&i.ToolPropertiesID,
 			&i.Quantity,
 		); err != nil {
 			return nil, err
@@ -522,7 +561,7 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, name, sprite_region_x, sprite_region_y FROM items
+SELECT id, name, sprite_region_x, sprite_region_y, tool_properties_id FROM items
 WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ?
 LIMIT 1
 `
@@ -541,12 +580,13 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) 
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
+		&i.ToolPropertiesID,
 	)
 	return i, err
 }
 
 const getItemById = `-- name: GetItemById :one
-SELECT id, name, sprite_region_x, sprite_region_y FROM items
+SELECT id, name, sprite_region_x, sprite_region_y, tool_properties_id FROM items
 WHERE id = ? LIMIT 1
 `
 
@@ -558,6 +598,7 @@ func (q *Queries) GetItemById(ctx context.Context, id int64) (Item, error) {
 		&i.Name,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
+		&i.ToolPropertiesID,
 	)
 	return i, err
 }
@@ -777,6 +818,47 @@ func (q *Queries) GetLevelTscnDataByLevelId(ctx context.Context, levelID int64) 
 	row := q.db.QueryRowContext(ctx, getLevelTscnDataByLevelId, levelID)
 	var i LevelsTscnDatum
 	err := row.Scan(&i.LevelID, &i.TscnData)
+	return i, err
+}
+
+const getToolProperties = `-- name: GetToolProperties :one
+SELECT id, strength, level_required, harvests FROM tool_properties
+WHERE strength = ? AND level_required = ? AND harvests = ?
+LIMIT 1
+`
+
+type GetToolPropertiesParams struct {
+	Strength      int64
+	LevelRequired int64
+	Harvests      int64
+}
+
+func (q *Queries) GetToolProperties(ctx context.Context, arg GetToolPropertiesParams) (ToolProperty, error) {
+	row := q.db.QueryRowContext(ctx, getToolProperties, arg.Strength, arg.LevelRequired, arg.Harvests)
+	var i ToolProperty
+	err := row.Scan(
+		&i.ID,
+		&i.Strength,
+		&i.LevelRequired,
+		&i.Harvests,
+	)
+	return i, err
+}
+
+const getToolPropertiesById = `-- name: GetToolPropertiesById :one
+SELECT id, strength, level_required, harvests FROM tool_properties
+WHERE id = ? LIMIT 1
+`
+
+func (q *Queries) GetToolPropertiesById(ctx context.Context, id int64) (ToolProperty, error) {
+	row := q.db.QueryRowContext(ctx, getToolPropertiesById, id)
+	var i ToolProperty
+	err := row.Scan(
+		&i.ID,
+		&i.Strength,
+		&i.LevelRequired,
+		&i.Harvests,
+	)
 	return i, err
 }
 

@@ -30,12 +30,12 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 	ConfigKey.UI_SCALE: "UI_SCALE",
 }
 
-enum Harvistable {
+enum Harvestable {
 	SHRUB,
 }
 
-var _harvistables_classes: Dictionary[Harvistable, Variant] = {
-	Harvistable.SHRUB: Shrub,
+var _harvestables_classes: Dictionary[Harvestable, Variant] = {
+	Harvestable.SHRUB: Shrub,
 }
 
 # DB Level IDs - Godot scene resource paths

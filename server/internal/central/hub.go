@@ -12,6 +12,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/password"
@@ -240,7 +241,19 @@ func (h *Hub) Run(adminPassword string) {
 			if err != nil {
 				return nil, err
 			}
-			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), itemModel.ID)
+			var toolPropsModel *db.ToolProperty = nil
+			if itemModel.ToolPropertiesID.Valid {
+				validToolPropsModel, err := queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int64)
+				if err != nil {
+					log.Printf("Error getting tool properties for item %d: %v, going to use nil", itemModel.ID, err)
+				}
+				toolPropsModel = &validToolPropsModel
+			}
+			var toolProps *props.ToolProps = nil
+			if toolPropsModel != nil {
+				toolProps = props.NewToolProps(int32(toolPropsModel.Strength), int32(toolPropsModel.LevelRequired), props.NoneHarvestable, toolPropsModel.ID)
+			}
+			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, int32(model.RespawnSeconds)), nil
 		},
 	)

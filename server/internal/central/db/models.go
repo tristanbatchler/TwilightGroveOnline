@@ -29,10 +29,11 @@ type Admin struct {
 }
 
 type Item struct {
-	ID            int64
-	Name          string
-	SpriteRegionX int64
-	SpriteRegionY int64
+	ID               int64
+	Name             string
+	SpriteRegionX    int64
+	SpriteRegionY    int64
+	ToolPropertiesID sql.NullInt64
 }
 
 type Level struct {
@@ -83,6 +84,13 @@ type LevelsShrub struct {
 type LevelsTscnDatum struct {
 	LevelID  int64
 	TscnData []byte
+}
+
+type ToolProperty struct {
+	ID            int64
+	Strength      int64
+	LevelRequired int64
+	Harvests      int64
 }
 
 type User struct {

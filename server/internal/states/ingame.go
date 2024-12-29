@@ -14,6 +14,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
@@ -319,7 +320,11 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that right now")))
 		return
 	}
-	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, itemModel.ID)
+
+	toolPropsMsg := itemMsg.ToolProps
+	toolProps := props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int64)
+
+	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
 
 	// Check the item's in the player's inventory
 	if quantity, exists := g.inventory[*itemObj]; !exists || quantity < message.DropItemRequest.Quantity {
@@ -435,7 +440,22 @@ func (g *InGame) loadInventory() {
 
 	g.inventory = make(map[objs.Item]uint32)
 	for _, itemModel := range invItems {
-		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), itemModel.ItemID)
+		var toolProps *props.ToolProps = nil
+		if itemModel.ToolPropertiesID.Valid {
+			toolPropsModel, err := g.queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int64)
+			if err != nil {
+				g.logger.Printf("Failed to get tool properties: %v", err)
+			} else {
+				toolProps = props.NewToolProps(int32(toolPropsModel.Strength), int32(toolPropsModel.LevelRequired), props.NoneHarvestable, toolPropsModel.ID)
+				switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub - corrsponds directly to packets Harvestable enum
+				case int64(packets.Harvestable_NONE):
+					toolProps.Harvests = props.NoneHarvestable
+				case int64(packets.Harvestable_SHRUB):
+					toolProps.Harvests = props.ShrubHarvestable
+				}
+			}
+		}
+		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ItemID)
 		g.inventory[*item] = uint32(itemModel.Quantity)
 	}
 	g.logger.Printf("Loaded inventory with %d items", len(g.inventory))

@@ -153,13 +153,31 @@ WHERE level_id = ?;
 SELECT * FROM levels_doors
 WHERE level_id = ?;
 
--- name: CreateItemIfNotExists :one
-INSERT INTO items (
-    name, sprite_region_x, sprite_region_y
+-- name: CreateToolPropertiesIfNotExists :one
+INSERT INTO tool_properties (
+    strength, level_required, harvests
 ) VALUES (
     ?, ?, ?
 )
-ON CONFLICT (name, sprite_region_x, sprite_region_y) DO NOTHING
+ON CONFLICT (strength, level_required, harvests) DO NOTHING
+RETURNING *;
+
+-- name: GetToolProperties :one
+SELECT * FROM tool_properties
+WHERE strength = ? AND level_required = ? AND harvests = ?
+LIMIT 1;
+
+-- name: GetToolPropertiesById :one
+SELECT * FROM tool_properties
+WHERE id = ? LIMIT 1;
+
+-- name: CreateItemIfNotExists :one
+INSERT INTO items (
+    name, sprite_region_x, sprite_region_y, tool_properties_id
+) VALUES (
+    ?, ?, ?, ?
+)
+ON CONFLICT (name, sprite_region_x, sprite_region_y, tool_properties_id) DO NOTHING
 RETURNING *;
 
 -- name: GetItem :one
@@ -214,6 +232,7 @@ SELECT
     i.name, 
     i.sprite_region_x, 
     i.sprite_region_y, 
+    i.tool_properties_id,
     ai.quantity 
 FROM items i
 JOIN actors_inventory ai ON i.id = ai.item_id

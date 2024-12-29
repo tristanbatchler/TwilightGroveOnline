@@ -97,10 +97,22 @@ message Door {
     int32 y = 6;
 }
 
+enum Harvestable {
+    NONE = 0;
+    SHRUB = 1;
+}
+
+message ToolProps {
+    int32 strength = 1;
+    int32 level_required = 2;
+    Harvestable harvests = 3;
+}
+
 message Item {
     string name = 2;
     int32 sprite_region_x = 3;
     int32 sprite_region_y = 4;
+    ToolProps tool_props = 5;
 }
 
 message GroundItem {

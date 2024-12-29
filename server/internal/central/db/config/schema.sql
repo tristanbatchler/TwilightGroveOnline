@@ -68,12 +68,21 @@ CREATE TABLE IF NOT EXISTS levels_doors (
     FOREIGN KEY (destination_level_id) REFERENCES levels(id) ON DELETE RESTRICT -- do not allow deletion of levels that are destinations
 );
 
+CREATE TABLE IF NOT EXISTS tool_properties (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    strength INTEGER NOT NULL,
+    level_required INTEGER NOT NULL,
+    harvests INTEGER NOT NULL -- 0 = NONE, 1 = SHRUB, ...
+);
+
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     sprite_region_x INTEGER NOT NULL,
     sprite_region_y INTEGER NOT NULL,
-    CONSTRAINT unique_item_combination UNIQUE (name, sprite_region_x, sprite_region_y)
+    tool_properties_id INTEGER,
+    FOREIGN KEY (tool_properties_id) REFERENCES tool_properties(id) ON DELETE SET NULL, -- set tool_properties_id to NULL when tool_properties with id tool_properties_id is deleted
+    CONSTRAINT unique_item_combination UNIQUE (name, sprite_region_x, sprite_region_y, tool_properties_id)
 );
 
 CREATE TABLE IF NOT EXISTS levels_ground_items (

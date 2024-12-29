@@ -1717,6 +1717,80 @@ class Door:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+enum Harvestable {
+	NONE = 0,
+	SHRUB = 1
+}
+
+class ToolProps:
+	func _init():
+		var service
+		
+		_strength = PBField.new("strength", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _strength
+		data[_strength.tag] = service
+		
+		_level_required = PBField.new("level_required", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _level_required
+		data[_level_required.tag] = service
+		
+		_harvests = PBField.new("harvests", PB_DATA_TYPE.ENUM, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM])
+		service = PBServiceField.new()
+		service.field = _harvests
+		data[_harvests.tag] = service
+		
+	var data = {}
+	
+	var _strength: PBField
+	func get_strength() -> int:
+		return _strength.value
+	func clear_strength() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_strength.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_strength(value : int) -> void:
+		_strength.value = value
+	
+	var _level_required: PBField
+	func get_level_required() -> int:
+		return _level_required.value
+	func clear_level_required() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_level_required.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_level_required(value : int) -> void:
+		_level_required.value = value
+	
+	var _harvests: PBField
+	func get_harvests():
+		return _harvests.value
+	func clear_harvests() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_harvests.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
+	func set_harvests(value) -> void:
+		_harvests.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Item:
 	func _init():
 		var service
@@ -1735,6 +1809,12 @@ class Item:
 		service = PBServiceField.new()
 		service.field = _sprite_region_y
 		data[_sprite_region_y.tag] = service
+		
+		_tool_props = PBField.new("tool_props", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 5, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _tool_props
+		service.func_ref = Callable(self, "new_tool_props")
+		data[_tool_props.tag] = service
 		
 	var data = {}
 	
@@ -1764,6 +1844,16 @@ class Item:
 		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_sprite_region_y(value : int) -> void:
 		_sprite_region_y.value = value
+	
+	var _tool_props: PBField
+	func get_tool_props() -> ToolProps:
+		return _tool_props.value
+	func clear_tool_props() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_tool_props.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_tool_props() -> ToolProps:
+		_tool_props.value = ToolProps.new()
+		return _tool_props.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

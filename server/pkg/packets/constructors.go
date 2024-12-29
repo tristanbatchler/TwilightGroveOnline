@@ -1,6 +1,9 @@
 package packets
 
-import "github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+import (
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+)
 
 func NewClientId(id uint64) Msg {
 	return &Packet_ClientId{
@@ -72,12 +75,34 @@ func NewShrub(id uint64, shrub *objs.Shrub) Msg {
 	}
 }
 
+func newHarvestable(harvestable *props.Harvestable) Harvestable {
+	if harvestable == nil {
+		return Harvestable_NONE
+	}
+	if harvestable.Shrub != nil {
+		return Harvestable_SHRUB
+	}
+	return Harvestable_NONE
+}
+
+func NewToolProps(toolProps *props.ToolProps) *ToolProps {
+	if toolProps == nil {
+		return nil
+	}
+	return &ToolProps{
+		Strength:      toolProps.Strength,
+		LevelRequired: toolProps.LevelRequired,
+		Harvests:      newHarvestable(toolProps.Harvests),
+	}
+}
+
 func NewItem(item *objs.Item) Msg {
 	return &Packet_Item{
 		Item: &Item{
 			Name:          item.Name,
 			SpriteRegionX: item.SpriteRegionX,
 			SpriteRegionY: item.SpriteRegionY,
+			ToolProps:     NewToolProps(item.ToolProps),
 		},
 	}
 }

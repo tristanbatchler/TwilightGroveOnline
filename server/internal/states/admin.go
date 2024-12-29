@@ -11,6 +11,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
@@ -223,7 +224,20 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
 		itemMsg := g.Item
-		item := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, 0)
+		toolPropsMsg := itemMsg.ToolProps
+
+		var toolProps *props.ToolProps = nil
+		if toolPropsMsg != nil {
+			toolProps = props.NewToolProps(int32(toolPropsMsg.Strength), int32(toolPropsMsg.LevelRequired), props.NoneHarvestable, 0)
+			switch toolPropsMsg.Harvests {
+			case packets.Harvestable_NONE:
+				toolProps.Harvests = props.NoneHarvestable
+			case packets.Harvestable_SHRUB:
+				toolProps.Harvests = props.ShrubHarvestable
+			}
+		}
+
+		item := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, 0)
 		return objs.NewGroundItem(0, level.ID, item, int64(g.X), int64(g.Y), g.RespawnSeconds), nil
 	}
 
@@ -318,14 +332,41 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets
 func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *packets.GroundItem) error {
 	itemMsg := message.Item
 
-	item, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
-		Name:          itemMsg.Name,
-		SpriteRegionX: int64(itemMsg.SpriteRegionX),
-		SpriteRegionY: int64(itemMsg.SpriteRegionY),
+	toolPropsMsg := itemMsg.ToolProps
+
+	toolPropsId := sql.NullInt64{}
+	if toolPropsMsg != nil {
+		toolPropsModel, err := a.queries.CreateToolPropertiesIfNotExists(ctx, db.CreateToolPropertiesIfNotExistsParams{
+			Strength:      int64(toolPropsMsg.Strength),
+			LevelRequired: int64(toolPropsMsg.LevelRequired),
+			Harvests:      int64(toolPropsMsg.Harvests),
+		})
+		if err != nil {
+			if err == sql.ErrNoRows { // Tool property already exists
+				toolPropsModel, err = a.queries.GetToolProperties(ctx, db.GetToolPropertiesParams{
+					Strength:      int64(toolPropsMsg.Strength),
+					LevelRequired: int64(toolPropsMsg.LevelRequired),
+					Harvests:      int64(toolPropsMsg.Harvests),
+				})
+				if err != nil {
+					a.logger.Printf("Error getting tool property %v from DB: %v, going to use nil toolPropsId", toolPropsMsg, err)
+				}
+			} else {
+				a.logger.Printf("Error creating tool property %v: %v, going to use nil toolPropsId", toolPropsMsg, err)
+			}
+		}
+		toolPropsId = sql.NullInt64{Int64: toolPropsModel.ID, Valid: true}
+	}
+
+	itemModel, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
+		Name:             itemMsg.Name,
+		SpriteRegionX:    int64(itemMsg.SpriteRegionX),
+		SpriteRegionY:    int64(itemMsg.SpriteRegionY),
+		ToolPropertiesID: toolPropsId,
 	})
 	if err != nil {
 		if err == sql.ErrNoRows { // Item already exists
-			item, err = a.queries.GetItem(ctx, db.GetItemParams{
+			itemModel, err = a.queries.GetItem(ctx, db.GetItemParams{
 				Name:          itemMsg.Name,
 				SpriteRegionX: int64(itemMsg.SpriteRegionX),
 				SpriteRegionY: int64(itemMsg.SpriteRegionY),
@@ -340,7 +381,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 
 	_, err = a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
 		LevelID: levelId,
-		ItemID:  item.ID,
+		ItemID:  itemModel.ID,
 		X:       int64(message.X),
 		Y:       int64(message.Y),
 	})
