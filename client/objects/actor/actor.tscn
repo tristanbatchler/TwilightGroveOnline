@@ -16,7 +16,7 @@ position = Vector2(4, 8)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 offset = Vector2(4, 20)
-zoom = Vector2(3, 3)
+zoom = Vector2(5, 5)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_nkvg6")

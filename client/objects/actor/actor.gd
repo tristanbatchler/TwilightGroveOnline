@@ -8,6 +8,7 @@ const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
 var target_pos: Vector2
 var _left_click_held: bool = false
+var _target_zoom := 3.0
 
 var x: int:
 	set(value):
@@ -100,16 +101,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
 			MOUSE_BUTTON_WHEEL_UP:
-				_camera.zoom.x = min(4, _camera.zoom.x + 0.1)
+				_target_zoom = min(5.0, _target_zoom * 1.05)
 			MOUSE_BUTTON_WHEEL_DOWN:
-				_camera.zoom.x = max(0.1, _camera.zoom.x - 0.1)
-		_camera.zoom.y = _camera.zoom.x
+				_target_zoom = max(0.2, _target_zoom * 0.95)
 		
 func _process(delta: float) -> void:
 	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2, 0)
 	
 	if not is_player:
 		return
+		
+	var zoom_diff := _target_zoom - _camera.zoom.x
+	if not is_zero_approx(zoom_diff):
+		_camera.zoom.x += zoom_diff * 0.1
+		_camera.zoom.y = _camera.zoom.x
 	
 	if Input.is_action_just_released(&"left_click"):
 		_left_click_held = false

@@ -54,4 +54,4 @@
 - [x] Use StringNames for inventory script?
 - [ ] Allow customizing the player's appearance
 - [ ] Allow support for multiple items in LevelPointMap stacked on top of each other
-- [ ] Smooth camera zooming
+- [x] Smooth camera zooming
