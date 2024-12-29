@@ -375,9 +375,10 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 			g.client.LevelPointMaps().Shrubs.Add(g.levelId, point, shrub)
 			shrub.Id = g.client.SharedGameObjects().Shrubs.Add(shrub)
 			g.queries.CreateLevelShrub(context.Background(), db.CreateLevelShrubParams{
-				LevelID: g.levelId,
-				X:       shrub.X,
-				Y:       shrub.Y,
+				LevelID:  g.levelId,
+				Strength: int64(shrub.Strength),
+				X:        shrub.X,
+				Y:        shrub.Y,
 			})
 			g.client.Broadcast(packets.NewShrub(shrub.Id, shrub), g.othersInLevel)
 			g.client.SocketSend(packets.NewShrub(shrub.Id, shrub))
