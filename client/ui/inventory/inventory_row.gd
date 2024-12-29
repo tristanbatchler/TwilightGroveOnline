@@ -7,6 +7,7 @@ const Item := preload("res://objects/item/item.gd")
 @onready var _quantity_label: Label = $PanelContainer/QuantityLabel
 @onready var _name_label: Label = $NameLabel
 @onready var _drop_button: Button = $PanelContainer/DropButton
+@onready var _item: Sprite2D = $PanelContainer/DropButton/MarginContainer/SubViewportContainer/SubViewport/Item
 
 signal drop_button_pressed()
 
@@ -29,7 +30,11 @@ static func instantiate(item: Item, item_quantity: int) -> InventoryRow:
 func _ready() -> void:
 	_drop_button.pressed.connect(drop_button_pressed.emit)
 	_quantity_label.text = str(item_quantity)
+	
 	if item != null:
+		_item.texture = load("res://resources/art/colored_tilemap_packed.png")
+		_item.region_enabled = true
+		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
 		_name_label.text = item.item_name
 
 func set_selected(selected: bool) -> void:
