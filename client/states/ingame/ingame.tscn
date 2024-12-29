@@ -32,6 +32,7 @@ size_flags_horizontal = 0
 text = "Exit"
 
 [node name="DebugLabel" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
 text = "Debug"
 

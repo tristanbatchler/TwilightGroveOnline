@@ -106,7 +106,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_target_zoom = max(0.2, _target_zoom * 0.95)
 		
 func _process(delta: float) -> void:
-	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2, 0)
+	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2.0, 0)
 	
 	if not is_player:
 		return

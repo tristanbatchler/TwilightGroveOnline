@@ -55,3 +55,4 @@
 - [ ] Allow customizing the player's appearance
 - [ ] Allow support for multiple items in LevelPointMap stacked on top of each other
 - [x] Smooth camera zooming
+- [ ] Pinch to zoom on mobile

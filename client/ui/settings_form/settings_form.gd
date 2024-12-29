@@ -28,11 +28,11 @@ func _on_ui_scale_option_selected(index: int) -> void:
 	_ui_scale = float(option_text.trim_suffix("%")) / 100.0
 	_apply_ui_scale(_ui_scale)
 
-func _apply_ui_scale(scale) -> void:
-	get_window().content_scale_factor = scale
+func _apply_ui_scale(scale_) -> void:
+	get_window().content_scale_factor = scale_
 	
-func _save_ui_scale(scale) -> void:
-	GameManager.set_config(GameManager.ConfigKey.UI_SCALE, scale)
+func _save_ui_scale(scale_) -> void:
+	GameManager.set_config(GameManager.ConfigKey.UI_SCALE, scale_)
 
 func _submit_form() -> void:
 	_save_ui_scale(_ui_scale)
@@ -45,20 +45,20 @@ func _cancel_form() -> void:
 	_ui_scale_option_button.select(_ui_scale_to_idx(_ui_scale))
 	form_closed.emit()
 
-func _ui_scale_to_idx(scale: float) -> int:
-	#     scale = min_scale + index * (max_scale - min_scale) / (num_options - 1)
-	# ==> scale - min_scale = index * (max_scale - min_scale) / (num_options - 1)
-	# ==> (num_options - 1) * (scale - min_scale) = index * (max_scale - min_scale)
-	# ==> index = (num_options - 1) * (scale - min_scale) / (max_scale - min_scale)
+func _ui_scale_to_idx(scale_: float) -> int:
+	#     scale_ = min_scale + index * (max_scale - min_scale) / (num_options - 1)
+	# ==> scale_ - min_scale = index * (max_scale - min_scale) / (num_options - 1)
+	# ==> (num_options - 1) * (scale_ - min_scale) = index * (max_scale - min_scale)
+	# ==> index = (num_options - 1) * (scale_ - min_scale) / (max_scale - min_scale)
 	var num_options := _ui_scale_option_button.item_count
 	var min_scale := _get_scale_from_text(_ui_scale_option_button.get_item_text(0)) / 100.0
 	var max_scale := _get_scale_from_text(_ui_scale_option_button.get_item_text(num_options - 1)) / 100.0
-	var index := (num_options - 1) * (scale - min_scale) / (max_scale - min_scale)
+	var index := (num_options - 1) * (scale_ - min_scale) / (max_scale - min_scale)
 	return index
 
 func _get_scale_from_text(option_text: String) -> float:
 	return float(option_text.trim_suffix("%"))
 
 func _ui_scale_option_text_to_idx(option_text: String) -> int:
-	var scale := _get_scale_from_text(option_text)
-	return _ui_scale_to_idx(scale)
+	var scale_ := _get_scale_from_text(option_text)
+	return _ui_scale_to_idx(scale_)
