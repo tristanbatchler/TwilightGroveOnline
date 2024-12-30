@@ -235,7 +235,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
 		var item := ground_item.item
-		_log.info("Picked up a %s at (%d, %d)" % [item.item_name, ground_item.x, ground_item.y])
+		_log.info("You found a %s." % item.item_name)
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
 		var item_copy := Item.instantiate(item.item_name, item.description, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
 		_inventory.add(item_copy, 1)
@@ -257,9 +257,6 @@ func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_reque
 	
 	if ground_item_id in _ground_items:
 		var ground_item := _ground_items[ground_item_id]
-	
-		if sender_id in _actors:
-			_log.info("%s picked up item at (%d, %d)" % [_actors[sender_id].actor_name, ground_item.x, ground_item.y])
 		_remove_ground_item(ground_item_id)
 
 # This gets forwarded to us from the server only when the other player *successfully* chops down the shrub
@@ -268,9 +265,6 @@ func _handle_chop_shrub_request(sender_id: int, chop_shrub_request: Packets.Chop
 	
 	if shrub_id in _shrubs:
 		var shrub := _shrubs[shrub_id]
-		
-		if sender_id in _actors:
-			_log.info("%s chopped down the shrub at (%d, %d)" % [_actors[sender_id].actor_name, shrub.x, shrub.y])
 		_remove_shrub(shrub_id)
 
 func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
@@ -299,8 +293,6 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var ground_item_obj := GroundItem.instantiate(gid, x, y, item)
 	_ground_items[gid] = ground_item_obj
 	ground_item_obj.place(_world_tilemap_layer)
-	
-	_log.info("Added %s to world at (%d, %d)" % [ground_item_obj.item.item_name, ground_item_obj.x, ground_item_obj.y])
 
 func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 	var sid := shrub_msg.get_id()
@@ -316,9 +308,9 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
 	_inventory.clear()
 	for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
-		_handle_item_quantity(item_qty_msg)
+		_handle_item_quantity(item_qty_msg, true)
 		
-func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity) -> void:
+func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = false) -> void:
 	var item_msg := item_qty_msg.get_item()
 	var item_name := item_msg.get_name()
 	var item_description := item_msg.get_description()
@@ -332,6 +324,9 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity) -> void:
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
 	var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 	_inventory.add(item, qty)
+
+	if not from_inv:
+		_log.info("You found %s %s" % [qty, item_name])
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
@@ -365,7 +360,7 @@ func _drop_selected_item() -> void:
 	if selected_inventory_row == null:
 		_log.error("No inventory item selected, can't drop")
 	elif selected_inventory_row.item == null:
-		_log.error("Selected inventory row's item is null for some reason...")
+		_log.error("Selected inventory row's item is null for some reason... report this to the dev")
 	else:
 		_drop_item(selected_inventory_row.item, item_qty)
 		
@@ -398,7 +393,7 @@ func _harvest_nearby_resource() -> void:
 		var player := _actors[GameManager.client_id]
 		shrub = player.get_shrub_standing_on()
 		if shrub == null:
-			_log.warning("No trees to chop down")
+			# _log.warning("No trees to chop down here...")
 			return
 		
 	var packet := Packets.Packet.new()
@@ -415,7 +410,7 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 		return
 	var shrub_id := chop_shrub_response.get_shrub_id()
 	_remove_shrub(shrub_id)
-	_log.success("You manage to chop down the shrub")
+	_log.success("You manage to fell the shrub")
 
 func _process(delta: float) -> void:
 	var player: Actor = null

@@ -218,6 +218,36 @@ metadata/_edit_lock_ = true
 [node name="Shrub22" parent="." instance=ExtResource("2_lfbik")]
 position = Vector2(152, 104)
 
+[node name="Shrub23" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(40, 64)
+
+[node name="Shrub24" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(128, 136)
+
+[node name="Shrub25" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(272, 104)
+
+[node name="Shrub26" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(280, 56)
+
+[node name="Shrub27" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(176, -16)
+
+[node name="Shrub28" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(120, -8)
+
+[node name="Shrub29" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(80, 8)
+
+[node name="Shrub30" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(200, 8)
+
+[node name="Shrub31" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(208, 40)
+
+[node name="Shrub32" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(96, 80)
+
 [node name="Door" parent="." instance=ExtResource("3_xd47s")]
 position = Vector2(168, 32)
 destination_level_res_path = "res://admin_levels/room.tscn"
