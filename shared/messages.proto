@@ -109,7 +109,8 @@ message ToolProps {
 }
 
 message Item {
-    string name = 2;
+    string name = 1;
+    string description = 2;
     int32 sprite_region_x = 3;
     int32 sprite_region_y = 4;
     ToolProps tool_props = 5;

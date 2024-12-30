@@ -31,6 +31,7 @@ type Admin struct {
 type Item struct {
 	ID               int64
 	Name             string
+	Description      string
 	SpriteRegionX    int64
 	SpriteRegionY    int64
 	ToolPropertiesID sql.NullInt64

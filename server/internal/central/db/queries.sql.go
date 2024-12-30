@@ -125,16 +125,17 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int64) (Adm
 
 const createItemIfNotExists = `-- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, sprite_region_x, sprite_region_y, tool_properties_id
+    name, description, sprite_region_x, sprite_region_y, tool_properties_id
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
-ON CONFLICT (name, sprite_region_x, sprite_region_y, tool_properties_id) DO NOTHING
-RETURNING id, name, sprite_region_x, sprite_region_y, tool_properties_id
+ON CONFLICT (name, description, sprite_region_x, sprite_region_y, tool_properties_id) DO NOTHING
+RETURNING id, name, description, sprite_region_x, sprite_region_y, tool_properties_id
 `
 
 type CreateItemIfNotExistsParams struct {
 	Name             string
+	Description      string
 	SpriteRegionX    int64
 	SpriteRegionY    int64
 	ToolPropertiesID sql.NullInt64
@@ -143,6 +144,7 @@ type CreateItemIfNotExistsParams struct {
 func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNotExistsParams) (Item, error) {
 	row := q.db.QueryRowContext(ctx, createItemIfNotExists,
 		arg.Name,
+		arg.Description,
 		arg.SpriteRegionX,
 		arg.SpriteRegionY,
 		arg.ToolPropertiesID,
@@ -151,6 +153,7 @@ func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNot
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,
@@ -522,6 +525,7 @@ const getActorInventoryItems = `-- name: GetActorInventoryItems :many
 SELECT 
     i.id as item_id, 
     i.name, 
+    i.description,
     i.sprite_region_x, 
     i.sprite_region_y, 
     i.tool_properties_id,
@@ -534,6 +538,7 @@ WHERE ai.actor_id = ?
 type GetActorInventoryItemsRow struct {
 	ItemID           int64
 	Name             string
+	Description      string
 	SpriteRegionX    int64
 	SpriteRegionY    int64
 	ToolPropertiesID sql.NullInt64
@@ -552,6 +557,7 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]
 		if err := rows.Scan(
 			&i.ItemID,
 			&i.Name,
+			&i.Description,
 			&i.SpriteRegionX,
 			&i.SpriteRegionY,
 			&i.ToolPropertiesID,
@@ -583,23 +589,30 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int64) (Admin, er
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, name, sprite_region_x, sprite_region_y, tool_properties_id FROM items
-WHERE name = ? AND sprite_region_x = ? AND sprite_region_y = ?
+SELECT id, name, description, sprite_region_x, sprite_region_y, tool_properties_id FROM items
+WHERE name = ? AND description = ? AND sprite_region_x = ? AND sprite_region_y = ?
 LIMIT 1
 `
 
 type GetItemParams struct {
 	Name          string
+	Description   string
 	SpriteRegionX int64
 	SpriteRegionY int64
 }
 
 func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, getItem, arg.Name, arg.SpriteRegionX, arg.SpriteRegionY)
+	row := q.db.QueryRowContext(ctx, getItem,
+		arg.Name,
+		arg.Description,
+		arg.SpriteRegionX,
+		arg.SpriteRegionY,
+	)
 	var i Item
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,
@@ -608,7 +621,7 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) 
 }
 
 const getItemById = `-- name: GetItemById :one
-SELECT id, name, sprite_region_x, sprite_region_y, tool_properties_id FROM items
+SELECT id, name, description, sprite_region_x, sprite_region_y, tool_properties_id FROM items
 WHERE id = ? LIMIT 1
 `
 
@@ -618,6 +631,7 @@ func (q *Queries) GetItemById(ctx context.Context, id int64) (Item, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Description,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,

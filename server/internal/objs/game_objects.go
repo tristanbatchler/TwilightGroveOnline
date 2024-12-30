@@ -61,14 +61,16 @@ func NewDoor(id uint64, levelId int64, destinationLevelId int64, destinationX, d
 
 type Item struct {
 	Name                         string
+	Description                  string
 	SpriteRegionX, SpriteRegionY int32
 	ToolProps                    *props.ToolProps
 	DbId                         int64
 }
 
-func NewItem(name string, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, dbId int64) *Item {
+func NewItem(name string, description string, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, dbId int64) *Item {
 	return &Item{
 		Name:          name,
+		Description:   description,
 		SpriteRegionX: spriteRegionX,
 		SpriteRegionY: spriteRegionY,
 		ToolProps:     toolProps,

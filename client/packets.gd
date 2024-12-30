@@ -1795,10 +1795,15 @@ class Item:
 	func _init():
 		var service
 		
-		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_name = PBField.new("name", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
 		service.field = _name
 		data[_name.tag] = service
+		
+		_description = PBField.new("description", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		service = PBServiceField.new()
+		service.field = _description
+		data[_description.tag] = service
 		
 		_sprite_region_x = PBField.new("sprite_region_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
@@ -1822,10 +1827,19 @@ class Item:
 	func get_name() -> String:
 		return _name.value
 	func clear_name() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[1].state = PB_SERVICE_STATE.UNFILLED
 		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_name(value : String) -> void:
 		_name.value = value
+	
+	var _description: PBField
+	func get_description() -> String:
+		return _description.value
+	func clear_description() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_description.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
+	func set_description(value : String) -> void:
+		_description.value = value
 	
 	var _sprite_region_x: PBField
 	func get_sprite_region_x() -> int:

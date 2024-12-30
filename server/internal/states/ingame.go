@@ -430,7 +430,7 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 		}
 	}
 
-	itemObj := objs.NewItem(itemMsg.Name, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
+	itemObj := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
 
 	// Check the item's in the player's inventory
 	if quantity := g.inventory.GetItemQuantity(*itemObj); quantity < message.DropItemRequest.Quantity {
@@ -561,7 +561,7 @@ func (g *InGame) loadInventory() {
 				}
 			}
 		}
-		item := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ItemID)
+		item := objs.NewItem(itemModel.Name, itemModel.Description, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ItemID)
 		g.addInventoryItem(*item, uint32(itemModel.Quantity))
 	}
 	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())

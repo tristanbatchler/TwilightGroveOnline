@@ -253,7 +253,7 @@ func (h *Hub) Run(adminPassword string) {
 			if toolPropsModel != nil {
 				toolProps = props.NewToolProps(int32(toolPropsModel.Strength), int32(toolPropsModel.LevelRequired), props.NoneHarvestable, toolPropsModel.ID)
 			}
-			itemObj := objs.NewItem(itemModel.Name, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ID)
+			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, int32(model.RespawnSeconds)), nil
 		},
 	)

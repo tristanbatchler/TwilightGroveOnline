@@ -234,7 +234,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item := ground_item.item
 		_log.info("Picked up a %s at (%d, %d)" % [item.item_name, ground_item.x, ground_item.y])
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
-		var item_copy := Item.instantiate(item.item_name, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
+		var item_copy := Item.instantiate(item.item_name, item.description, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 
@@ -279,6 +279,7 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var y := ground_item_msg.get_y()
 	
 	var item_name := item_msg.get_name()
+	var description := item_msg.get_description()
 	var sprite_region_x := item_msg.get_sprite_region_x()
 	var sprite_region_y := item_msg.get_sprite_region_y()
 	
@@ -290,7 +291,7 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 		tool_properties.level_required = tool_properties_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
 	
-	var item := Item.instantiate(item_name, sprite_region_x, sprite_region_y, tool_properties)
+	var item := Item.instantiate(item_name, description, sprite_region_x, sprite_region_y, tool_properties)
 	
 	var ground_item_obj := GroundItem.instantiate(gid, x, y, item)
 	_ground_items[gid] = ground_item_obj
@@ -314,6 +315,7 @@ func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> voi
 	for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
 		var item_msg := item_qty_msg.get_item()
 		var item_name := item_msg.get_name()
+		var item_description := item_msg.get_description()
 		var qty := item_qty_msg.get_quantity()
 		var tool_props_msg := item_msg.get_tool_props()
 		var tool_properties: ToolProperties = null
@@ -322,7 +324,7 @@ func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> voi
 			tool_properties.strength = tool_props_msg.get_strength()
 			tool_properties.level_required = tool_props_msg.get_level_required()
 			tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
-		var item := Item.instantiate(item_name, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+		var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 		_inventory.add(item, qty)
 
 func _remove_actor(actor_id: int) -> void:

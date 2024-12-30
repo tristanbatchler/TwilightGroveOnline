@@ -225,6 +225,7 @@ respawn_seconds = 2
 
 [node name="Item" parent="GroundItem" instance=ExtResource("4_71104")]
 item_name = "A heart <3"
+description = "Wow, how cute!"
 
 [node name="GroundItem2" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
 position = Vector2(-40, 24)
@@ -234,4 +235,5 @@ metadata/_edit_group_ = true
 [node name="Item" parent="GroundItem2" instance=ExtResource("4_71104")]
 region_rect = Rect2(128, 32, 8, 8)
 item_name = "Iron hatchet"
+description = "A tool for chopping wood"
 tool_properties = SubResource("Resource_tpngs")

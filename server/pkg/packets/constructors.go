@@ -101,6 +101,7 @@ func NewItem(item *objs.Item) Msg {
 	return &Packet_Item{
 		Item: &Item{
 			Name:          item.Name,
+			Description:   item.Description,
 			SpriteRegionX: item.SpriteRegionX,
 			SpriteRegionY: item.SpriteRegionY,
 			ToolProps:     NewToolProps(item.ToolProps),
