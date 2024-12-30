@@ -16,7 +16,7 @@ func _ready() -> void:
 	_cancel_button.pressed.connect(_cancel_form)
 	
 	
-	var saved_ui_scale: Variant = GameManager.get_config(GameManager.ConfigKey.UI_SCALE)
+	var saved_ui_scale: Variant = GameManager.get_config(GameManager.ConfigKey.UI_SCALE, _original_ui_scale)
 	if typeof(saved_ui_scale) not in [TYPE_INT, TYPE_FLOAT]:
 		saved_ui_scale = _original_ui_scale
 	_original_ui_scale = saved_ui_scale

@@ -74,8 +74,8 @@ func set_config(key: ConfigKey, value: Variant) -> void:
 	_config.set_value("global", _config_key_names[key], value)
 	_config.save(_config_path)
 
-func get_config(key: ConfigKey) -> Variant:
-	return _config.get_value("global", _config_key_names[key])
+func get_config(key: ConfigKey, default: Variant = null) -> Variant:
+	return _config.get_value("global", _config_key_names[key], default)
 
 func clear_config(key: ConfigKey) -> void:
 	_config.erase_section_key("global", _config_key_names[key])

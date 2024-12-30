@@ -37,6 +37,7 @@ func _ready() -> void:
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
 		_name_label.text = item.item_name
 		
+		tooltip_text = item.description
 		_drop_button.tooltip_text = item.description
 
 func set_selected(selected: bool) -> void:

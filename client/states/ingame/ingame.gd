@@ -372,6 +372,7 @@ func _drop_item(item: Item, item_qty: int) -> void:
 	
 	var item_msg := drop_item_request_msg.new_item()
 	item_msg.set_name(item.item_name)
+	item_msg.set_description(item.description)
 	item_msg.set_sprite_region_x(item.sprite_region_x)
 	item_msg.set_sprite_region_y(item.sprite_region_y)
 	

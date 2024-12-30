@@ -13,19 +13,19 @@ func _ready() -> void:
 	_login_button.pressed.connect(_submit_form)
 	_password_field.text_submitted.connect(func(_s): _submit_form())
 	
-	var saved_username = GameManager.get_config(GameManager.ConfigKey.SAVED_USERNAME)
+	var saved_username = GameManager.get_config(GameManager.ConfigKey.SAVED_USERNAME, false)
 	if saved_username == null or not saved_username is String:
 		printerr("Saved username from config is not expected: %s" % saved_username)
 	else:
 		_username_field.text = saved_username
 		
-	var saved_password = GameManager.get_config(GameManager.ConfigKey.SAVED_PASSWORD)
+	var saved_password = GameManager.get_config(GameManager.ConfigKey.SAVED_PASSWORD, false)
 	if saved_password == null or not saved_password is String:
 		printerr("Saved password from config is not expected: %s" % saved_password)
 	else:
 		_password_field.text = saved_password
 		
-	var remember_me_checked = GameManager.get_config(GameManager.ConfigKey.REMEMBER_ME_CHECKED)
+	var remember_me_checked = GameManager.get_config(GameManager.ConfigKey.REMEMBER_ME_CHECKED, false)
 	if remember_me_checked == null or not remember_me_checked is bool:
 		printerr("Saved remember me checked from config is not expected: %s" % remember_me_checked)
 	else:
