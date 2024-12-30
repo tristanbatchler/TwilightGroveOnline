@@ -100,6 +100,8 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 		g.handleDropItemRequest(senderId, message)
 	case *packets.Packet_ChopShrubRequest:
 		g.handleChopShrubRequest(senderId, message)
+	case *packets.Packet_Shrub:
+		g.client.SocketSendAs(message, senderId)
 	}
 }
 
@@ -306,7 +308,8 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet_ChopShrubRequest) {
 	if senderId != g.client.Id() {
 		// If the client isn't us, we just forward the message
-		g.client.SocketSendAs(message, senderId)
+		go g.client.SocketSendAs(message, senderId)
+		return
 	}
 
 	sgoShrub, sgoExists := g.client.SharedGameObjects().Shrubs.Get(message.ChopShrubRequest.ShrubId)
