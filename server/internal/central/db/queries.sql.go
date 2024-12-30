@@ -129,7 +129,7 @@ INSERT INTO items (
 ) VALUES (
     ?, ?, ?, ?, ?
 )
-ON CONFLICT (name, description, sprite_region_x, sprite_region_y, tool_properties_id) DO NOTHING
+ON CONFLICT (name, description, sprite_region_x, sprite_region_y) DO NOTHING
 RETURNING id, name, description, sprite_region_x, sprite_region_y, tool_properties_id
 `
 

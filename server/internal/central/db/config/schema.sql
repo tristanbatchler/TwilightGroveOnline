@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS items (
     sprite_region_y INTEGER NOT NULL,
     tool_properties_id INTEGER,
     FOREIGN KEY (tool_properties_id) REFERENCES tool_properties(id) ON DELETE SET NULL, -- set tool_properties_id to NULL when tool_properties with id tool_properties_id is deleted
-    CONSTRAINT unique_item_combination UNIQUE (name, description, sprite_region_x, sprite_region_y, tool_properties_id)
+    CONSTRAINT unique_item_combination UNIQUE (name, description, sprite_region_x, sprite_region_y)
 );
 
 CREATE TABLE IF NOT EXISTS levels_ground_items (

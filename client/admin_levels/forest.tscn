@@ -358,3 +358,14 @@ metadata/_edit_group_ = true
 [node name="Item" parent="GroundItem5" instance=ExtResource("6_df7dt")]
 region_rect = Rect2(80, 40, 8, 8)
 item_name = "Bronze key"
+
+[node name="GroundItem6" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
+position = Vector2(152, -24)
+item = NodePath("Item")
+respawn_seconds = 0
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem6" instance=ExtResource("6_df7dt")]
+region_rect = Rect2(128, 24, 8, 8)
+item_name = "Logs"
+description = "Logs from a sturdy natural wood"
