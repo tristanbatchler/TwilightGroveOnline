@@ -1,12 +1,16 @@
 package objs
 
-import "github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+import (
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
+)
 
 type Actor struct {
-	LevelId int64
-	X, Y    int64
-	Name    string
-	DbId    int64
+	LevelId  int64
+	X, Y     int64
+	Name     string
+	SkillsXp map[skills.Skill]uint64
+	DbId     int64
 }
 
 func NewActor(levelId int64, x, y int64, name string, dbId int64) *Actor {
@@ -15,7 +19,10 @@ func NewActor(levelId int64, x, y int64, name string, dbId int64) *Actor {
 		X:       x,
 		Y:       y,
 		Name:    name,
-		DbId:    dbId,
+		SkillsXp: map[skills.Skill]uint64{
+			skills.Woodcutting: 0,
+		},
+		DbId: dbId,
 	}
 }
 

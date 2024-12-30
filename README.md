@@ -41,7 +41,7 @@
 - [x] Add grab controls for mobile
 - [x] Add drop controls for mobile
 - [ ] Audit use of int64 in game_objects.go and messages.proto
-- [ ] Let players cut down trees with an axe
+- [x] Let players cut down trees with an axe
 - [ ] Add an XP system and leveling up woodcutting
 - [ ] Add an NPC that buys wood
 - [ ] Add an NPC that sells faerie dust

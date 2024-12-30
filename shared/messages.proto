@@ -190,6 +190,15 @@ message ChopShrubResponse {
     Response response = 2;
 }
 
+enum Skill {
+    WOODCUTTING = 0;
+}
+
+message XpReward {
+    Skill skill = 1;
+    int32 xp = 2;
+}
+
 message Packet {
     uint64 sender_id = 1;
     oneof msg {
@@ -226,5 +235,6 @@ message Packet {
         ChopShrubRequest chop_shrub_request = 32;
         ChopShrubResponse chop_shrub_response = 33;
         ItemQuantity item_quantity = 34;
+        XpReward xp_reward = 35;
     }
 }
