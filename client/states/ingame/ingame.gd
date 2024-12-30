@@ -77,6 +77,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var pos_diff := player.get_mouse_diff_from_player_pos()
 		if pos_diff.length_squared() < 100:
 			_pickup_nearby_ground_item()
+			_harvest_nearby_resource()
 			_left_click_held = false
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
