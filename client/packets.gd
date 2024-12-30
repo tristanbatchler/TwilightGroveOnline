@@ -2965,6 +2965,12 @@ class Packet:
 		service.func_ref = Callable(self, "new_chop_shrub_response")
 		data[_chop_shrub_response.tag] = service
 		
+		_item_quantity = PBField.new("item_quantity", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 34, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _item_quantity
+		service.func_ref = Callable(self, "new_item_quantity")
+		data[_item_quantity.tag] = service
+		
 	var data = {}
 	
 	var _sender_id: PBField
@@ -3048,6 +3054,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_client_id.value = ClientId.new()
 		return _client_id.value
 	
@@ -3123,6 +3131,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = LoginRequest.new()
 		return _login_request.value
 	
@@ -3198,6 +3208,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_login_response.value = LoginResponse.new()
 		return _login_response.value
 	
@@ -3273,6 +3285,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_register_request.value = RegisterRequest.new()
 		return _register_request.value
 	
@@ -3348,6 +3362,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_register_response.value = RegisterResponse.new()
 		return _register_response.value
 	
@@ -3423,6 +3439,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_logout.value = Logout.new()
 		return _logout.value
 	
@@ -3498,6 +3516,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_chat.value = Chat.new()
 		return _chat.value
 	
@@ -3573,6 +3593,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = Yell.new()
 		return _yell.value
 	
@@ -3648,6 +3670,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_actor.value = Actor.new()
 		return _actor.value
 	
@@ -3723,6 +3747,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = ActorMove.new()
 		return _actor_move.value
 	
@@ -3798,6 +3824,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_motd.value = Motd.new()
 		return _motd.value
 	
@@ -3873,6 +3901,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_disconnect.value = Disconnect.new()
 		return _disconnect.value
 	
@@ -3948,6 +3978,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_admin_login_granted.value = AdminLoginGranted.new()
 		return _admin_login_granted.value
 	
@@ -4023,6 +4055,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_sql_query.value = SqlQuery.new()
 		return _sql_query.value
 	
@@ -4098,6 +4132,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_sql_response.value = SqlResponse.new()
 		return _sql_response.value
 	
@@ -4173,6 +4209,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload.value = LevelUpload.new()
 		return _level_upload.value
 	
@@ -4248,6 +4286,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload_response.value = LevelUploadResponse.new()
 		return _level_upload_response.value
 	
@@ -4323,6 +4363,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_level_download.value = LevelDownload.new()
 		return _level_download.value
 	
@@ -4398,6 +4440,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_request.value = AdminJoinGameRequest.new()
 		return _admin_join_game_request.value
 	
@@ -4473,6 +4517,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = AdminJoinGameResponse.new()
 		return _admin_join_game_response.value
 	
@@ -4548,6 +4594,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_server_message.value = ServerMessage.new()
 		return _server_message.value
 	
@@ -4623,6 +4671,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_request.value = PickupGroundItemRequest.new()
 		return _pickup_ground_item_request.value
 	
@@ -4698,6 +4748,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = PickupGroundItemResponse.new()
 		return _pickup_ground_item_response.value
 	
@@ -4773,6 +4825,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = Shrub.new()
 		return _shrub.value
 	
@@ -4848,6 +4902,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_door.value = Door.new()
 		return _door.value
 	
@@ -4923,6 +4979,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_Item.value = Item.new()
 		return _Item.value
 	
@@ -4998,6 +5056,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_ground_item.value = GroundItem.new()
 		return _ground_item.value
 	
@@ -5073,6 +5133,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = ActorInventory.new()
 		return _actor_inventory.value
 	
@@ -5148,6 +5210,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_request.value = DropItemRequest.new()
 		return _drop_item_request.value
 	
@@ -5223,6 +5287,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_response.value = DropItemResponse.new()
 		return _drop_item_response.value
 	
@@ -5298,6 +5364,8 @@ class Packet:
 		data[32].state = PB_SERVICE_STATE.FILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_request.value = ChopShrubRequest.new()
 		return _chop_shrub_request.value
 	
@@ -5373,8 +5441,87 @@ class Packet:
 		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
 		data[33].state = PB_SERVICE_STATE.FILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = ChopShrubResponse.new()
 		return _chop_shrub_response.value
+	
+	var _item_quantity: PBField
+	func has_item_quantity() -> bool:
+		return data[34].state == PB_SERVICE_STATE.FILLED
+	func get_item_quantity() -> ItemQuantity:
+		return _item_quantity.value
+	func clear_item_quantity() -> void:
+		data[34].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item_quantity() -> ItemQuantity:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[32].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[33].state = PB_SERVICE_STATE.UNFILLED
+		data[34].state = PB_SERVICE_STATE.FILLED
+		_item_quantity.value = ItemQuantity.new()
+		return _item_quantity.value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

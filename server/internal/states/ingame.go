@@ -13,6 +13,7 @@ import (
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
@@ -365,8 +366,8 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 		Y:       shrub.Y,
 	})
 
-	// TODO: Add some wood to the player's inventory
-	go g.client.SocketSend(packets.NewServerMessage("I'll give you some wood in the next update"))
+	g.addInventoryItem(*items.Logs, 1)
+	go g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
 
 	// Start the respawn time
 	if shrub.RespawnSeconds > 0 {

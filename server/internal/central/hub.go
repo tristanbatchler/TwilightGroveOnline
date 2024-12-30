@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
@@ -274,6 +275,20 @@ func (h *Hub) Run(adminPassword string) {
 				log.Fatalf("Error importing %s: %v", objName, err)
 			}
 		}
+	}
+
+	// Add default items like logs, etc., that might not necessarily have been part of the level data
+	for _, item := range items.Defaults {
+		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
+			Name:          item.Name,
+			Description:   item.Description,
+			SpriteRegionX: int64(item.SpriteRegionX),
+			SpriteRegionY: int64(item.SpriteRegionY),
+		})
+		if err != nil {
+			log.Fatalf("Error creating default item %s: %v", item.Name, err)
+		}
+		item.DbId = itemModel.ID
 	}
 
 	log.Println("Awaiting client registrations...")

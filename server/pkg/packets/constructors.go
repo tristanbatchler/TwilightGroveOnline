@@ -269,3 +269,12 @@ func NewChopShrubResponse(success bool, shrubId uint64, err error) Msg {
 		},
 	}
 }
+
+func NewItemQuantity(item *objs.Item, quantity uint32) Msg {
+	return &Packet_ItemQuantity{
+		ItemQuantity: &ItemQuantity{
+			Item:     NewItem(item).(*Packet_Item).Item,
+			Quantity: int32(quantity),
+		},
+	}
+}

@@ -225,5 +225,6 @@ message Packet {
         DropItemResponse drop_item_response = 31;
         ChopShrubRequest chop_shrub_request = 32;
         ChopShrubResponse chop_shrub_response = 33;
+        ItemQuantity item_quantity = 34;
     }
 }

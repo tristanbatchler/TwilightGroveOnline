@@ -114,6 +114,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_chop_shrub_response(packet.get_chop_shrub_response())
 	elif packet.has_chop_shrub_request():
 		_handle_chop_shrub_request(sender_id, packet.get_chop_shrub_request())
+	elif packet.has_item_quantity():
+		_handle_item_quantity(packet.get_item_quantity())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -313,19 +315,22 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
 	_inventory.clear()
 	for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
-		var item_msg := item_qty_msg.get_item()
-		var item_name := item_msg.get_name()
-		var item_description := item_msg.get_description()
-		var qty := item_qty_msg.get_quantity()
-		var tool_props_msg := item_msg.get_tool_props()
-		var tool_properties: ToolProperties = null
-		if tool_props_msg != null:
-			tool_properties = ToolProperties.new()
-			tool_properties.strength = tool_props_msg.get_strength()
-			tool_properties.level_required = tool_props_msg.get_level_required()
-			tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
-		var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
-		_inventory.add(item, qty)
+		_handle_item_quantity(item_qty_msg)
+		
+func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity) -> void:
+	var item_msg := item_qty_msg.get_item()
+	var item_name := item_msg.get_name()
+	var item_description := item_msg.get_description()
+	var qty := item_qty_msg.get_quantity()
+	var tool_props_msg := item_msg.get_tool_props()
+	var tool_properties: ToolProperties = null
+	if tool_props_msg != null:
+		tool_properties = ToolProperties.new()
+		tool_properties.strength = tool_props_msg.get_strength()
+		tool_properties.level_required = tool_props_msg.get_level_required()
+		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
+	var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+	_inventory.add(item, qty)
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
