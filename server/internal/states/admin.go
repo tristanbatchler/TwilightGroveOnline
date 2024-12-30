@@ -371,6 +371,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 		if err == sql.ErrNoRows { // Item already exists
 			itemModel, err = a.queries.GetItem(ctx, db.GetItemParams{
 				Name:          itemMsg.Name,
+				Description:   itemMsg.Description,
 				SpriteRegionX: int64(itemMsg.SpriteRegionX),
 				SpriteRegionY: int64(itemMsg.SpriteRegionY),
 			})

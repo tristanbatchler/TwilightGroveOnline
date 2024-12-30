@@ -222,6 +222,7 @@ destination_pos = Vector2i(21, 4)
 position = Vector2(-8, 8)
 item = NodePath("Item")
 respawn_seconds = 2
+metadata/_edit_group_ = true
 
 [node name="Item" parent="GroundItem" instance=ExtResource("4_71104")]
 item_name = "A heart <3"

@@ -231,6 +231,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	// Inject the DB ID of the item into the ground item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          sgoGroundItem.Item.Name,
+		Description:   sgoGroundItem.Item.Description,
 		SpriteRegionX: int64(sgoGroundItem.Item.SpriteRegionX),
 		SpriteRegionY: int64(sgoGroundItem.Item.SpriteRegionY),
 	})
@@ -409,6 +410,7 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	itemMsg := message.DropItemRequest.Item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
+		Description:   itemMsg.Description,
 		SpriteRegionX: int64(itemMsg.SpriteRegionX),
 		SpriteRegionY: int64(itemMsg.SpriteRegionY),
 	})
