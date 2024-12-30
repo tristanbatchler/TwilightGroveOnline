@@ -285,7 +285,7 @@ func (h *Hub) Run(adminPassword string) {
 			SpriteRegionX: int64(item.SpriteRegionX),
 			SpriteRegionY: int64(item.SpriteRegionY),
 		})
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)
 		}
 		item.DbId = itemModel.ID
