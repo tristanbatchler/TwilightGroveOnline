@@ -25,6 +25,8 @@ var _actors: Dictionary[int, Actor]
 var _ground_items: Dictionary[int, GroundItem]
 var _shrubs: Dictionary[int, Shrub]
 
+var _left_click_held: bool = false
+
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
@@ -34,13 +36,48 @@ func _ready() -> void:
 	_inventory.item_dropped.connect(_drop_item)
 #
 func _input(event: InputEvent) -> void:
+	var input_dir := Vector2i.ZERO
 	if event is InputEventKey:
+		var player: Actor = null
+		if GameManager.client_id in _actors:
+			player = _actors[GameManager.client_id]
+		
+		if player == null or _line_edit.is_editing():
+			return
+		
 		if event.is_action_released("ui_accept"):
 			_line_edit.grab_focus()
+		elif event.is_action_released("pickup_item"):
+			_pickup_nearby_ground_item()
 		elif event.is_action_released("drop_item"):
 			_drop_selected_item()
 		elif event.is_action_released("harvest"):
 			_harvest_nearby_resource()
+		
+		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
+		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
+		
+		if player.at_target():
+			player.move_and_send(input_dir)
+
+func _unhandled_input(event: InputEvent) -> void:
+	var player: Actor = null
+	if GameManager.client_id in _actors:
+		player = _actors[GameManager.client_id]
+	
+	if player == null:
+		return
+	
+	# Use unhandled input to avoid moving when clicking inside chatbox or buttons, etc.
+	if event.is_action_pressed("left_click"):
+		_left_click_held = true
+	elif event.is_action_released("left_click"):
+		var pos_diff := player.get_mouse_diff_from_player_pos()
+		if pos_diff.length_squared() < 100:
+			_pickup_nearby_ground_item()
+			_left_click_held = false
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	var sender_id := packet.get_sender_id()
@@ -109,8 +146,8 @@ func _on_send_button_pressed() -> void:
 			_log.chat("You", entered_text)
 
 	_line_edit.clear()
-	_line_edit.release_focus()
-	_line_edit.grab_focus.call_deferred()
+	#_line_edit.release_focus()
+	#_line_edit.grab_focus.call_deferred() # Don't actually want this any more
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")
@@ -371,25 +408,52 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 	_log.success("You manage to chop down the shrub")
 
 func _process(delta: float) -> void:
+	var player: Actor = null
 	if GameManager.client_id in _actors:
-		var player := _actors[GameManager.client_id]
+		player = _actors[GameManager.client_id]
 		
-		# Debug stuff
-		var pos_diff := player._get_mouse_diff_from_player_pos()
-		_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
-			
-		# Hint at what's on the ground underneath you
-		var ground_item := player.get_ground_item_standing_on()
-		if ground_item == null or ground_item.item == null:
-			_ground_hint_label.text = ""
-		else:
-			_ground_hint_label.text = ground_item.item.item_name
+	if player == null:
+		return
+	
+	var pos_diff := player.get_mouse_diff_from_player_pos()
 		
-
+	# Debug stuff
+	_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
+		
+	# Hint at what's on the ground underneath you
+	var ground_item := player.get_ground_item_standing_on()
+	if ground_item == null or ground_item.item == null:
+		_ground_hint_label.text = ""
+	else:
+		_ground_hint_label.text = ground_item.item.item_name
+	
 	# Level transition effect
 	if _level_transition.visible:
 		if _level_transition.color.a < 1:
 			_level_transition.color.a += 0.05
 		else:
 			_level_transition.hide()
+	
+	# Mobile movement	
+	if Input.is_action_just_released("left_click"):
+		_left_click_held = false
+	
+	if _left_click_held and player.at_target():
+		
+		if pos_diff.length_squared() > 100:
+			var strongest_dir: Vector2 = Util.argmax(
+				[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
+				[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
+			)
 			
+			player.move_and_send(strongest_dir)
+			
+func _pickup_nearby_ground_item() -> void:
+	if GameManager.client_id in _actors:
+		var player := _actors[GameManager.client_id]
+		var ground_item := player.get_ground_item_standing_on()
+		if ground_item != null:
+			var packet := Packets.Packet.new()
+			var pickup_ground_item_request := packet.new_pickup_ground_item_request()
+			pickup_ground_item_request.set_ground_item_id(ground_item.ground_item_id)
+			WS.send(packet)
