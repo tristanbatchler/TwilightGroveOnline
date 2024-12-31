@@ -107,18 +107,11 @@ CREATE TABLE IF NOT EXISTS actors_inventory (
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS skills (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    description TEXT NOT NULL DEFAULT ''
-);
-
 CREATE TABLE IF NOT EXISTS actors_skills (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     actor_id INTEGER NOT NULL,
-    skill_id INTEGER NOT NULL,
+    skill INTEGER NOT NULL, -- 0 = WOODCUTTING, ...
     xp INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
-    FOREIGN KEY (skill_id) REFERENCES skills(id) ON DELETE CASCADE,
-    CONSTRAINT unique_actor_skill UNIQUE (actor_id, skill_id)
+    CONSTRAINT unique_actor_skill UNIQUE (actor_id, skill)
 );

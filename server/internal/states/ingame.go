@@ -16,6 +16,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
@@ -68,6 +69,10 @@ func (g *InGame) OnEnter() {
 	// Load and send our inventory
 	g.loadInventory()
 	g.sendInventory()
+
+	// Load and send our skills XP
+	g.loadSkillsXp()
+	g.sendSkillsXp()
 
 	// Send our info back to all the other clients in the level
 	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
@@ -282,9 +287,8 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 
 	// Start the respawn time
 	if groundItem.RespawnSeconds > 0 {
-		timer := time.NewTimer(time.Duration(groundItem.RespawnSeconds) * time.Second)
 		go func() {
-			<-timer.C
+			time.Sleep(time.Duration(groundItem.RespawnSeconds) * time.Second)
 			g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
 			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
@@ -369,14 +373,10 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 		Y:       shrub.Y,
 	})
 
-	g.addInventoryItem(*items.Logs, 1)
-	go g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
-
 	// Start the respawn time
 	if shrub.RespawnSeconds > 0 {
-		timer := time.NewTimer(time.Duration(shrub.RespawnSeconds) * time.Second)
 		go func() {
-			<-timer.C
+			time.Sleep(time.Duration(shrub.RespawnSeconds) * time.Second)
 			g.client.LevelPointMaps().Shrubs.Add(g.levelId, point, shrub)
 			shrub.Id = g.client.SharedGameObjects().Shrubs.Add(shrub)
 			g.queries.CreateLevelShrub(context.Background(), db.CreateLevelShrubParams{
@@ -393,9 +393,23 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 
 	// Tell all the clients in the level that the shrub was chopped
 	g.client.Broadcast(message, g.othersInLevel)
-	go g.client.SocketSend(packets.NewChopShrubResponse(true, shrub.Id, nil))
 
 	g.logger.Printf("Client %d chopped shrub %d", senderId, shrub.Id)
+
+	// Send the response and reward the player with some XP
+	go func() {
+		g.client.SocketSend(packets.NewChopShrubResponse(true, shrub.Id, nil))
+		time.Sleep(100 * time.Millisecond)      // Just to make sure the client receives the response before the XP reward
+		g.awardPlayerXp(skills.Woodcutting, 30) // TODO: Don't hardcode XP reward for shrubs, should also be dependent on shrub's strength
+	}()
+
+	// Award the player with some logs after a tiny delay
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		g.addInventoryItem(*items.Logs, 1)
+		g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
+	}()
+
 }
 
 func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_DropItemRequest) {
@@ -579,6 +593,30 @@ func (g *InGame) sendInventory() {
 	g.logger.Println("Sent inventory to client")
 }
 
+func (g *InGame) loadSkillsXp() {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	skillsXp, err := g.queries.GetActorSkillsXp(ctx, g.player.DbId)
+	if err != nil {
+		g.logger.Printf("Failed to get actor skills XP: %v", err)
+		return
+	}
+
+	for _, skillXp := range skillsXp {
+		skill := skills.Skill(skillXp.Skill)
+		g.player.SkillsXp[skill] = uint64(skillXp.Xp)
+	}
+
+	g.logger.Printf("Loaded skills XP")
+}
+
+func (g *InGame) sendSkillsXp() {
+	g.logger.Println("Sending skills XP to client")
+	g.client.SocketSend(packets.NewSkillsXp(g.player.SkillsXp))
+	g.logger.Println("Sent skills XP to client")
+}
+
 func (g *InGame) playerUpdateLoop(ctx context.Context) {
 	const delta float64 = 5 // Every 5 seconds
 	ticker := time.NewTicker(time.Duration(delta*1000) * time.Millisecond)
@@ -690,4 +728,22 @@ func (g *InGame) syncInventory() {
 			Quantity: int64(quantity),
 		})
 	})
+}
+
+func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint64) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	g.client.SocketSend(packets.NewXpReward(skill, xp))
+
+	err := g.queries.AddActorXp(ctx, db.AddActorXpParams{
+		ActorID: g.player.DbId,
+		Skill:   int64(skill),
+		Xp:      int64(xp),
+	})
+	if err != nil {
+		g.logger.Printf("Failed to add XP to actor in database: %v", err)
+	}
+
+	g.player.SkillsXp[skill] += xp
 }

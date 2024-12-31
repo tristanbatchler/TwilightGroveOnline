@@ -1,6 +1,6 @@
 package skills
 
-type Skill int
+type Skill uint32
 
 const (
 	Woodcutting Skill = iota

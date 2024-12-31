@@ -3,6 +3,7 @@ package packets
 import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
 
@@ -275,6 +276,27 @@ func NewItemQuantity(item *objs.Item, quantity uint32) Msg {
 		ItemQuantity: &ItemQuantity{
 			Item:     NewItem(item).(*Packet_Item).Item,
 			Quantity: int32(quantity),
+		},
+	}
+}
+
+func NewXpReward(skill skills.Skill, xp uint64) Msg {
+	return &Packet_XpReward{
+		XpReward: &XpReward{
+			Skill: uint32(skill),
+			Xp:    xp,
+		},
+	}
+}
+
+func NewSkillsXp(skillsXp map[skills.Skill]uint64) Msg {
+	xpRewards := make([]*XpReward, 0)
+	for skill, xp := range skillsXp {
+		xpRewards = append(xpRewards, NewXpReward(skill, xp).(*Packet_XpReward).XpReward)
+	}
+	return &Packet_SkillsXp{
+		SkillsXp: &SkillsXp{
+			XpRewards: xpRewards,
 		},
 	}
 }

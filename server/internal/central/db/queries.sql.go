@@ -31,6 +31,26 @@ func (q *Queries) AddActorInventoryItem(ctx context.Context, arg AddActorInvento
 	return err
 }
 
+const addActorXp = `-- name: AddActorXp :exec
+INSERT INTO actors_skills (
+    actor_id, skill, xp
+) VALUES (
+    ?, ?, ?
+)
+ON CONFLICT (actor_id, skill) DO UPDATE SET xp = actors_skills.xp + excluded.xp
+`
+
+type AddActorXpParams struct {
+	ActorID int64
+	Skill   int64
+	Xp      int64
+}
+
+func (q *Queries) AddActorXp(ctx context.Context, arg AddActorXpParams) error {
+	_, err := q.db.ExecContext(ctx, addActorXp, arg.ActorID, arg.Skill, arg.Xp)
+	return err
+}
+
 const createActor = `-- name: CreateActor :one
 INSERT INTO actors (
     user_id, name, level_id, x, y
@@ -562,6 +582,57 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int64) ([]
 			&i.SpriteRegionY,
 			&i.ToolPropertiesID,
 			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActorSkillXp = `-- name: GetActorSkillXp :one
+SELECT ISNULL(xp, 0) FROM actors_skills
+WHERE actor_id = ?
+AND skill = ?
+`
+
+type GetActorSkillXpParams struct {
+	ActorID int64
+	Skill   int64
+}
+
+func (q *Queries) GetActorSkillXp(ctx context.Context, arg GetActorSkillXpParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getActorSkillXp, arg.ActorID, arg.Skill)
+	var isnull interface{}
+	err := row.Scan(&isnull)
+	return isnull, err
+}
+
+const getActorSkillsXp = `-- name: GetActorSkillsXp :many
+SELECT id, actor_id, skill, xp FROM actors_skills
+WHERE actor_id = ?
+`
+
+func (q *Queries) GetActorSkillsXp(ctx context.Context, actorID int64) ([]ActorsSkill, error) {
+	rows, err := q.db.QueryContext(ctx, getActorSkillsXp, actorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ActorsSkill
+	for rows.Next() {
+		var i ActorsSkill
+		if err := rows.Scan(
+			&i.ID,
+			&i.ActorID,
+			&i.Skill,
+			&i.Xp,
 		); err != nil {
 			return nil, err
 		}

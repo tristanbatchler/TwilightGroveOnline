@@ -270,3 +270,20 @@ WHERE id IN (
     AND ls.y = ?
     LIMIT 1
 );
+
+-- name: AddActorXp :exec
+INSERT INTO actors_skills (
+    actor_id, skill, xp
+) VALUES (
+    ?, ?, ?
+)
+ON CONFLICT (actor_id, skill) DO UPDATE SET xp = actors_skills.xp + excluded.xp;
+
+-- name: GetActorSkillsXp :many
+SELECT * FROM actors_skills
+WHERE actor_id = ?;
+
+-- name: GetActorSkillXp :one
+SELECT ISNULL(xp, 0) FROM actors_skills
+WHERE actor_id = ?
+AND skill = ?;

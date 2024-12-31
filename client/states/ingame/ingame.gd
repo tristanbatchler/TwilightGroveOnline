@@ -116,6 +116,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_chop_shrub_request(sender_id, packet.get_chop_shrub_request())
 	elif packet.has_item_quantity():
 		_handle_item_quantity(packet.get_item_quantity())
+	elif packet.has_xp_reward():
+		_handle_xp_reward(packet.get_xp_reward())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -462,3 +464,6 @@ func _pickup_nearby_ground_item() -> void:
 			var pickup_ground_item_request := packet.new_pickup_ground_item_request()
 			pickup_ground_item_request.set_ground_item_id(ground_item.ground_item_id)
 			WS.send(packet)
+
+func _handle_xp_reward(xp_reward_msg: Packets.XpReward) -> void:
+	_log.info("You gained %d XP for skill %d" % [xp_reward_msg.get_xp(), xp_reward_msg.get_skill()])

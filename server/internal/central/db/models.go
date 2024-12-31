@@ -26,7 +26,7 @@ type ActorsInventory struct {
 type ActorsSkill struct {
 	ID      int64
 	ActorID int64
-	SkillID int64
+	Skill   int64
 	Xp      int64
 }
 
@@ -92,12 +92,6 @@ type LevelsShrub struct {
 type LevelsTscnDatum struct {
 	LevelID  int64
 	TscnData []byte
-}
-
-type Skill struct {
-	ID          int64
-	Name        string
-	Description string
 }
 
 type ToolProperty struct {
