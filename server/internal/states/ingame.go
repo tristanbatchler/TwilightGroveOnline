@@ -231,6 +231,12 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	// sgo = SharedGameObject, ID is different from the one in lpm = LevelPointMap
 	sgoGroundItem, sgoExists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 
+	if !sgoExists {
+		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+		return
+	}
+
 	// Inject the DB ID of the item into the ground item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          sgoGroundItem.Item.Name,
@@ -244,12 +250,6 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 		return
 	}
 	sgoGroundItem.Item.DbId = itemModel.ID
-
-	if !sgoExists {
-		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
-		return
-	}
 
 	point := ds.Point{X: sgoGroundItem.X, Y: sgoGroundItem.Y}
 
