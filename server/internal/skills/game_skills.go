@@ -12,8 +12,7 @@ var SkillNames = map[Skill]string{
 }
 
 // How much experience is required to reach a certain level.
-func ExperienceCurve(level int32) int32 {
+func ExperienceCurve(level uint32) uint32 {
 	// XP = 100 * (level^2), so level 1 = 100, level 2 = 400, level 3 = 900, etc.
-	baseXP := int32(100) // Base XP for level 1
-	return baseXP * (level * level)
+	return 100 * (level * level)
 }

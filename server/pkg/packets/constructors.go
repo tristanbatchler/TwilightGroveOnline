@@ -7,7 +7,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
 
-func NewClientId(id uint64) Msg {
+func NewClientId(id uint32) Msg {
 	return &Packet_ClientId{
 		ClientId: &ClientId{
 			Id: id,
@@ -60,19 +60,19 @@ func NewAdminJoinGameResponse(success bool, err error) Msg {
 func NewActor(actor *objs.Actor) Msg {
 	return &Packet_Actor{
 		Actor: &Actor{
-			X:    int32(actor.X),
-			Y:    int32(actor.Y),
+			X:    actor.X,
+			Y:    actor.Y,
 			Name: actor.Name,
 		},
 	}
 }
 
-func NewShrub(id uint64, shrub *objs.Shrub) Msg {
+func NewShrub(id uint32, shrub *objs.Shrub) Msg {
 	return &Packet_Shrub{
 		Shrub: &Shrub{
 			Id: id,
-			X:  int32(shrub.X),
-			Y:  int32(shrub.Y),
+			X:  shrub.X,
+			Y:  shrub.Y,
 		},
 	}
 }
@@ -110,26 +110,26 @@ func NewItem(item *objs.Item) Msg {
 	}
 }
 
-func NewGroundItem(id uint64, groundItem *objs.GroundItem) Msg {
+func NewGroundItem(id uint32, groundItem *objs.GroundItem) Msg {
 	item := NewItem(groundItem.Item)
 	return &Packet_GroundItem{
 		GroundItem: &GroundItem{
 			Id:   id,
 			Item: item.(*Packet_Item).Item,
-			X:    int32(groundItem.X),
-			Y:    int32(groundItem.Y),
+			X:    groundItem.X,
+			Y:    groundItem.Y,
 		},
 	}
 }
 
-func NewDoor(id uint64, door *objs.Door, destinationLevelResPath string) Msg {
+func NewDoor(id uint32, door *objs.Door, destinationLevelResPath string) Msg {
 	return &Packet_Door{
 		Door: &Door{
 			Id:                        id,
-			X:                         int32(door.X),
-			Y:                         int32(door.Y),
-			DestinationX:              int32(door.DestinationX),
-			DestinationY:              int32(door.DestinationY),
+			X:                         door.X,
+			Y:                         door.Y,
+			DestinationX:              door.DestinationX,
+			DestinationY:              door.DestinationY,
 			DestinationLevelGdResPath: destinationLevelResPath,
 		},
 	}
@@ -174,7 +174,7 @@ func NewSqlResponse(success bool, err error, columns []string, rows []*SqlRow) M
 	}
 }
 
-func NewLevelUploadResponse(success bool, dbLevelId int64, gdResPath string, err error) Msg {
+func NewLevelUploadResponse(success bool, dbLevelId int32, gdResPath string, err error) Msg {
 	return &Packet_LevelUploadResponse{
 		LevelUploadResponse: &LevelUploadResponse{
 			DbLevelId: dbLevelId,
@@ -259,7 +259,7 @@ func NewInventory(inventory *ds.Inventory) Msg {
 	}
 }
 
-func NewChopShrubResponse(success bool, shrubId uint64, err error) Msg {
+func NewChopShrubResponse(success bool, shrubId uint32, err error) Msg {
 	return &Packet_ChopShrubResponse{
 		ChopShrubResponse: &ChopShrubResponse{
 			ShrubId: shrubId,
@@ -280,7 +280,7 @@ func NewItemQuantity(item *objs.Item, quantity uint32) Msg {
 	}
 }
 
-func NewXpReward(skill skills.Skill, xp uint64) Msg {
+func NewXpReward(skill skills.Skill, xp uint32) Msg {
 	return &Packet_XpReward{
 		XpReward: &XpReward{
 			Skill: uint32(skill),
@@ -289,7 +289,7 @@ func NewXpReward(skill skills.Skill, xp uint64) Msg {
 	}
 }
 
-func NewSkillsXp(skillsXp map[skills.Skill]uint64) Msg {
+func NewSkillsXp(skillsXp map[skills.Skill]uint32) Msg {
 	xpRewards := make([]*XpReward, 0)
 	for skill, xp := range skillsXp {
 		xpRewards = append(xpRewards, NewXpReward(skill, xp).(*Packet_XpReward).XpReward)

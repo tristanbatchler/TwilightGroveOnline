@@ -1,12 +1,12 @@
 package conn
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
@@ -14,7 +14,7 @@ import (
 )
 
 type WebSocketClient struct {
-	id       uint64
+	id       uint32
 	conn     *websocket.Conn
 	hub      *central.Hub
 	sendChan chan *packets.Packet
@@ -47,17 +47,17 @@ func NewWebSocketClient(hub *central.Hub, writer http.ResponseWriter, request *h
 	return c, nil
 }
 
-func (c *WebSocketClient) Id() uint64 {
+func (c *WebSocketClient) Id() uint32 {
 	return c.id
 }
 
-func (c *WebSocketClient) Initialize(id uint64) {
+func (c *WebSocketClient) Initialize(id uint32) {
 	c.id = id
 	c.logger.SetPrefix(fmt.Sprintf("Client %d: ", c.id))
 	c.SetState(&states.Connected{})
 }
 
-func (c *WebSocketClient) ProcessMessage(senderId uint64, message packets.Msg) {
+func (c *WebSocketClient) ProcessMessage(senderId uint32, message packets.Msg) {
 	c.state.HandleMessage(senderId, message)
 }
 
@@ -65,7 +65,7 @@ func (c *WebSocketClient) SocketSend(message packets.Msg) {
 	c.SocketSendAs(message, c.id)
 }
 
-func (c *WebSocketClient) SocketSendAs(message packets.Msg, senderId uint64) {
+func (c *WebSocketClient) SocketSendAs(message packets.Msg, senderId uint32) {
 	select {
 	case c.sendChan <- &packets.Packet{SenderId: senderId, Msg: message}:
 	default:
@@ -73,13 +73,13 @@ func (c *WebSocketClient) SocketSendAs(message packets.Msg, senderId uint64) {
 	}
 }
 
-func (c *WebSocketClient) PassToPeer(message packets.Msg, peerId uint64) {
+func (c *WebSocketClient) PassToPeer(message packets.Msg, peerId uint32) {
 	if peer, exists := c.hub.Clients.Get(peerId); exists {
 		peer.ProcessMessage(c.id, message)
 	}
 }
 
-func (c *WebSocketClient) Broadcast(message packets.Msg, to ...[]uint64) {
+func (c *WebSocketClient) Broadcast(message packets.Msg, to ...[]uint32) {
 	if len(to) <= 0 {
 		c.hub.BroadcastChan <- &packets.Packet{SenderId: c.id, Msg: message}
 		return
@@ -166,7 +166,7 @@ func (c *WebSocketClient) DbTx() *central.DbTx {
 	return c.dbTx
 }
 
-func (c *WebSocketClient) RunSql(sql string) (*sql.Rows, error) {
+func (c *WebSocketClient) RunSql(sql string) (pgx.Rows, error) {
 	return c.hub.RunSql(sql)
 }
 

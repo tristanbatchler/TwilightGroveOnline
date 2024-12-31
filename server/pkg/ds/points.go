@@ -7,11 +7,11 @@ import (
 
 // Point represents a 2D point with integer coordinates.
 type Point struct {
-	X, Y int64
+	X, Y int32
 }
 
 // NewPoint creates a new Point with the specified x and y coordinates.
-func NewPoint(x, y int64) Point {
+func NewPoint(x, y int32) Point {
 	return Point{
 		X: x,
 		Y: y,
@@ -114,20 +114,20 @@ func (p *PointMap[T]) Clear() {
 // LevelPointMap is a map of PointMap[T] keyed by level ID. It is also thread-safe.
 type LevelPointMap[T any] struct {
 	mux sync.RWMutex
-	m   map[int64]*PointMap[T]
+	m   map[int32]*PointMap[T]
 }
 
 // NewLevelPointMap creates a new LevelPointMap with an empty map.
 func NewLevelPointMap[T any]() *LevelPointMap[T] {
 	return &LevelPointMap[T]{
-		m: make(map[int64]*PointMap[T]),
+		m: make(map[int32]*PointMap[T]),
 	}
 }
 
 // Get retrieves the value associated with the given levelId and point from the LevelPointMap.
 // It returns the value and a boolean indicating whether the value was found.
 // If the levelId does not exist in the map, it returns the zero value of type T and false.
-func (l *LevelPointMap[T]) Get(levelId int64, point Point) (T, bool) {
+func (l *LevelPointMap[T]) Get(levelId int32, point Point) (T, bool) {
 	l.mux.RLock()
 	defer l.mux.RUnlock()
 	pm, exists := l.m[levelId]
@@ -141,14 +141,14 @@ func (l *LevelPointMap[T]) Get(levelId int64, point Point) (T, bool) {
 
 // Contains checks if the LevelPointMap contains the specified levelId and point.
 // It is the same as calling Get and checking the boolean return value.
-func (l *LevelPointMap[T]) Contains(levelId int64, point Point) bool {
+func (l *LevelPointMap[T]) Contains(levelId int32, point Point) bool {
 	_, ok := l.Get(levelId, point)
 	return ok
 }
 
 // Add inserts a value of type T at the specified point in the LevelPointMap for the given levelId.
 // If the levelId does not already exist in the map, a new PointMap is created and added to the LevelPointMap.
-func (l *LevelPointMap[T]) Add(levelId int64, point Point, value T) {
+func (l *LevelPointMap[T]) Add(levelId int32, point Point, value T) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 	pm, exists := l.m[levelId]
@@ -163,7 +163,7 @@ func (l *LevelPointMap[T]) Add(levelId int64, point Point, value T) {
 // for the given levelId. If the levelId does not already exist in the map, a
 // new PointMap is created and added to the LevelPointMap.
 // This is faster when adding lots of points because it only locks the map once.
-func (l *LevelPointMap[T]) AddBatch(levelId int64, batch map[Point]T) {
+func (l *LevelPointMap[T]) AddBatch(levelId int32, batch map[Point]T) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
@@ -177,7 +177,7 @@ func (l *LevelPointMap[T]) AddBatch(levelId int64, batch map[Point]T) {
 
 // Remove deletes a Point from the LevelPointMap for a given levelId.
 // If the levelId does not exist in the map, the function returns without doing anything.
-func (l *LevelPointMap[T]) Remove(levelId int64, point Point) {
+func (l *LevelPointMap[T]) Remove(levelId int32, point Point) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
@@ -192,7 +192,7 @@ func (l *LevelPointMap[T]) Remove(levelId int64, point Point) {
 // ForEach iterates over all points in the PointMap for the given levelId and calls the callback function for each point.
 // If the levelId does not exist in the map, the function returns without doing anything.
 // The callback function should not modify the map; doing so may result in unpredictable behavior.
-func (l *LevelPointMap[T]) ForEach(levelId int64, callback func(Point, T)) {
+func (l *LevelPointMap[T]) ForEach(levelId int32, callback func(Point, T)) {
 	l.mux.RLock()
 	pm, exists := l.m[levelId]
 	l.mux.RUnlock()
@@ -206,7 +206,7 @@ func (l *LevelPointMap[T]) ForEach(levelId int64, callback func(Point, T)) {
 
 // Clear removes all points for the given levelId from the LevelPointMap.
 // If the levelId does not exist in the map, the function returns without doing anything.
-func (l *LevelPointMap[T]) Clear(levelId int64) {
+func (l *LevelPointMap[T]) Clear(levelId int32) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 	pm, exists := l.m[levelId]

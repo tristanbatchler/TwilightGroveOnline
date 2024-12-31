@@ -5,104 +5,102 @@
 package db
 
 import (
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Actor struct {
-	ID      int64
-	UserID  int64
+	ID      int32
+	UserID  int32
 	Name    string
-	LevelID int64
-	X       int64
-	Y       int64
+	LevelID pgtype.Int4
+	X       int32
+	Y       int32
 }
 
 type ActorsInventory struct {
-	ActorID  int64
-	ItemID   int64
-	Quantity int64
+	ActorID  int32
+	ItemID   int32
+	Quantity int32
 }
 
 type ActorsSkill struct {
-	ID      int64
-	ActorID int64
-	Skill   int64
-	Xp      int64
+	ID      int32
+	ActorID int32
+	Skill   int32
+	Xp      int32
 }
 
 type Admin struct {
-	ID     int64
-	UserID int64
+	ID     int32
+	UserID int32
 }
 
 type Item struct {
-	ID               int64
+	ID               int32
 	Name             string
 	Description      string
-	SpriteRegionX    int64
-	SpriteRegionY    int64
-	ToolPropertiesID sql.NullInt64
+	SpriteRegionX    int32
+	SpriteRegionY    int32
+	ToolPropertiesID pgtype.Int4
 }
 
 type Level struct {
-	ID                  int64
+	ID                  int32
 	GdResPath           string
-	AddedByUserID       int64
-	Added               sql.NullString
-	LastUpdatedByUserID int64
-	LastUpdated         sql.NullString
-	Foreign             interface{}
+	AddedByUserID       int32
+	Added               pgtype.Text
+	LastUpdatedByUserID int32
+	LastUpdated         pgtype.Text
 }
 
 type LevelsCollisionPoint struct {
-	ID      int64
-	LevelID int64
-	X       int64
-	Y       int64
+	ID      int32
+	LevelID int32
+	X       int32
+	Y       int32
 }
 
 type LevelsDoor struct {
-	ID                 int64
-	LevelID            int64
-	DestinationLevelID int64
-	DestinationX       int64
-	DestinationY       int64
-	X                  int64
-	Y                  int64
+	ID                 int32
+	LevelID            int32
+	DestinationLevelID int32
+	DestinationX       int32
+	DestinationY       int32
+	X                  int32
+	Y                  int32
 }
 
 type LevelsGroundItem struct {
-	ID             int64
-	LevelID        int64
-	ItemID         int64
-	X              int64
-	Y              int64
-	RespawnSeconds int64
-	Foreign        interface{}
+	ID             int32
+	LevelID        int32
+	ItemID         int32
+	X              int32
+	Y              int32
+	RespawnSeconds int32
 }
 
 type LevelsShrub struct {
-	ID       int64
-	LevelID  int64
-	Strength int64
-	X        int64
-	Y        int64
+	ID       int32
+	LevelID  int32
+	Strength int32
+	X        int32
+	Y        int32
 }
 
 type LevelsTscnDatum struct {
-	LevelID  int64
+	LevelID  int32
 	TscnData []byte
 }
 
 type ToolProperty struct {
-	ID            int64
-	Strength      int64
-	LevelRequired int64
-	Harvests      int64
+	ID            int32
+	Strength      int32
+	LevelRequired int32
+	Harvests      int32
 }
 
 type User struct {
-	ID           int64
+	ID           int32
 	Username     string
 	PasswordHash string
 }

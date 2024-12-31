@@ -2,11 +2,12 @@ package states
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
@@ -45,10 +46,10 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			"collision points",
 			a.client.LevelPointMaps().Collisions,
 			nil,
-			func(c *packets.CollisionPoint) ds.Point { return ds.NewPoint(int64(c.GetX()), int64(c.GetY())) },
+			func(c *packets.CollisionPoint) ds.Point { return ds.NewPoint(c.GetX(), c.GetY()) },
 			a.addCollisionPointToDb,
 			a.queries.DeleteLevelCollisionPointsByLevelId,
-			func(*struct{}, uint64) {},
+			func(*struct{}, uint32) {},
 			func(c *packets.CollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 			nil,
 		),
@@ -56,34 +57,34 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			"shrubs",
 			a.client.LevelPointMaps().Shrubs,
 			a.client.SharedGameObjects().Shrubs,
-			func(s *packets.Shrub) ds.Point { return ds.NewPoint(int64(s.X), int64(s.Y)) },
+			func(s *packets.Shrub) ds.Point { return ds.NewPoint(s.X, s.Y) },
 			a.addShrubToDb,
 			a.queries.DeleteLevelShrubsByLevelId,
-			func(s *objs.Shrub, id uint64) { s.Id = id },
+			func(s *objs.Shrub, id uint32) { s.Id = id },
 			nil,
-			func(s *objs.Shrub) int64 { return s.LevelId },
+			func(s *objs.Shrub) int32 { return s.LevelId },
 		),
 		DoorsImporter: levels.NewPacketDataImporter(
 			"doors",
 			a.client.LevelPointMaps().Doors,
 			a.client.SharedGameObjects().Doors,
-			func(d *packets.Door) ds.Point { return ds.NewPoint(int64(d.X), int64(d.Y)) },
+			func(d *packets.Door) ds.Point { return ds.NewPoint(d.X, d.Y) },
 			a.addDoorToDb,
 			a.queries.DeleteLevelDoorsByLevelId,
-			func(d *objs.Door, id uint64) { d.Id = id },
+			func(d *objs.Door, id uint32) { d.Id = id },
 			nil,
-			func(d *objs.Door) int64 { return d.LevelId },
+			func(d *objs.Door) int32 { return d.LevelId },
 		),
 		GroundItemsImporter: levels.NewPacketDataImporter(
 			"ground items",
 			a.client.LevelPointMaps().GroundItems,
 			a.client.SharedGameObjects().GroundItems,
-			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(int64(g.X), int64(g.Y)) },
+			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(g.X, g.Y) },
 			a.addGroundItemToDb,
 			a.queries.DeleteLevelGroundItemsByLevelId,
-			func(g *objs.GroundItem, id uint64) { g.Id = id },
+			func(g *objs.GroundItem, id uint32) { g.Id = id },
 			nil,
-			func(g *objs.GroundItem) int64 { return g.LevelId },
+			func(g *objs.GroundItem) int32 { return g.LevelId },
 		),
 	}
 }
@@ -91,7 +92,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 func (a *Admin) OnEnter() {
 }
 
-func (a *Admin) HandleMessage(senderId uint64, message packets.Msg) {
+func (a *Admin) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_SqlQuery:
 		a.handleSqlQuery(senderId, message)
@@ -104,7 +105,7 @@ func (a *Admin) HandleMessage(senderId uint64, message packets.Msg) {
 	}
 }
 
-func (a *Admin) handleSqlQuery(senderId uint64, message *packets.Packet_SqlQuery) {
+func (a *Admin) handleSqlQuery(senderId uint32, message *packets.Packet_SqlQuery) {
 	if senderId != a.client.Id() {
 		a.logger.Printf("Received request to run SQL query from another client (%d)", senderId)
 		return
@@ -117,11 +118,10 @@ func (a *Admin) handleSqlQuery(senderId uint64, message *packets.Packet_SqlQuery
 		return
 	}
 
-	columns, err := rows.Columns()
-	if err != nil {
-		a.logger.Printf("Error getting column names: %v", err)
-		a.client.SocketSend(packets.NewSqlResponse(false, err, nil, nil))
-		return
+	columns := rows.FieldDescriptions()
+	columnNames := make([]string, len(columns))
+	for i, column := range columns {
+		columnNames[i] = column.Name
 	}
 
 	rowMessages := make([]*packets.SqlRow, 0)
@@ -149,10 +149,10 @@ func (a *Admin) handleSqlQuery(senderId uint64, message *packets.Packet_SqlQuery
 		rowMessages = append(rowMessages, rowMessage)
 	}
 
-	a.client.SocketSend(packets.NewSqlResponse(true, nil, columns, rowMessages))
+	a.client.SocketSend(packets.NewSqlResponse(true, nil, columnNames, rowMessages))
 }
 
-func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_LevelUpload) {
+func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_LevelUpload) {
 	if senderId != a.client.Id() {
 		a.logger.Printf("Received request to upload level from another client (%d)", senderId)
 		return
@@ -169,7 +169,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	level, err := a.queries.GetLevelByGdResPath(ctx, uploadedLevelGdResPath)
 	if err == nil {
 		a.clearLevelData(ctx, level.ID, uploadedLevelGdResPath, uploaderUserId)
-	} else if err == sql.ErrNoRows {
+	} else if err == pgx.ErrNoRows {
 		a.logger.Printf("Level does not exist with name %s, creating new level", uploadedLevelGdResPath)
 		level, err = a.queries.CreateLevel(ctx, db.CreateLevelParams{
 			GdResPath:           uploadedLevelGdResPath,
@@ -213,14 +213,14 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	}
 
 	a.levelDataImporters.ShrubsImporter.MakeGameObject = func(s *packets.Shrub) (*objs.Shrub, error) {
-		return objs.NewShrub(0, level.ID, s.Strength, int64(s.X), int64(s.Y)), nil
+		return objs.NewShrub(0, level.ID, s.Strength, s.X, s.Y), nil
 	}
 	a.levelDataImporters.DoorsImporter.MakeGameObject = func(d *packets.Door) (*objs.Door, error) {
 		destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
 		if err != nil {
 			return nil, err
 		}
-		return objs.NewDoor(0, level.ID, destinationLevelId, int64(d.DestinationX), int64(d.DestinationY), int64(d.X), int64(d.Y)), nil
+		return objs.NewDoor(0, level.ID, destinationLevelId, d.DestinationX, d.DestinationY, d.X, d.Y), nil
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
 		itemMsg := g.Item
@@ -228,7 +228,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 
 		var toolProps *props.ToolProps = nil
 		if toolPropsMsg != nil {
-			toolProps = props.NewToolProps(int32(toolPropsMsg.Strength), int32(toolPropsMsg.LevelRequired), props.NoneHarvestable, 0)
+			toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, 0)
 			switch toolPropsMsg.Harvests {
 			case packets.Harvestable_NONE:
 				toolProps.Harvests = props.NoneHarvestable
@@ -238,7 +238,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 		}
 
 		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, 0)
-		return objs.NewGroundItem(0, level.ID, item, int64(g.X), int64(g.Y), g.RespawnSeconds), nil
+		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds), nil
 	}
 
 	for _, importFunc := range importFuncs {
@@ -252,7 +252,7 @@ func (a *Admin) handleLevelUpload(senderId uint64, message *packets.Packet_Level
 	a.client.SocketSend(packets.NewLevelUploadResponse(true, level.ID, level.GdResPath, nil))
 }
 
-func (a *Admin) handleAdminJoinGameRequest(senderId uint64, _ *packets.Packet_AdminJoinGameRequest) {
+func (a *Admin) handleAdminJoinGameRequest(senderId uint32, _ *packets.Packet_AdminJoinGameRequest) {
 	if senderId != a.client.Id() {
 		a.logger.Printf("Received request to join game from another client (%d)", senderId)
 		return
@@ -268,16 +268,30 @@ func (a *Admin) handleAdminJoinGameRequest(senderId uint64, _ *packets.Packet_Ad
 		return
 	}
 
+	if !actor.LevelID.Valid {
+		a.logger.Printf("Failed to get level id for actor %d, gonna try giving them level 1", actor.ID)
+		actor.LevelID = pgtype.Int4{Int32: 1, Valid: true}
+		err = a.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
+			ID:      actor.ID,
+			LevelID: actor.LevelID,
+		})
+		if err != nil {
+			a.logger.Printf("Failed to update actor level: %v", err)
+			a.client.SocketSend(packets.NewAdminJoinGameResponse(false, err))
+			return
+		}
+	}
+
 	a.client.SetState(&InGame{
-		levelId: actor.LevelID,
-		player:  objs.NewActor(actor.LevelID, actor.X, actor.Y, actor.Name, actor.ID),
+		levelId: actor.LevelID.Int32,
+		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.ID),
 	})
 }
 
 func (a *Admin) OnExit() {
 }
 
-func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName string, uploaderUserId int64) {
+func (a *Admin) clearLevelData(dbCtx context.Context, levelId int32, levelName string, uploaderUserId int32) {
 	a.logger.Printf("Level already exists with name %s, going to clear out old data and re-upload", levelName)
 
 	a.levelDataImporters.CollisionPointsImporter.ClearObjects(levelId)
@@ -293,26 +307,26 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int64, levelName s
 	a.logger.Printf("Cleared out old data for level %s", levelName)
 }
 
-func (a *Admin) addCollisionPointToDb(ctx context.Context, levelId int64, message *packets.CollisionPoint) error {
+func (a *Admin) addCollisionPointToDb(ctx context.Context, levelId int32, message *packets.CollisionPoint) error {
 	_, err := a.queries.CreateLevelCollisionPoint(ctx, db.CreateLevelCollisionPointParams{
 		LevelID: levelId,
-		X:       int64(message.GetX()),
-		Y:       int64(message.GetY()),
+		X:       message.GetX(),
+		Y:       message.GetY(),
 	})
 	return err
 }
 
-func (a *Admin) addShrubToDb(ctx context.Context, levelId int64, message *packets.Shrub) error {
+func (a *Admin) addShrubToDb(ctx context.Context, levelId int32, message *packets.Shrub) error {
 	_, err := a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
 		LevelID:  levelId,
-		X:        int64(message.X),
-		Y:        int64(message.Y),
-		Strength: int64(message.Strength),
+		X:        message.X,
+		Y:        message.Y,
+		Strength: message.Strength,
 	})
 	return err
 }
 
-func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets.Door) error {
+func (a *Admin) addDoorToDb(ctx context.Context, levelId int32, message *packets.Door) error {
 	destinationLevelId, err := a.getDoorDestinationLevelId(message.DestinationLevelGdResPath)
 	if err != nil {
 		return err
@@ -321,33 +335,33 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int64, message *packets
 	_, err = a.queries.CreateLevelDoor(ctx, db.CreateLevelDoorParams{
 		LevelID:            levelId,
 		DestinationLevelID: destinationLevelId,
-		DestinationX:       int64(message.DestinationX),
-		DestinationY:       int64(message.DestinationY),
-		X:                  int64(message.X),
-		Y:                  int64(message.Y),
+		DestinationX:       message.DestinationX,
+		DestinationY:       message.DestinationY,
+		X:                  message.X,
+		Y:                  message.Y,
 	})
 	return err
 }
 
-func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *packets.GroundItem) error {
+func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *packets.GroundItem) error {
 	itemMsg := message.Item
 
 	toolPropsMsg := itemMsg.ToolProps
 
-	toolPropsId := sql.NullInt64{}
+	toolPropsId := pgtype.Int4{}
 
 	if toolPropsMsg != nil {
 		toolPropsModel, err := a.queries.CreateToolPropertiesIfNotExists(ctx, db.CreateToolPropertiesIfNotExistsParams{
-			Strength:      int64(toolPropsMsg.Strength),
-			LevelRequired: int64(toolPropsMsg.LevelRequired),
-			Harvests:      int64(toolPropsMsg.Harvests),
+			Strength:      toolPropsMsg.Strength,
+			LevelRequired: toolPropsMsg.LevelRequired,
+			Harvests:      int32(toolPropsMsg.Harvests),
 		})
 		if err != nil {
-			if err == sql.ErrNoRows { // Tool property already exists
+			if err == pgx.ErrNoRows { // Tool property already exists
 				toolPropsModel, err = a.queries.GetToolProperties(ctx, db.GetToolPropertiesParams{
-					Strength:      int64(toolPropsMsg.Strength),
-					LevelRequired: int64(toolPropsMsg.LevelRequired),
-					Harvests:      int64(toolPropsMsg.Harvests),
+					Strength:      toolPropsMsg.Strength,
+					LevelRequired: toolPropsMsg.LevelRequired,
+					Harvests:      int32(toolPropsMsg.Harvests),
 				})
 				if err != nil {
 					a.logger.Printf("Error getting tool property %v from DB: %v, going to use nil toolPropsId", toolPropsMsg, err)
@@ -356,24 +370,24 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 				a.logger.Printf("Error creating tool property %v: %v, going to use nil toolPropsId", toolPropsMsg, err)
 			}
 		}
-		toolPropsId = sql.NullInt64{Int64: toolPropsModel.ID, Valid: true}
+		toolPropsId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
 	}
 
 	itemModel, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
 		Name:             itemMsg.Name,
 		Description:      itemMsg.Description,
-		SpriteRegionX:    int64(itemMsg.SpriteRegionX),
-		SpriteRegionY:    int64(itemMsg.SpriteRegionY),
+		SpriteRegionX:    itemMsg.SpriteRegionX,
+		SpriteRegionY:    itemMsg.SpriteRegionY,
 		ToolPropertiesID: toolPropsId,
 	})
 
 	if err != nil {
-		if err == sql.ErrNoRows { // Item already exists
+		if err == pgx.ErrNoRows { // Item already exists
 			itemModel, err = a.queries.GetItem(ctx, db.GetItemParams{
 				Name:          itemMsg.Name,
 				Description:   itemMsg.Description,
-				SpriteRegionX: int64(itemMsg.SpriteRegionX),
-				SpriteRegionY: int64(itemMsg.SpriteRegionY),
+				SpriteRegionX: itemMsg.SpriteRegionX,
+				SpriteRegionY: itemMsg.SpriteRegionY,
 			})
 			if err != nil {
 				return err
@@ -386,14 +400,14 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int64, message *p
 	_, err = a.queries.CreateLevelGroundItem(ctx, db.CreateLevelGroundItemParams{
 		LevelID:        levelId,
 		ItemID:         itemModel.ID,
-		X:              int64(message.X),
-		Y:              int64(message.Y),
-		RespawnSeconds: int64(message.RespawnSeconds),
+		X:              message.X,
+		Y:              message.Y,
+		RespawnSeconds: message.RespawnSeconds,
 	})
 	return err
 }
 
-func (a *Admin) getDoorDestinationLevelId(gdResPath string) (int64, error) {
+func (a *Admin) getDoorDestinationLevelId(gdResPath string) (int32, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -407,7 +421,7 @@ func (a *Admin) getDoorDestinationLevelId(gdResPath string) (int64, error) {
 
 	destinationLevel, err := a.queries.GetLevelByGdResPath(ctx, gdResPath)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			a.logger.Printf("Failed to find a door's destination level with path %s - try uploading it first", gdResPath)
 		} else {
 			a.logger.Printf("Error getting destination level id: %v", err)

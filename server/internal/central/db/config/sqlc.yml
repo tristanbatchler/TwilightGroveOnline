@@ -1,6 +1,6 @@
 version: "2"
 sql:
-  - engine: "sqlite"
+  - engine: "postgresql"
     
     queries: "queries.sql"
     schema: "schema.sql"
@@ -8,3 +8,4 @@ sql:
       go:
         package: "db"
         out: "../"
+        sql_package: "pgx/v5"

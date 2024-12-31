@@ -2,7 +2,6 @@ package states
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
@@ -26,8 +27,8 @@ type InGame struct {
 	queries                *db.Queries
 	player                 *objs.Actor
 	inventory              *ds.Inventory
-	levelId                int64
-	othersInLevel          []uint64
+	levelId                int32
+	othersInLevel          []uint32
 	logger                 *log.Logger
 	cancelPlayerUpdateLoop context.CancelFunc
 }
@@ -47,8 +48,8 @@ func (g *InGame) OnEnter() {
 	// Initialize the player object
 	g.player.LevelId = g.levelId
 	if g.player.X == -1 && g.player.Y == -1 {
-		g.player.X = -rand.Int64N(7)
-		g.player.Y = rand.Int64N(5)
+		g.player.X = -rand.Int32N(7)
+		g.player.Y = rand.Int32N(5)
 	}
 
 	g.logger.Println("Sending level data to client")
@@ -58,7 +59,7 @@ func (g *InGame) OnEnter() {
 
 	// Send our client info about all the other actors in the level (including ourselves!)
 	ourPlayerInfo := packets.NewActor(g.player)
-	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint64, actor *objs.Actor) {
+	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
 		if actor.LevelId == g.levelId {
 			g.othersInLevel = append(g.othersInLevel, owner_client_id)
 			g.logger.Printf("Sending actor info for client %d", owner_client_id)
@@ -83,7 +84,7 @@ func (g *InGame) OnEnter() {
 	go g.playerUpdateLoop(ctx)
 }
 
-func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
+func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_Chat:
 		g.handleChat(senderId, message)
@@ -110,7 +111,7 @@ func (g *InGame) HandleMessage(senderId uint64, message packets.Msg) {
 	}
 }
 
-func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
+func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	if strings.TrimSpace(message.Chat.Msg) == "" {
 		g.logger.Println("Received a chat message with no content, ignoring")
 		return
@@ -128,7 +129,7 @@ func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
 				g.logger.Printf("Failed to parse level ID: %v", err)
 				return
 			}
-			g.switchLevel(int64(levelId))
+			g.switchLevel(int32(levelId))
 			return
 		}
 		// End debug code
@@ -142,7 +143,7 @@ func (g *InGame) handleChat(senderId uint64, message *packets.Packet_Chat) {
 	g.client.SocketSendAs(message, senderId)
 }
 
-func (g *InGame) handleYell(senderId uint64, message *packets.Packet_Yell) {
+func (g *InGame) handleYell(senderId uint32, message *packets.Packet_Yell) {
 	if strings.TrimSpace(message.Yell.Msg) == "" {
 		g.logger.Println("Received a yell message with no content, ignoring")
 		return
@@ -158,14 +159,14 @@ func (g *InGame) handleYell(senderId uint64, message *packets.Packet_Yell) {
 	g.client.SocketSendAs(message, senderId)
 }
 
-func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorMove) {
+func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorMove) {
 	if senderId != g.client.Id() {
 		g.logger.Printf("Player %d sent us a move message, but we only accept moves from ourselves", senderId)
 		return
 	}
 
-	targetX := g.player.X + int64(message.ActorMove.Dx)
-	targetY := g.player.Y + int64(message.ActorMove.Dy)
+	targetX := g.player.X + message.ActorMove.Dx
+	targetY := g.player.Y + message.ActorMove.Dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
@@ -192,7 +193,7 @@ func (g *InGame) handleActorMove(senderId uint64, message *packets.Packet_ActorM
 	g.client.Broadcast(packets.NewActor(g.player), g.othersInLevel)
 }
 
-func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_Actor) {
+func (g *InGame) handleActorInfo(senderId uint32, message *packets.Packet_Actor) {
 	if senderId == g.client.Id() {
 		g.logger.Printf("Received a player info message from ourselves, ignoring")
 		return
@@ -205,7 +206,7 @@ func (g *InGame) handleActorInfo(senderId uint64, message *packets.Packet_Actor)
 	}
 }
 
-func (g *InGame) handleLogout(senderId uint64, message *packets.Packet_Logout) {
+func (g *InGame) handleLogout(senderId uint32, message *packets.Packet_Logout) {
 	if senderId == g.client.Id() {
 		g.client.SetState(&Connected{})
 		return
@@ -215,7 +216,7 @@ func (g *InGame) handleLogout(senderId uint64, message *packets.Packet_Logout) {
 	g.removeFromOtherInLevel(senderId)
 }
 
-func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disconnect) {
+func (g *InGame) handleDisconnect(senderId uint32, message *packets.Packet_Disconnect) {
 	if senderId == g.client.Id() {
 		g.logger.Println("Client sent a disconnect, exiting")
 		g.client.SetState(nil)
@@ -226,7 +227,7 @@ func (g *InGame) handleDisconnect(senderId uint64, message *packets.Packet_Disco
 	g.removeFromOtherInLevel(senderId)
 }
 
-func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets.Packet_PickupGroundItemRequest) {
+func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets.Packet_PickupGroundItemRequest) {
 	if senderId != g.client.Id() {
 		// If the client isn't us, we just forward the message
 		g.client.SocketSendAs(message, senderId)
@@ -246,8 +247,8 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          sgoGroundItem.Item.Name,
 		Description:   sgoGroundItem.Item.Description,
-		SpriteRegionX: int64(sgoGroundItem.Item.SpriteRegionX),
-		SpriteRegionY: int64(sgoGroundItem.Item.SpriteRegionY),
+		SpriteRegionX: sgoGroundItem.Item.SpriteRegionX,
+		SpriteRegionY: sgoGroundItem.Item.SpriteRegionY,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
@@ -309,7 +310,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint64, message *packets
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
 
-func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet_ChopShrubRequest) {
+func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet_ChopShrubRequest) {
 	if senderId != g.client.Id() {
 		// If the client isn't us, we just forward the message
 		go g.client.SocketSendAs(message, senderId)
@@ -381,7 +382,7 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 			shrub.Id = g.client.SharedGameObjects().Shrubs.Add(shrub)
 			g.queries.CreateLevelShrub(context.Background(), db.CreateLevelShrubParams{
 				LevelID:  g.levelId,
-				Strength: int64(shrub.Strength),
+				Strength: shrub.Strength,
 				X:        shrub.X,
 				Y:        shrub.Y,
 			})
@@ -412,7 +413,7 @@ func (g *InGame) handleChopShrubRequest(senderId uint64, message *packets.Packet
 
 }
 
-func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_DropItemRequest) {
+func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
 	if senderId != g.client.Id() {
 		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
 		return
@@ -429,8 +430,8 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
 		Description:   itemMsg.Description,
-		SpriteRegionX: int64(itemMsg.SpriteRegionX),
-		SpriteRegionY: int64(itemMsg.SpriteRegionY),
+		SpriteRegionX: itemMsg.SpriteRegionX,
+		SpriteRegionY: itemMsg.SpriteRegionY,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item from the database: %v", err)
@@ -441,7 +442,7 @@ func (g *InGame) handleDropItemRequest(senderId uint64, message *packets.Packet_
 	toolPropsMsg := itemMsg.ToolProps
 	var toolProps *props.ToolProps
 	if toolPropsMsg != nil {
-		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int64)
+		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int32)
 		switch toolPropsMsg.Harvests {
 		case packets.Harvestable_NONE:
 			toolProps.Harvests = props.NoneHarvestable
@@ -492,7 +493,7 @@ func (g *InGame) OnExit() {
 	g.cancelPlayerUpdateLoop()
 }
 
-func (g *InGame) removeFromOtherInLevel(clientId uint64) {
+func (g *InGame) removeFromOtherInLevel(clientId uint32) {
 	for i, id := range g.othersInLevel {
 		if id == clientId {
 			g.othersInLevel = append(g.othersInLevel[:i], g.othersInLevel[i+1:]...)
@@ -506,7 +507,7 @@ func (g *InGame) syncPlayerLocation(timeout time.Duration) {
 	defer cancel()
 
 	err := g.queries.UpdateActorLocation(ctx, db.UpdateActorLocationParams{
-		LevelID: g.player.LevelId,
+		LevelID: pgtype.Int4{Int32: g.levelId, Valid: true},
 		X:       g.player.X,
 		Y:       g.player.Y,
 		ID:      g.player.DbId,
@@ -531,12 +532,12 @@ func (g *InGame) sendLevel() {
 	g.client.SocketSend(packets.NewLevelDownload(levelTscnData.TscnData))
 
 	g.logger.Printf("Sending shared game objects...")
-	g.client.SharedGameObjects().GroundItems.ForEach(func(id uint64, groundItem *objs.GroundItem) {
+	g.client.SharedGameObjects().GroundItems.ForEach(func(id uint32, groundItem *objs.GroundItem) {
 		if groundItem.LevelId == g.levelId {
 			go g.client.SocketSend(packets.NewGroundItem(id, groundItem))
 		}
 	})
-	g.client.SharedGameObjects().Doors.ForEach(func(id uint64, door *objs.Door) {
+	g.client.SharedGameObjects().Doors.ForEach(func(id uint32, door *objs.Door) {
 		if door.LevelId != g.levelId {
 			return
 		}
@@ -547,7 +548,7 @@ func (g *InGame) sendLevel() {
 		}
 		go g.client.SocketSend(packets.NewDoor(id, door, destinationGdResPath.GdResPath))
 	})
-	g.client.SharedGameObjects().Shrubs.ForEach(func(id uint64, shrub *objs.Shrub) {
+	g.client.SharedGameObjects().Shrubs.ForEach(func(id uint32, shrub *objs.Shrub) {
 		if shrub.LevelId == g.levelId {
 			go g.client.SocketSend(packets.NewShrub(id, shrub))
 		}
@@ -568,20 +569,20 @@ func (g *InGame) loadInventory() {
 	for _, itemModel := range invItems {
 		var toolProps *props.ToolProps = nil
 		if itemModel.ToolPropertiesID.Valid {
-			toolPropsModel, err := g.queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int64)
+			toolPropsModel, err := g.queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int32)
 			if err != nil {
 				g.logger.Printf("Failed to get tool properties: %v", err)
 			} else {
-				toolProps = props.NewToolProps(int32(toolPropsModel.Strength), int32(toolPropsModel.LevelRequired), props.NoneHarvestable, toolPropsModel.ID)
+				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
 				switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub - corrsponds directly to packets Harvestable enum
-				case int64(packets.Harvestable_NONE):
+				case int32(packets.Harvestable_NONE):
 					toolProps.Harvests = props.NoneHarvestable
-				case int64(packets.Harvestable_SHRUB):
+				case int32(packets.Harvestable_SHRUB):
 					toolProps.Harvests = props.ShrubHarvestable
 				}
 			}
 		}
-		item := objs.NewItem(itemModel.Name, itemModel.Description, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ItemID)
+		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ItemID)
 		g.addInventoryItem(*item, uint32(itemModel.Quantity))
 	}
 	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())
@@ -605,7 +606,7 @@ func (g *InGame) loadSkillsXp() {
 
 	for _, skillXp := range skillsXp {
 		skill := skills.Skill(skillXp.Skill)
-		g.player.SkillsXp[skill] = uint64(skillXp.Xp)
+		g.player.SkillsXp[skill] = uint32(skillXp.Xp)
 	}
 
 	g.logger.Printf("Loaded skills XP")
@@ -633,10 +634,10 @@ func (g *InGame) playerUpdateLoop(ctx context.Context) {
 }
 
 // TODO: Remove this when removing debug chat command
-func (g *InGame) switchLevel(newLevelId int64) {
+func (g *InGame) switchLevel(newLevelId int32) {
 	g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
 		ID:      g.player.DbId,
-		LevelID: newLevelId,
+		LevelID: pgtype.Int4{Int32: newLevelId, Valid: true},
 	})
 	g.client.SetState(&InGame{
 		levelId:   newLevelId,
@@ -652,7 +653,7 @@ func (g *InGame) enterDoor(door *objs.Door) {
 	go g.syncPlayerLocation(500 * time.Millisecond)
 	go g.queries.UpdateActorLevel(context.Background(), db.UpdateActorLevelParams{
 		ID:      g.player.DbId,
-		LevelID: door.DestinationLevelId,
+		LevelID: pgtype.Int4{Int32: door.DestinationLevelId, Valid: true},
 	})
 
 	g.client.SetState(&InGame{
@@ -666,7 +667,7 @@ func (g *InGame) isAdmin() bool {
 	_, err := g.queries.IsActorAdmin(context.Background(), g.player.DbId)
 	if err == nil {
 		return true
-	} else if err == sql.ErrNoRows {
+	} else if err == pgx.ErrNoRows {
 		return false
 	} else {
 		g.logger.Printf("Failed to check if actor is admin: %v", err)
@@ -674,7 +675,7 @@ func (g *InGame) isAdmin() bool {
 	}
 }
 
-func (g *InGame) isOtherKnown(otherId uint64) bool {
+func (g *InGame) isOtherKnown(otherId uint32) bool {
 	for _, id := range g.othersInLevel {
 		if id == otherId {
 			return true
@@ -692,7 +693,7 @@ func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
 		g.queries.AddActorInventoryItem(ctx, db.AddActorInventoryItemParams{
 			ActorID:  g.player.DbId,
 			ItemID:   item.DbId,
-			Quantity: int64(quantity),
+			Quantity: int32(quantity),
 		})
 	}()
 }
@@ -713,7 +714,7 @@ func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
 			g.queries.UpsertActorInventoryItem(ctx, db.UpsertActorInventoryItemParams{
 				ActorID:  g.player.DbId,
 				ItemID:   item.DbId,
-				Quantity: int64(qtyRemaining),
+				Quantity: qtyRemaining,
 			})
 		}
 	}()
@@ -725,12 +726,12 @@ func (g *InGame) syncInventory() {
 		g.queries.UpsertActorInventoryItem(context.Background(), db.UpsertActorInventoryItemParams{
 			ActorID:  g.player.DbId,
 			ItemID:   item.DbId,
-			Quantity: int64(quantity),
+			Quantity: int32(quantity),
 		})
 	})
 }
 
-func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint64) {
+func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint32) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -738,8 +739,8 @@ func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint64) {
 
 	err := g.queries.AddActorXp(ctx, db.AddActorXpParams{
 		ActorID: g.player.DbId,
-		Skill:   int64(skill),
-		Xp:      int64(xp),
+		Skill:   int32(skill),
+		Xp:      int32(xp),
 	})
 	if err != nil {
 		g.logger.Printf("Failed to add XP to actor in database: %v", err)

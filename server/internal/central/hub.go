@@ -2,13 +2,14 @@ package central
 
 import (
 	"context"
-	"database/sql"
 	_ "embed"
 	"log"
 	"net/http"
 	"path"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
@@ -18,7 +19,6 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/password"
 	"golang.org/x/crypto/bcrypt"
-	_ "modernc.org/sqlite"
 )
 
 //go:embed db/config/schema.sql
@@ -43,7 +43,7 @@ type ClientStateHandler interface {
 	SetClient(client ClientInterfacer)
 
 	OnEnter()
-	HandleMessage(senderId uint64, message packets.Msg)
+	HandleMessage(senderId uint32, message packets.Msg)
 
 	// Cleanup the state handler and perform any last actions
 	OnExit()
@@ -71,23 +71,23 @@ type LevelPointMaps struct {
 
 // A structure for the connected client to interface with the hub
 type ClientInterfacer interface {
-	Id() uint64
-	ProcessMessage(senderId uint64, message packets.Msg)
+	Id() uint32
+	ProcessMessage(senderId uint32, message packets.Msg)
 
 	// Sets the client's ID and anything else that needs to be initialized
-	Initialize(id uint64)
+	Initialize(id uint32)
 
 	// Puts data from this client in the write pump
 	SocketSend(message packets.Msg)
 
 	// Puts data from another client in the write pump
-	SocketSendAs(message packets.Msg, senderId uint64)
+	SocketSendAs(message packets.Msg, senderId uint32)
 
 	// Forward message to another client for processing
-	PassToPeer(message packets.Msg, peerId uint64)
+	PassToPeer(message packets.Msg, peerId uint32)
 
 	// Forward message to all other clients for processing
-	Broadcast(message packets.Msg, to ...[]uint64)
+	Broadcast(message packets.Msg, to ...[]uint32)
 
 	// Pump data from the connected socket directly to the client
 	ReadPump()
@@ -97,7 +97,7 @@ type ClientInterfacer interface {
 
 	// A reference to the database transaction for this client
 	DbTx() *DbTx
-	RunSql(sql string) (*sql.Rows, error)
+	RunSql(sql string) (pgx.Rows, error)
 
 	SetState(newState ClientStateHandler)
 
@@ -130,7 +130,7 @@ type Hub struct {
 	UnregisterChan chan ClientInterfacer
 
 	// Database connection pool
-	dbPool *sql.DB
+	dbPool *pgxpool.Pool
 
 	// Shared game objects
 	SharedGameObjects *SharedGameObjects
@@ -145,16 +145,12 @@ type Hub struct {
 	LevelDataImporters *LevelDataImporters
 }
 
-func NewHub(dataDirPath string) *Hub {
-	dbPath := path.Join(dataDirPath, "db.sqlite")
-
-	// Use WAL mode for better performance
-	dbPool, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL&busy_timeout=10000")
-
+func NewHub(dataDirPath, pgConnString string) *Hub {
+	dbPool, err := pgxpool.New(context.Background(), pgConnString)
 	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
+		log.Fatalf("Error opening PostgreSQL database: %v", err)
 	} else {
-		log.Printf("Opened database at %s", dbPath)
+		log.Printf("Connected to PostgreSQL database")
 	}
 
 	return &Hub{
@@ -184,7 +180,7 @@ func NewHub(dataDirPath string) *Hub {
 
 func (h *Hub) Run(adminPassword string) {
 	log.Println("Initializing database...")
-	if _, err := h.RunSql(schemaGenSql); err != nil {
+	if _, err := h.dbPool.Exec(context.Background(), schemaGenSql); err != nil {
 		log.Fatal(err)
 	}
 
@@ -203,7 +199,7 @@ func (h *Hub) Run(adminPassword string) {
 		nil,
 		func(model *db.LevelsCollisionPoint) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelCollisionPointsByLevelId,
-		func(*struct{}, uint64) {},
+		func(*struct{}, uint32) {},
 		func(model *db.LevelsCollisionPoint) (*struct{}, error) { return &struct{}{}, nil },
 	)
 	h.LevelDataImporters.ShrubsImporter = levels.NewDbDataImporter(
@@ -212,9 +208,9 @@ func (h *Hub) Run(adminPassword string) {
 		h.SharedGameObjects.Shrubs,
 		func(model *db.LevelsShrub) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelShrubsByLevelId,
-		func(shrub *objs.Shrub, id uint64) { shrub.Id = id },
+		func(shrub *objs.Shrub, id uint32) { shrub.Id = id },
 		func(model *db.LevelsShrub) (*objs.Shrub, error) {
-			return objs.NewShrub(0, model.LevelID, int32(model.Strength), model.X, model.Y), nil
+			return objs.NewShrub(0, model.LevelID, model.Strength, model.X, model.Y), nil
 		},
 	)
 	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
@@ -223,7 +219,7 @@ func (h *Hub) Run(adminPassword string) {
 		h.SharedGameObjects.Doors,
 		func(model *db.LevelsDoor) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelDoorsByLevelId,
-		func(door *objs.Door, id uint64) { door.Id = id },
+		func(door *objs.Door, id uint32) { door.Id = id },
 		func(model *db.LevelsDoor) (*objs.Door, error) {
 			return objs.NewDoor(0, model.LevelID, model.DestinationLevelID, model.DestinationX, model.DestinationY, model.X, model.Y), nil
 		},
@@ -234,7 +230,7 @@ func (h *Hub) Run(adminPassword string) {
 		h.SharedGameObjects.GroundItems,
 		func(model *db.LevelsGroundItem) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelGroundItemsByLevelId,
-		func(groundItem *objs.GroundItem, id uint64) { groundItem.Id = id },
+		func(groundItem *objs.GroundItem, id uint32) { groundItem.Id = id },
 		func(model *db.LevelsGroundItem) (*objs.GroundItem, error) {
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cancel()
@@ -244,7 +240,7 @@ func (h *Hub) Run(adminPassword string) {
 			}
 			var toolPropsModel *db.ToolProperty = nil
 			if itemModel.ToolPropertiesID.Valid {
-				validToolPropsModel, err := queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int64)
+				validToolPropsModel, err := queries.GetToolPropertiesById(ctx, itemModel.ToolPropertiesID.Int32)
 				if err != nil {
 					log.Printf("Error getting tool properties for item %d: %v, going to use nil", itemModel.ID, err)
 				}
@@ -252,14 +248,14 @@ func (h *Hub) Run(adminPassword string) {
 			}
 			var toolProps *props.ToolProps = nil
 			if toolPropsModel != nil {
-				toolProps = props.NewToolProps(int32(toolPropsModel.Strength), int32(toolPropsModel.LevelRequired), props.NoneHarvestable, toolPropsModel.ID)
+				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
 			}
-			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, int32(itemModel.SpriteRegionX), int32(itemModel.SpriteRegionY), toolProps, itemModel.ID)
-			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, int32(model.RespawnSeconds)), nil
+			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ID)
+			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, model.RespawnSeconds), nil
 		},
 	)
 
-	importFuncs := map[string]func(int64) error{
+	importFuncs := map[string]func(int32) error{
 		h.LevelDataImporters.CollisionPointsImporter.NameOfObject: h.LevelDataImporters.CollisionPointsImporter.ImportObjects,
 		h.LevelDataImporters.ShrubsImporter.NameOfObject:          h.LevelDataImporters.ShrubsImporter.ImportObjects,
 		h.LevelDataImporters.DoorsImporter.NameOfObject:           h.LevelDataImporters.DoorsImporter.ImportObjects,
@@ -282,14 +278,16 @@ func (h *Hub) Run(adminPassword string) {
 		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
 			Name:          item.Name,
 			Description:   item.Description,
-			SpriteRegionX: int64(item.SpriteRegionX),
-			SpriteRegionY: int64(item.SpriteRegionY),
+			SpriteRegionX: item.SpriteRegionX,
+			SpriteRegionY: item.SpriteRegionY,
 		})
-		if err != nil && err != sql.ErrNoRows {
+		if err != nil && err != pgx.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)
 		}
 		item.DbId = itemModel.ID
 	}
+
+	defer h.dbPool.Close()
 
 	log.Println("Awaiting client registrations...")
 	for {
@@ -299,7 +297,7 @@ func (h *Hub) Run(adminPassword string) {
 		case client := <-h.UnregisterChan:
 			h.Clients.Remove(client.Id())
 		case packet := <-h.BroadcastChan:
-			h.Clients.ForEach(func(clientId uint64, client ClientInterfacer) {
+			h.Clients.ForEach(func(clientId uint32, client ClientInterfacer) {
 				if clientId != packet.SenderId {
 					client.ProcessMessage(packet.SenderId, packet.Msg)
 				}
@@ -346,7 +344,7 @@ func (h *Hub) addAdmin(defaultPassword string) {
 
 	if err == nil {
 		log.Printf("Admin username: %s\nAdmin password: %s", adminUsername, defaultPassword)
-	} else if err != sql.ErrNoRows {
+	} else if err != pgx.ErrNoRows {
 		log.Fatalf("Error creating admin user: %v", err)
 	} else {
 		log.Printf("Admin user already exists")
@@ -359,7 +357,7 @@ func (h *Hub) addAdmin(defaultPassword string) {
 	_, err = h.NewDbTx().Queries.CreateAdminIfNotExists(ctx, user.ID)
 	if err == nil {
 		log.Printf("Admin created")
-	} else if err != sql.ErrNoRows {
+	} else if err != pgx.ErrNoRows {
 		log.Fatalf("Error creating admin: %v", err)
 	} else {
 		log.Printf("Admin already exists")
@@ -367,23 +365,22 @@ func (h *Hub) addAdmin(defaultPassword string) {
 
 	// Give the admin a default actor so they can play the game as well
 	_, err = h.NewDbTx().Queries.CreateActorIfNotExists(ctx, db.CreateActorIfNotExistsParams{
-		UserID:  user.ID,
-		Name:    adminUsername,
-		X:       0,
-		Y:       0,
-		LevelID: 1,
+		UserID: user.ID,
+		Name:   adminUsername,
+		X:      0,
+		Y:      0,
 	})
 	if err == nil {
 		log.Printf("Admin actor created")
-	} else if err != sql.ErrNoRows {
+	} else if err != pgx.ErrNoRows {
 		log.Printf("Error creating admin actor: %v (maybe no levels have been uploaded yet?)", err)
 	} else {
 		log.Printf("Admin actor already exists")
 	}
 }
 
-func (h *Hub) RunSql(sql string) (*sql.Rows, error) {
-	result, err := h.dbPool.QueryContext(context.Background(), sql)
+func (h *Hub) RunSql(sql string) (pgx.Rows, error) {
+	result, err := h.dbPool.Query(context.Background(), sql)
 	if err != nil {
 		return nil, err
 	}

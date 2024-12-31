@@ -13,11 +13,11 @@ type PacketDataImporter[O any, M any] struct {
 	levelPointMap    *ds.LevelPointMap[*O]
 	sharedCollection *ds.SharedCollection[*O]
 	getPoint         func(message *M) ds.Point
-	addToDb          func(ctx context.Context, levelId int64, message *M) error
-	removeFromDb     func(ctx context.Context, levelId int64) error
-	setObjectId      func(object *O, id uint64)
+	addToDb          func(ctx context.Context, levelId int32, message *M) error
+	removeFromDb     func(ctx context.Context, levelId int32) error
+	setObjectId      func(object *O, id uint32)
 	MakeGameObject   func(*M) (*O, error)
-	getObjectLevelId func(object *O) int64
+	getObjectLevelId func(object *O) int32
 	logger           *log.Logger
 }
 
@@ -26,11 +26,11 @@ func NewPacketDataImporter[O any, M any](
 	levelPointMap *ds.LevelPointMap[*O],
 	sharedCollection *ds.SharedCollection[*O],
 	getPoint func(message *M) ds.Point,
-	addToDb func(ctx context.Context, levelId int64, message *M) error,
-	removeFromDb func(ctx context.Context, levelId int64) error,
-	setObjectId func(object *O, id uint64),
+	addToDb func(ctx context.Context, levelId int32, message *M) error,
+	removeFromDb func(ctx context.Context, levelId int32) error,
+	setObjectId func(object *O, id uint32),
 	makeGameObject func(*M) (*O, error),
-	getObjectLevelId func(object *O) int64,
+	getObjectLevelId func(object *O) int32,
 ) *PacketDataImporter[O, M] {
 	return &PacketDataImporter[O, M]{
 		nameOfObject:     nameOfObject,
@@ -47,7 +47,7 @@ func NewPacketDataImporter[O any, M any](
 }
 
 func (p *PacketDataImporter[O, M]) ImportObjects(
-	levelId int64,
+	levelId int32,
 	objectMessages []*M,
 ) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -81,12 +81,12 @@ func (p *PacketDataImporter[O, M]) ImportObjects(
 	return nil
 }
 
-func (p *PacketDataImporter[O, M]) ClearObjects(levelId int64) {
+func (p *PacketDataImporter[O, M]) ClearObjects(levelId int32) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	p.levelPointMap.Clear(levelId)
 	if p.sharedCollection != nil {
-		p.sharedCollection.ForEach(func(id uint64, obj *O) {
+		p.sharedCollection.ForEach(func(id uint32, obj *O) {
 			if p.getObjectLevelId(obj) == levelId {
 				p.sharedCollection.Remove(id)
 			}

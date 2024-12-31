@@ -10,14 +10,44 @@
 1. Run `go mod download` from the `/server/` directory to download the project dependencies.
 1. Obtain a TLS certificate and note the paths to the public and private keys.
     > For a development workflow, [download mkcert](https://github.com/FiloSottile/mkcert/releases/latest), install it, and run `mkcert -install` to set up a local CA. Then run `mkcert dev.your.domain` to generate a certificate and key pair. Then node the paths to the `.pem` files. Add the domain to your `/etc/hosts` file to point `dev.your.domain` to `127.0.0.1`.
+1. Setup a PostgreSQL database and note the connection details.
+    > For development purposes, I just spun up this docker container:
+    ```yaml
+    ---
+    services:
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+          - 8003:8080
+        depends_on:
+          - db
+    db:
+        image: postgres
+        restart: always
+        environment:
+          POSTGRES_USER: XXXXXXXXX
+          POSTGRES_PASSWORD: XXXXXXXXX
+        volumes:
+          - pgdata:/home/t/docker/db/data
+        ports:
+          - 5432:5432
+    volumes:
+    pgdata:
+    ```
 1. Create a `.env` file in the `/server/` directory with the following contents:
     ```
+    PG_HOST=localhost
+    PG_PORT=5432
+    PG_USER=XXXXXXXXX
+    PG_PASSWORD=XXXXXXXXX
+    PG_DATABASE=twilightgrove
     PORT=43200
-    CERT_PATH=/absolute/path/to/public/cert.pem
-    KEY_PATH=/absolute/path/to/private/key.pem
+    CERT_PATH=/home/t/certs/twilightgrove.tbat.me.fullchain.pem
+    KEY_PATH=/home/t/certs/twilightgrove.tbat.me.privkey.pem
     DATA_PATH=./data
     CLIENT_EXPORT_PATH=../client/export/web
-    ADMIN_PASSWORD=yourpassword
+    ADMIN_PASSWORD=XXXXXXXXX
     ```
 1. Optional: install the [vscode-proto3](https://marketplace.visualstudio.com/items?itemName=zxh404.vscode-proto3) extension for syntax highlighting and automatical go compilation on save.
 
@@ -40,7 +70,7 @@
 - [x] Add UI scale setting
 - [x] Add grab controls for mobile
 - [x] Add drop controls for mobile
-- [ ] Audit use of int64 in game_objects.go and messages.proto
+- [x] Audit use of int64 in game_objects.go and messages.proto
 - [x] Let players cut down trees with an axe
 - [ ] Add an XP system and leveling up woodcutting
 - [ ] Add an NPC that buys wood
@@ -49,7 +79,7 @@
 - [ ] Add a locked door that requires a key to open, with a reward inside
 - [ ] Add a special status symbol for players who have completed the quest
 - [ ] Add spawn point in levels
-- [ ] Speed up level uploading?
+- [x] Speed up level uploading?
 - [ ] Translate to Japanese
 - [x] Use StringNames for inventory script?
 - [ ] Allow customizing the player's appearance

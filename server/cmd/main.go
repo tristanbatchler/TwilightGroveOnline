@@ -18,6 +18,11 @@ var (
 )
 
 type config struct {
+	PgHost           string
+	PgPort           int
+	PgUser           string
+	PgPassword       string
+	PgDatabase       string
 	Port             int
 	CertPath         string
 	KeyPath          string
@@ -28,6 +33,11 @@ type config struct {
 
 func loadConfig() *config {
 	cfg := &config{
+		PgHost:           os.Getenv("PG_HOST"),
+		PgPort:           5432,
+		PgUser:           os.Getenv("PG_USER"),
+		PgPassword:       os.Getenv("PG_PASSWORD"),
+		PgDatabase:       os.Getenv("PG_DATABASE"),
 		Port:             43200,
 		DataPath:         coalescePaths(os.Getenv("DATA_PATH"), "data", "."),
 		CertPath:         coalescePaths(os.Getenv("CERT_PATH"), "certs/cert.pem"),
@@ -36,7 +46,14 @@ func loadConfig() *config {
 		AdminPassword:    os.Getenv("ADMIN_PASSWORD"),
 	}
 
-	port, err := strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PG_PORT"))
+	if err != nil {
+		log.Printf("Error parsing PG_PORT, using %d", cfg.PgPort)
+	} else {
+		cfg.PgPort = port
+	}
+
+	port, err = strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		log.Printf("Error parsing PORT, using %d", cfg.Port)
 		return cfg
@@ -70,7 +87,11 @@ func main() {
 		log.Printf("Error loading config file, defaulting to %+v", cfg)
 	}
 
-	hub := central.NewHub(cfg.DataPath)
+	pgConnString := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		cfg.PgHost, cfg.PgPort, cfg.PgUser, cfg.PgPassword, cfg.PgDatabase,
+	)
+	hub := central.NewHub(cfg.DataPath, pgConnString)
 
 	// Define handler for WebSocket connections
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

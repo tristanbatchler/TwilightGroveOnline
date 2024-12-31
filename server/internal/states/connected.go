@@ -2,7 +2,6 @@ package states
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
@@ -49,7 +50,7 @@ func (c *Connected) OnEnter() {
 
 }
 
-func (c *Connected) HandleMessage(senderId uint64, message packets.Msg) {
+func (c *Connected) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_LoginRequest:
 		c.handleLoginRequest(senderId, message)
@@ -58,7 +59,7 @@ func (c *Connected) HandleMessage(senderId uint64, message packets.Msg) {
 	}
 }
 
-func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRequest) {
+func (c *Connected) handleLoginRequest(_ uint32, message *packets.Packet_LoginRequest) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -74,7 +75,7 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 	// Check if the user is already in the game
 	player, err := c.queries.GetActorByUserId(ctx, user.ID)
 	found := false
-	c.client.SharedGameObjects().Actors.ForEach(func(_ uint64, actor *objs.Actor) {
+	c.client.SharedGameObjects().Actors.ForEach(func(_ uint32, actor *objs.Actor) {
 		if found {
 			return
 		}
@@ -103,7 +104,7 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 		c.client.SetState(&Admin{adminModel: &admin})
 		return
 	}
-	if err != sql.ErrNoRows {
+	if err != pgx.ErrNoRows {
 		c.logger.Printf("Failed to get admin for user %s: %v", user.Username, err)
 		// It's OK to send the specific error since this is an admin
 		c.client.SocketSend(packets.NewLoginResponse(false, err))
@@ -120,13 +121,19 @@ func (c *Connected) handleLoginRequest(_ uint64, message *packets.Packet_LoginRe
 	c.logger.Println("Login successful")
 	c.client.SocketSend(packets.NewLoginResponse(true, nil))
 
+	if !actor.LevelID.Valid {
+		c.logger.Printf("Actor %s has no level ID", actor.Name)
+		c.client.SocketSend(packets.NewLoginResponse(false, errors.New("internal server error, please try again later")))
+		return
+	}
+
 	c.client.SetState(&InGame{
-		levelId: actor.LevelID,
-		player:  objs.NewActor(actor.LevelID, actor.X, actor.Y, actor.Name, actor.ID),
+		levelId: actor.LevelID.Int32,
+		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.ID),
 	})
 }
 
-func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_RegisterRequest) {
+func (c *Connected) handleRegisterRequest(_ uint32, message *packets.Packet_RegisterRequest) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -168,9 +175,15 @@ func (c *Connected) handleRegisterRequest(_ uint64, message *packets.Packet_Regi
 	}
 
 	// TODO: Don't hardcode level ID
-	const levelId = 1
+
+	level, err := c.queries.GetLevelById(ctx, 1)
+	if err != nil {
+		c.logger.Printf("Failed to get level %d: %v", level.ID, err)
+		c.client.SocketSend(genericFailMessage)
+		return
+	}
 	_, err = c.queries.CreateActor(ctx, db.CreateActorParams{
-		LevelID: levelId,
+		LevelID: pgtype.Int4{Int32: level.ID, Valid: true},
 		X:       -1,
 		Y:       -1,
 		Name:    message.RegisterRequest.Username,

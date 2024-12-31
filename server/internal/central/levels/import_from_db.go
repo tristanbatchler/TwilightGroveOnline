@@ -13,8 +13,8 @@ type DbDataImporter[O any, M any] struct {
 	levelPointMap    *ds.LevelPointMap[*O]
 	sharedCollection *ds.SharedCollection[*O]
 	getPoint         func(message *M) ds.Point
-	getFromDb        func(ctx context.Context, levelId int64) ([]M, error)
-	setObjectId      func(object *O, id uint64)
+	getFromDb        func(ctx context.Context, levelId int32) ([]M, error)
+	setObjectId      func(object *O, id uint32)
 	makeGameObject   func(*M) (*O, error)
 	logger           *log.Logger
 }
@@ -24,8 +24,8 @@ func NewDbDataImporter[O any, M any](
 	levelPointMap *ds.LevelPointMap[*O],
 	sharedCollection *ds.SharedCollection[*O],
 	getPoint func(message *M) ds.Point,
-	getFromDb func(ctx context.Context, levelId int64) ([]M, error),
-	setObjectId func(object *O, id uint64),
+	getFromDb func(ctx context.Context, levelId int32) ([]M, error),
+	setObjectId func(object *O, id uint32),
 	makeGameObject func(*M) (*O, error),
 ) *DbDataImporter[O, M] {
 	return &DbDataImporter[O, M]{
@@ -41,7 +41,7 @@ func NewDbDataImporter[O any, M any](
 }
 
 func (d *DbDataImporter[O, M]) ImportObjects(
-	levelId int64,
+	levelId int32,
 ) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()

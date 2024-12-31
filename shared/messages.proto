@@ -10,7 +10,7 @@ message Response {
 }
 
 message ClientId {
-    uint64 id = 1;
+    uint32 id = 1;
 }
 
 message LoginRequest {
@@ -43,7 +43,7 @@ message Yell {
 }
 
 message Actor {
-    uint64 id = 1;
+    uint32 id = 1;
     int32 x = 3;
     int32 y = 4;
     string name = 5;
@@ -82,14 +82,14 @@ message CollisionPoint {
 }
 
 message Shrub {
-    uint64 id = 1;
+    uint32 id = 1;
     int32 x = 2;
     int32 y = 3;
     int32 strength = 4;
 }
 
 message Door {
-    uint64 id = 1;
+    uint32 id = 1;
     string destination_level_gd_res_path = 2;
     int32 destination_x = 3;
     int32 destination_y = 4;
@@ -117,7 +117,7 @@ message Item {
 }
 
 message GroundItem {
-    uint64 id = 1;
+    uint32 id = 1;
     Item item = 2;
     int32 x = 3;
     int32 y = 4;
@@ -134,7 +134,7 @@ message LevelUpload {
 }
 
 message LevelUploadResponse {
-    int64 db_level_id = 1;
+    int32 db_level_id = 1;
     string gd_res_path = 2;
     Response response = 3;
 }
@@ -153,7 +153,7 @@ message ServerMessage {
 }
 
 message PickupGroundItemRequest {
-    uint64 ground_item_id = 1;
+    uint32 ground_item_id = 1;
 }
 
 message PickupGroundItemResponse {
@@ -182,17 +182,17 @@ message ActorInventory {
 }
 
 message ChopShrubRequest {
-    uint64 shrub_id = 1;
+    uint32 shrub_id = 1;
 }
 
 message ChopShrubResponse {
-    uint64 shrub_id = 1;
+    uint32 shrub_id = 1;
     Response response = 2;
 }
 
 message XpReward {
     uint32 skill = 1;
-    uint64 xp = 2;
+    uint32 xp = 2;
 }
 
 message SkillsXp {
@@ -200,7 +200,7 @@ message SkillsXp {
 }
 
 message Packet {
-    uint64 sender_id = 1;
+    uint32 sender_id = 1;
     oneof msg {
         ClientId client_id = 2;
         LoginRequest login_request = 3;

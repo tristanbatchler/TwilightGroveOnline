@@ -7,18 +7,18 @@ import (
 
 // A generic, thread-safe map of objects with auto-incrementing IDs.
 type SharedCollection[T any] struct {
-	objectsMap map[uint64]T
-	nextId     uint64
+	objectsMap map[uint32]T
+	nextId     uint32
 	mapMux     sync.RWMutex
 }
 
 func NewSharedCollection[T any](capacity ...int) *SharedCollection[T] {
-	var newObjMap map[uint64]T
+	var newObjMap map[uint32]T
 
 	if len(capacity) > 0 {
-		newObjMap = make(map[uint64]T, capacity[0])
+		newObjMap = make(map[uint32]T, capacity[0])
 	} else {
-		newObjMap = make(map[uint64]T)
+		newObjMap = make(map[uint32]T)
 	}
 
 	return &SharedCollection[T]{
@@ -29,7 +29,7 @@ func NewSharedCollection[T any](capacity ...int) *SharedCollection[T] {
 
 // Add an object to the map with the given ID (if provided) or the next available ID.
 // Returns the ID of the object added.
-func (s *SharedCollection[T]) Add(obj T, id ...uint64) uint64 {
+func (s *SharedCollection[T]) Add(obj T, id ...uint32) uint32 {
 	s.mapMux.Lock()
 	defer s.mapMux.Unlock()
 
@@ -43,7 +43,7 @@ func (s *SharedCollection[T]) Add(obj T, id ...uint64) uint64 {
 }
 
 // Remove removes an object from the map by ID, if it exists.
-func (s *SharedCollection[T]) Remove(id uint64) {
+func (s *SharedCollection[T]) Remove(id uint32) {
 	s.mapMux.Lock()
 	defer s.mapMux.Unlock()
 
@@ -55,10 +55,10 @@ func (s *SharedCollection[T]) Remove(id uint64) {
 }
 
 // Call the callback function for each object in the map.
-func (s *SharedCollection[T]) ForEach(callback func(uint64, T)) {
+func (s *SharedCollection[T]) ForEach(callback func(uint32, T)) {
 	// Create a local copy while holding the lock.
 	s.mapMux.RLock()
-	localCopy := make(map[uint64]T, len(s.objectsMap))
+	localCopy := make(map[uint32]T, len(s.objectsMap))
 	for id, obj := range s.objectsMap {
 		localCopy[id] = obj
 	}
@@ -72,7 +72,7 @@ func (s *SharedCollection[T]) ForEach(callback func(uint64, T)) {
 
 // Get the object with the given ID, if it exists, otherwise nil.
 // Also returns a boolean indicating whether the object was found.
-func (s *SharedCollection[T]) Get(id uint64) (T, bool) {
+func (s *SharedCollection[T]) Get(id uint32) (T, bool) {
 	s.mapMux.RLock()
 	defer s.mapMux.RUnlock()
 

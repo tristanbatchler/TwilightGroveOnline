@@ -723,7 +723,7 @@ class ClientId:
 	func _init():
 		var service
 		
-		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
@@ -735,7 +735,7 @@ class ClientId:
 		return _id.value
 	func clear_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_id(value : int) -> void:
 		_id.value = value
 	
@@ -1083,7 +1083,7 @@ class Actor:
 	func _init():
 		var service
 		
-		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
@@ -1110,7 +1110,7 @@ class Actor:
 		return _id.value
 	func clear_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_id(value : int) -> void:
 		_id.value = value
 	
@@ -1527,7 +1527,7 @@ class Shrub:
 	func _init():
 		var service
 		
-		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
@@ -1554,7 +1554,7 @@ class Shrub:
 		return _id.value
 	func clear_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_id(value : int) -> void:
 		_id.value = value
 	
@@ -1610,7 +1610,7 @@ class Door:
 	func _init():
 		var service
 		
-		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
@@ -1647,7 +1647,7 @@ class Door:
 		return _id.value
 	func clear_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_id(value : int) -> void:
 		_id.value = value
 	
@@ -1894,7 +1894,7 @@ class GroundItem:
 	func _init():
 		var service
 		
-		_id = PBField.new("id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _id
 		data[_id.tag] = service
@@ -1927,7 +1927,7 @@ class GroundItem:
 		return _id.value
 	func clear_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_id(value : int) -> void:
 		_id.value = value
 	
@@ -2116,7 +2116,7 @@ class LevelUploadResponse:
 	func _init():
 		var service
 		
-		_db_level_id = PBField.new("db_level_id", PB_DATA_TYPE.INT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT64])
+		_db_level_id = PBField.new("db_level_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
 		service = PBServiceField.new()
 		service.field = _db_level_id
 		data[_db_level_id.tag] = service
@@ -2139,7 +2139,7 @@ class LevelUploadResponse:
 		return _db_level_id.value
 	func clear_db_level_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_db_level_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT64]
+		_db_level_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_db_level_id(value : int) -> void:
 		_db_level_id.value = value
 	
@@ -2339,7 +2339,7 @@ class PickupGroundItemRequest:
 	func _init():
 		var service
 		
-		_ground_item_id = PBField.new("ground_item_id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_ground_item_id = PBField.new("ground_item_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _ground_item_id
 		data[_ground_item_id.tag] = service
@@ -2351,7 +2351,7 @@ class PickupGroundItemRequest:
 		return _ground_item_id.value
 	func clear_ground_item_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_ground_item_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_ground_item_id(value : int) -> void:
 		_ground_item_id.value = value
 	
@@ -2670,7 +2670,7 @@ class ChopShrubRequest:
 	func _init():
 		var service
 		
-		_shrub_id = PBField.new("shrub_id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_shrub_id = PBField.new("shrub_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _shrub_id
 		data[_shrub_id.tag] = service
@@ -2682,7 +2682,7 @@ class ChopShrubRequest:
 		return _shrub_id.value
 	func clear_shrub_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_shrub_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_shrub_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_shrub_id(value : int) -> void:
 		_shrub_id.value = value
 	
@@ -2711,7 +2711,7 @@ class ChopShrubResponse:
 	func _init():
 		var service
 		
-		_shrub_id = PBField.new("shrub_id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_shrub_id = PBField.new("shrub_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _shrub_id
 		data[_shrub_id.tag] = service
@@ -2729,7 +2729,7 @@ class ChopShrubResponse:
 		return _shrub_id.value
 	func clear_shrub_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_shrub_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_shrub_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_shrub_id(value : int) -> void:
 		_shrub_id.value = value
 	
@@ -2773,7 +2773,7 @@ class XpReward:
 		service.field = _skill
 		data[_skill.tag] = service
 		
-		_xp = PBField.new("xp", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_xp = PBField.new("xp", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _xp
 		data[_xp.tag] = service
@@ -2794,7 +2794,7 @@ class XpReward:
 		return _xp.value
 	func clear_xp() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_xp(value : int) -> void:
 		_xp.value = value
 	
@@ -2867,7 +2867,7 @@ class Packet:
 	func _init():
 		var service
 		
-		_sender_id = PBField.new("sender_id", PB_DATA_TYPE.UINT64, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64])
+		_sender_id = PBField.new("sender_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
 		service = PBServiceField.new()
 		service.field = _sender_id
 		data[_sender_id.tag] = service
@@ -3089,7 +3089,7 @@ class Packet:
 		return _sender_id.value
 	func clear_sender_id() -> void:
 		data[1].state = PB_SERVICE_STATE.UNFILLED
-		_sender_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT64]
+		_sender_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
 	func set_sender_id(value : int) -> void:
 		_sender_id.value = value
 	
