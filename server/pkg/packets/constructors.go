@@ -70,9 +70,10 @@ func NewActor(actor *objs.Actor) Msg {
 func NewShrub(id uint32, shrub *objs.Shrub) Msg {
 	return &Packet_Shrub{
 		Shrub: &Shrub{
-			Id: id,
-			X:  shrub.X,
-			Y:  shrub.Y,
+			Id:       id,
+			Strength: shrub.Strength,
+			X:        shrub.X,
+			Y:        shrub.Y,
 		},
 	}
 }

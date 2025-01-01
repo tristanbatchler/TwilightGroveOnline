@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=4 uid="uid://dkoe1rn34sbf4"]
+[gd_scene load_steps=10 format=4 uid="uid://dkoe1rn34sbf4"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_12rrr"]
 [ext_resource type="PackedScene" uid="uid://b4no7pbmden15" path="res://objects/door/door.tscn" id="2_g8ril"]
@@ -201,10 +201,16 @@ physics_layer_0/collision_layer = 2
 physics_layer_0/collision_mask = 0
 sources/0 = SubResource("TileSetAtlasSource_rjr36")
 
+[sub_resource type="Resource" id="Resource_7xsrr"]
+script = ExtResource("5_fgfqf")
+strength = 3
+level_required = 10
+harvests = 1
+
 [sub_resource type="Resource" id="Resource_tpngs"]
 script = ExtResource("5_fgfqf")
 strength = 2
-level_required = 1
+level_required = 5
 harvests = 1
 
 [node name="Room" type="Node2D"]
@@ -228,13 +234,24 @@ metadata/_edit_group_ = true
 item_name = "A heart <3"
 description = "Wow, how cute!"
 
+[node name="GroundItem3" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
+position = Vector2(0, 32)
+item = NodePath("Item")
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem3" instance=ExtResource("4_71104")]
+region_rect = Rect2(128, 48, 8, 8)
+item_name = "Golden hatchet"
+description = "A master metalsmith must have forged this fine tool."
+tool_properties = SubResource("Resource_7xsrr")
+
 [node name="GroundItem2" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
 position = Vector2(-40, 24)
 item = NodePath("Item")
 metadata/_edit_group_ = true
 
 [node name="Item" parent="GroundItem2" instance=ExtResource("4_71104")]
-region_rect = Rect2(128, 32, 8, 8)
+region_rect = Rect2(128, 40, 8, 8)
 item_name = "Iron hatchet"
-description = "A tool for chopping wood"
+description = "A tool for chopping wood."
 tool_properties = SubResource("Resource_tpngs")
