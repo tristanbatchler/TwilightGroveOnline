@@ -19,67 +19,67 @@ type Npc struct {
 	logger        *log.Logger
 }
 
-func (g *Npc) Name() string {
+func (n *Npc) Name() string {
 	return "Npc"
 }
 
-func (g *Npc) SetClient(client central.ClientInterfacer) {
-	g.client = client
-	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), g.Name())
-	g.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
+func (n *Npc) SetClient(client central.ClientInterfacer) {
+	n.client = client
+	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), n.Name())
+	n.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
 }
 
-func (g *Npc) OnEnter() {
-	g.levelId = 1
-	g.actor = objs.NewActor(g.levelId, -rand.Int32N(7), rand.Int32N(5), "NPC", 0)
+func (n *Npc) OnEnter() {
+	n.levelId = 1
+	n.actor = objs.NewActor(n.levelId, -rand.Int32N(7), rand.Int32N(5), "NPC", 0)
 
-	g.client.SharedGameObjects().Actors.Add(g.actor, g.client.Id())
+	n.client.SharedGameObjects().Actors.Add(n.actor, n.client.Id())
 
 	// Collect info about all the other actors in the level
-	ourPlayerInfo := packets.NewActor(g.actor)
-	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
-		if actor.LevelId == g.levelId {
-			g.othersInLevel = append(g.othersInLevel, owner_client_id)
+	ourActorInfo := packets.NewActor(n.actor)
+	n.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
+		if actor.LevelId == n.levelId {
+			n.othersInLevel = append(n.othersInLevel, owner_client_id)
 		}
 	})
 
 	// Send our info back to all the other clients in the level
-	g.client.Broadcast(ourPlayerInfo, g.othersInLevel)
+	n.client.Broadcast(ourActorInfo, n.othersInLevel)
 }
 
-func (g *Npc) HandleMessage(senderId uint32, message packets.Msg) {
+func (n *Npc) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_Chat:
-		g.handleChat(senderId, message)
+		n.handleChat(senderId, message)
 	}
 }
 
-func (g *Npc) handleChat(senderId uint32, message *packets.Packet_Chat) {
+func (n *Npc) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	if strings.TrimSpace(message.Chat.Msg) == "" {
-		g.logger.Println("Received a chat message with no content, ignoring")
+		n.logger.Println("Received a chat message with no content, ignoring")
 		return
 	}
 
-	g.logger.Printf("Received a chat message from client %d", senderId)
+	n.logger.Printf("Received a chat message from client %d", senderId)
 }
 
-func (g *Npc) OnExit() {
-	g.logger.Println("NPC is exiting")
-	g.client.Broadcast(packets.NewLogout(), g.othersInLevel)
-	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
+func (n *Npc) OnExit() {
+	n.logger.Println("NPC is exiting")
+	n.client.Broadcast(packets.NewLogout(), n.othersInLevel)
+	n.client.SharedGameObjects().Actors.Remove(n.client.Id())
 }
 
-func (g *Npc) removeFromOtherInLevel(clientId uint32) {
-	for i, id := range g.othersInLevel {
+func (n *Npc) removeFromOtherInLevel(clientId uint32) {
+	for i, id := range n.othersInLevel {
 		if id == clientId {
-			g.othersInLevel = append(g.othersInLevel[:i], g.othersInLevel[i+1:]...)
+			n.othersInLevel = append(n.othersInLevel[:i], n.othersInLevel[i+1:]...)
 			return
 		}
 	}
 }
 
-func (g *Npc) isOtherKnown(otherId uint32) bool {
-	for _, id := range g.othersInLevel {
+func (n *Npc) isOtherKnown(otherId uint32) bool {
+	for _, id := range n.othersInLevel {
 		if id == otherId {
 			return true
 		}
