@@ -473,7 +473,7 @@ func _handle_xp_reward(xp_reward_msg: Packets.XpReward, from_initial_skills: boo
 	var skill := GameManager.get_skill_enum_from_int(skill_id)
 	var xp = xp_reward_msg.get_xp()
 	if skill == GameManager.Skill.WOODCUTTING:
-		_experience.woodcutting.xp += xp
+		_experience.woodcutting.xp = _experience.woodcutting.xp * int(not from_initial_skills) + xp
 	# Add more skill rewards here
 		
 	if not from_initial_skills:
