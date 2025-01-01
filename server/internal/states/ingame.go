@@ -490,7 +490,9 @@ func (g *InGame) OnExit() {
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
 	g.syncPlayerLocation(5 * time.Second)
 	g.syncInventory()
-	g.cancelPlayerUpdateLoop()
+	if g.cancelPlayerUpdateLoop != nil {
+		g.cancelPlayerUpdateLoop()
+	}
 }
 
 func (g *InGame) removeFromOtherInLevel(clientId uint32) {

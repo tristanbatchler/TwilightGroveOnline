@@ -1,6 +1,7 @@
 package states
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -9,15 +10,17 @@ import (
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
 type Npc struct {
-	client        central.ClientInterfacer
-	actor         *objs.Actor
-	levelId       int32
-	othersInLevel []uint32
-	logger        *log.Logger
+	client         central.ClientInterfacer
+	actor          *objs.Actor
+	levelId        int32
+	othersInLevel  []uint32
+	logger         *log.Logger
+	cancelMoveLoop context.CancelFunc
 }
 
 func (n *Npc) Name() string {
@@ -32,7 +35,7 @@ func (n *Npc) SetClient(client central.ClientInterfacer) {
 
 func (n *Npc) OnEnter() {
 	n.levelId = 1
-	n.actor = objs.NewActor(n.levelId, -rand.Int32N(7), rand.Int32N(5), "NPC", 0)
+	n.actor = objs.NewActor(n.levelId, 18, 5, "NPC", 0)
 
 	n.client.SharedGameObjects().Actors.Add(n.actor, n.client.Id())
 
@@ -54,6 +57,10 @@ func (n *Npc) HandleMessage(senderId uint32, message packets.Msg) {
 		n.handleChat(senderId, message)
 	case *packets.Packet_Actor:
 		n.handleActorInfo(senderId, message)
+	case *packets.Packet_Logout:
+		n.removeFromOtherInLevel(senderId)
+	case *packets.Packet_Disconnect:
+		n.removeFromOtherInLevel(senderId)
 	}
 }
 
@@ -77,6 +84,9 @@ func (n *Npc) OnExit() {
 	n.logger.Println("NPC is exiting")
 	n.client.Broadcast(packets.NewLogout(), n.othersInLevel)
 	n.client.SharedGameObjects().Actors.Remove(n.client.Id())
+	if n.cancelMoveLoop != nil {
+		n.cancelMoveLoop()
+	}
 }
 
 func (n *Npc) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
@@ -88,6 +98,13 @@ func (n *Npc) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 	if !n.isOtherKnown(senderId) {
 		n.othersInLevel = append(n.othersInLevel, senderId)
 		n.client.PassToPeer(packets.NewActor(n.actor), senderId)
+	}
+
+	// Start the move loop if it hasn't been started yet
+	if n.cancelMoveLoop == nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		n.cancelMoveLoop = cancel
+		go n.moveLoop(ctx)
 	}
 }
 
@@ -107,4 +124,54 @@ func (n *Npc) isOtherKnown(otherId uint32) bool {
 		}
 	}
 	return false
+}
+
+func (n *Npc) moveLoop(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(2 * time.Second):
+			dx := rand.Int32N(3) - 1
+			dy := rand.Int32N(3) - 1
+			if dx != 0 && dy != 0 {
+				// Choose one direction to move in, can't move diagonally
+				if rand.Int32N(2) == 0 {
+					dx = 0
+				} else {
+					dy = 0
+				}
+			}
+			if dx == 0 && dy == 0 {
+				continue
+			}
+			n.move(dx, dy)
+
+			// Check if we are all alone. If so, we can stop the move loop (it will start again if someone joins the level)
+			if len(n.othersInLevel) <= 1 {
+				n.cancelMoveLoop()
+				n.cancelMoveLoop = nil
+				return
+			}
+		}
+	}
+}
+
+func (n *Npc) move(dx, dy int32) {
+	targetX := n.actor.X + dx
+	targetY := n.actor.Y + dy
+	collisionPoint := ds.Point{X: targetX, Y: targetY}
+
+	// Check if the target position is in a collision point
+	if n.client.LevelPointMaps().Collisions.Contains(n.levelId, collisionPoint) {
+		n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
+		return
+	}
+
+	n.actor.X = targetX
+	n.actor.Y = targetY
+
+	n.logger.Printf("Actor moved to (%d, %d)", n.actor.X, n.actor.Y)
+
+	n.client.Broadcast(packets.NewActor(n.actor), n.othersInLevel)
 }
