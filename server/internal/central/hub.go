@@ -317,6 +317,24 @@ func (h *Hub) Run(adminPassword string) {
 	}
 }
 
+// Broadcasts a message to all connected clients except the sender
+func (h *Hub) Broadcast(senderId uint32, message packets.Msg, to ...[]uint32) {
+	if len(to) <= 0 {
+		h.BroadcastChan <- &packets.Packet{SenderId: senderId, Msg: message}
+		return
+	}
+
+	for _, recipient := range to[0] {
+		if recipient == senderId {
+			continue
+		}
+
+		if client, exists := h.Clients.Get(recipient); exists {
+			client.ProcessMessage(senderId, message)
+		}
+	}
+}
+
 // Creates a client for the new connection and begins the concurrent read and write pumps
 func (h *Hub) Serve(getNewClient func(*Hub, http.ResponseWriter, *http.Request) (ClientInterfacer, error), writer http.ResponseWriter, request *http.Request) {
 	log.Println("New client connected from", request.RemoteAddr)

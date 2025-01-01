@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/conn"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
 )
 
 var (
@@ -113,6 +114,14 @@ func main() {
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
 	log.Printf("Starting server on %s", addr)
+
+	// Add an NPC to the game
+	dummyClient, err := conn.NewDummyClient(hub, &states.Npc{})
+	if err != nil {
+		log.Fatalf("Error creating dummy client: %v", err)
+	}
+	hub.RegisterChan <- dummyClient
+	log.Printf("Added dummy client to the game")
 
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)
 	err = http.ListenAndServeTLS(addr, cfg.CertPath, cfg.KeyPath, nil)
