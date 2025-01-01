@@ -8,6 +8,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_eqd4h")
 
 [node name="CloseButton" type="Button" parent="."]
@@ -23,7 +25,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="CodeEdit" type="CodeEdit" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
 focus_neighbor_top = NodePath("../../CloseButton")
@@ -43,12 +44,12 @@ text = "Run"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 clip_contents = false
-custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 size_flags_vertical = 3
 
 [node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
