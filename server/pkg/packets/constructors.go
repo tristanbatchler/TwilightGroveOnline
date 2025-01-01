@@ -301,3 +301,11 @@ func NewSkillsXp(skillsXp map[skills.Skill]uint32) Msg {
 		},
 	}
 }
+
+func NewChat(msg string) Msg {
+	return &Packet_Chat{
+		Chat: &Chat{
+			Msg: msg,
+		},
+	}
+}
