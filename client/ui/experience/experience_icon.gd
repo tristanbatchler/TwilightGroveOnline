@@ -9,7 +9,7 @@ var xp: int = 0:
 	set(value):
 		xp = value
 		if is_node_ready():
-			_xp_label.text = str(xp)
+			_xp_label.text = Util.pretty_int(xp)
 			
 			var level := get_level(xp)
 			_level_label.text = str(level)
