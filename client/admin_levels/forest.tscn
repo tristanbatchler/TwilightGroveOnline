@@ -268,5 +268,44 @@ region_rect = Rect2(80, 40, 8, 8)
 item_name = "Bronze key"
 
 [node name="Shrub" parent="." instance=ExtResource("2_lfbik")]
-position = Vector2(152, 104)
+position = Vector2(280, 56)
 strength = 3
+
+[node name="Shrub2" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(96, 64)
+
+[node name="Shrub3" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(96, 24)
+strength = 2
+
+[node name="Shrub4" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(176, 8)
+
+[node name="Shrub5" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(224, 16)
+strength = 1
+
+[node name="Shrub6" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(64, 88)
+strength = 1
+
+[node name="Shrub7" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(136, 112)
+
+[node name="Shrub8" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(208, 112)
+strength = 2
+
+[node name="Shrub9" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(280, 32)
+
+[node name="Shrub10" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(152, 96)
+
+[node name="Shrub11" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(64, 48)
+strength = 3
+
+[node name="Shrub12" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(48, 120)
+strength = 2

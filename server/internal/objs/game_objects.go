@@ -41,7 +41,7 @@ func NewShrub(id uint32, levelId int32, strength int32, x, y int32) *Shrub {
 		Strength:       strength,
 		X:              x,
 		Y:              y,
-		RespawnSeconds: 5, // TODO: Make this receivable from the client and stored in the db
+		RespawnSeconds: 5 + strength*2, // TODO: Make this receivable from the client and stored in the db
 	}
 }
 

@@ -400,8 +400,8 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 	// Send the response and reward the player with some XP
 	go func() {
 		g.client.SocketSend(packets.NewChopShrubResponse(true, shrub.Id, nil))
-		time.Sleep(100 * time.Millisecond)      // Just to make sure the client receives the response before the XP reward
-		g.awardPlayerXp(skills.Woodcutting, 30) // TODO: Don't hardcode XP reward for shrubs, should also be dependent on shrub's strength
+		time.Sleep(100 * time.Millisecond) // Just to make sure the client receives the response before the XP reward
+		g.awardPlayerXp(skills.Woodcutting, 30*uint32(shrubStrength+1))
 	}()
 
 	// Award the player with some logs after a tiny delay
