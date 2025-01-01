@@ -57,7 +57,7 @@ tooltip_text = "Enter the game as a player with special privileges"
 text = "Join Game"
 
 [node name="SqlConsole" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("3_6q754")]
-custom_minimum_size = Vector2(0, 400)
+visible = false
 layout_mode = 2
 
 [node name="LevelBrowser" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("4_vd6dk")]

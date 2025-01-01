@@ -45,8 +45,26 @@ var _ids_harvestables: Dictionary[int, Harvestable] = {
 	1: Harvestable.SHRUB,
 }
 
+enum Skill {
+	WOODCUTTING,
+}
+
+var _skills_names: Dictionary[Skill, String] = {
+	Skill.WOODCUTTING: "wood cutting",
+}
+
+var _ids_skills: Dictionary[int, Skill] = {
+	0: Skill.WOODCUTTING,
+}
+
 func get_harvestable_enum_from_int(id: int) -> Harvestable:
 	return _ids_harvestables[id]
+	
+func get_skill_enum_from_int(id: int) -> Skill:
+	return _ids_skills[id]
+	
+func get_skill_name(skill: Skill) -> String:
+	return _skills_names[skill]
 
 # DB Level IDs - Godot scene resource paths
 var levels: Dictionary[int, String] = {}

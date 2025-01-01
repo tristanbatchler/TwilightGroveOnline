@@ -218,6 +218,96 @@ metadata/_edit_lock_ = true
 [node name="Shrub32" parent="." instance=ExtResource("2_lfbik")]
 position = Vector2(152, 104)
 
+[node name="Shrub34" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(200, 80)
+
+[node name="Shrub35" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(216, 40)
+
+[node name="Shrub36" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(208, 16)
+
+[node name="Shrub37" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(160, 0)
+
+[node name="Shrub38" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(120, 0)
+
+[node name="Shrub39" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(104, 16)
+
+[node name="Shrub40" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(80, 24)
+
+[node name="Shrub41" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(80, 0)
+
+[node name="Shrub42" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(64, 0)
+
+[node name="Shrub43" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(56, 32)
+
+[node name="Shrub44" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(80, 48)
+
+[node name="Shrub45" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(64, 64)
+
+[node name="Shrub46" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(48, 80)
+
+[node name="Shrub47" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(72, 96)
+
+[node name="Shrub48" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(56, 104)
+
+[node name="Shrub49" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(104, 72)
+
+[node name="Shrub50" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(112, 48)
+
+[node name="Shrub51" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(208, 128)
+
+[node name="Shrub52" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(256, 112)
+
+[node name="Shrub53" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(264, 88)
+
+[node name="Shrub54" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(264, 64)
+
+[node name="Shrub55" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(296, 64)
+
+[node name="Shrub56" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(288, 96)
+
+[node name="Shrub57" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(280, 48)
+
+[node name="Shrub58" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(120, 136)
+
+[node name="Shrub59" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(144, 136)
+
+[node name="Shrub60" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(136, 152)
+
+[node name="Shrub61" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(144, -16)
+
+[node name="Shrub62" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(232, -24)
+
+[node name="Shrub33" parent="." instance=ExtResource("2_lfbik")]
+position = Vector2(112, 96)
+
 [node name="Door" parent="." instance=ExtResource("3_xd47s")]
 position = Vector2(168, 32)
 destination_level_res_path = "res://admin_levels/room.tscn"

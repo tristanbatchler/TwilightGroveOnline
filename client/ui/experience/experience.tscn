@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8su8ebdyg06f"]
+
+[ext_resource type="Script" path="res://ui/experience/experience.gd" id="1_lht8u"]
+[ext_resource type="PackedScene" uid="uid://da822kx0po1wh" path="res://ui/experience/experience_icon.tscn" id="1_pcklp"]
+
+[node name="Experience" type="GridContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lht8u")
+
+[node name="WoodCutting" parent="." instance=ExtResource("1_pcklp")]
+layout_mode = 2

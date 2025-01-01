@@ -1,5 +1,7 @@
 package skills
 
+import "math"
+
 type Skill uint32
 
 const (
@@ -12,7 +14,12 @@ var SkillNames = map[Skill]string{
 }
 
 // How much experience is required to reach a certain level.
-func ExperienceCurve(level uint32) uint32 {
+func XpAtLevel(level uint32) uint32 {
 	// XP = 100 * (level^2), so level 1 = 100, level 2 = 400, level 3 = 900, etc.
 	return 100 * (level * level)
+}
+
+func Level(xp uint32) uint32 {
+	// level = sqrt(xp / 100)
+	return uint32(math.Sqrt(float64(xp) / 100))
 }

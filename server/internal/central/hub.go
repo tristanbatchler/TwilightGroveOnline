@@ -284,6 +284,17 @@ func (h *Hub) Run(adminPassword string) {
 		if err != nil && err != pgx.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)
 		}
+		if item.DbId == 0 {
+			itemModel, err = h.NewDbTx().Queries.GetItem(context.Background(), db.GetItemParams{
+				Name:          item.Name,
+				Description:   item.Description,
+				SpriteRegionX: item.SpriteRegionX,
+				SpriteRegionY: item.SpriteRegionY,
+			})
+			if err != nil {
+				log.Fatalf("Error getting default item %s: %v", item.Name, err)
+			}
+		}
 		item.DbId = itemModel.ID
 	}
 

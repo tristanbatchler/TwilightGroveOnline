@@ -17,6 +17,7 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
 @onready var _debug_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/DebugLabel
 @onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
+@onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/Experience
 
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
@@ -118,6 +119,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_item_quantity(packet.get_item_quantity())
 	elif packet.has_xp_reward():
 		_handle_xp_reward(packet.get_xp_reward())
+	elif packet.has_skills_xp():
+		_handle_skills_xp(packet.get_skills_xp())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -465,5 +468,18 @@ func _pickup_nearby_ground_item() -> void:
 			pickup_ground_item_request.set_ground_item_id(ground_item.ground_item_id)
 			WS.send(packet)
 
-func _handle_xp_reward(xp_reward_msg: Packets.XpReward) -> void:
-	_log.info("You gained %d XP for skill %d" % [xp_reward_msg.get_xp(), xp_reward_msg.get_skill()])
+func _handle_xp_reward(xp_reward_msg: Packets.XpReward, from_initial_skills: bool = false) -> void:
+	var skill_id := xp_reward_msg.get_skill()
+	var skill := GameManager.get_skill_enum_from_int(skill_id)
+	var xp = xp_reward_msg.get_xp()
+	if skill == GameManager.Skill.WOODCUTTING:
+		_experience.woodcutting.xp += xp
+	# Add more skill rewards here
+		
+	if not from_initial_skills:
+		var skill_name := GameManager.get_skill_name(skill)
+		_log.info("You gained %d %s experience." % [xp, skill_name])
+
+func _handle_skills_xp(skills_xp_msg: Packets.SkillsXp) -> void:
+	for xp_reward: Packets.XpReward in skills_xp_msg.get_xp_rewards():
+		_handle_xp_reward(xp_reward, true)
