@@ -156,7 +156,8 @@ func _handle_sql_response(sql_response: Packets.SqlResponse) -> void:
 		else :
 			_log.error("Unknown SQL failure")
 		return
-		
+	
+	_sql_console.clear_response_rows()	
 	_sql_console.add_response_row(sql_response.get_columns())
 	
 	for row: Packets.SqlRow in sql_response.get_rows():
