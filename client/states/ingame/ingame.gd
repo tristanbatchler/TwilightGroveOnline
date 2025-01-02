@@ -56,6 +56,8 @@ func _input(event: InputEvent) -> void:
 			_drop_selected_item()
 		elif event.is_action_released("harvest"):
 			_harvest_nearby_resource()
+		elif event.is_action_released("talk"):
+			_talk_to_nearby_actor()
 		
 		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
 		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
@@ -129,6 +131,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_xp_reward(packet.get_xp_reward())
 	elif packet.has_skills_xp():
 		_handle_skills_xp(packet.get_skills_xp())
+	elif packet.has_interact_with_npc_response():
+		_handle_interact_with_npc_response(packet.get_interact_with_npc_response())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -441,7 +445,7 @@ func _harvest_nearby_resource() -> void:
 	if GameManager.client_id in _actors:
 		var player := _actors[GameManager.client_id]
 		
-		var shrub = player.get_shrub_standing_on()
+		var shrub := player.get_shrub_standing_on()
 		if shrub != null:
 			_send_chop_shrub_request(shrub)
 			return
@@ -464,6 +468,27 @@ func _send_mine_ore_request(ore: Ore) -> void:
 	var harvest_request_msg := packet.new_mine_ore_request()
 	harvest_request_msg.set_ore_id(ore.ore_id)
 	WS.send(packet)
+	
+func _talk_to_nearby_actor() -> void:
+	if GameManager.client_id in _actors:
+		var player := _actors[GameManager.client_id]
+		
+		var actor := player.get_actor_standing_on()
+		if actor != null:
+			var packet := Packets.Packet.new()
+			var interact_with_npc_request_msg := packet.new_interact_with_npc_request()
+			var aid := _get_actor_id(actor)
+			if aid == null:
+				_log.error("Nobody to talk to here")
+				return
+			interact_with_npc_request_msg.set_actor_id(aid)
+			WS.send(packet)
+			
+func _get_actor_id(actor: Actor) -> int:
+	for aid in _actors:
+		if _actors[aid] == actor:
+			return aid
+	return -1
 
 func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
 	var response := chop_shrub_response.get_response()
@@ -484,6 +509,12 @@ func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> vo
 	var ore_id := mine_ore_response.get_ore_id()
 	_remove_ore(ore_id)
 	_log.success("You manage to mine some ore")
+
+func _handle_interact_with_npc_response(interact_with_npc_response: Packets.InteractWithNpcResponse) -> void:
+	var response := interact_with_npc_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
 
 func _process(delta: float) -> void:
 	var player: Actor = null

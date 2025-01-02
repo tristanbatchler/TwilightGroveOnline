@@ -217,6 +217,20 @@ message SkillsXp {
     repeated XpReward xp_rewards = 1;
 }
 
+message InteractWithNpcRequest {
+    uint32 actor_id = 1;
+}
+
+message InteractWithNpcResponse {
+    uint32 actor_id = 1;
+    Response response = 2;
+}
+
+message NpcDialogue {
+    uint32 actor_id = 1;
+    repeated string dialogue = 2;
+}
+
 message Packet {
     uint32 sender_id = 1;
     oneof msg {
@@ -258,5 +272,8 @@ message Packet {
         ItemQuantity item_quantity = 37;
         XpReward xp_reward = 38;
         SkillsXp skills_xp = 39;
+        InteractWithNpcResponse interact_with_npc_response = 40;
+        InteractWithNpcRequest interact_with_npc_request = 41;
+        NpcDialogue npc_dialogue = 42;
     }
 }

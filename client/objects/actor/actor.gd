@@ -130,7 +130,14 @@ func get_ore_standing_on() -> Ore:
 	for area in _area.get_overlapping_areas():
 		if area is Ore:
 			return area as Ore
-	return null
+	return 
+	
+func get_actor_standing_on() -> Actor:
+	for body in _area.get_overlapping_bodies():
+		var actor := body as Actor
+		if actor != self:
+			return actor
+	return
 	
 func chat(message: String) -> void:
 	_chat_label.text = message

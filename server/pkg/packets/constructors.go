@@ -335,3 +335,23 @@ func NewChat(msg string) Msg {
 		},
 	}
 }
+
+func NewInteractWithNpcResponse(success bool, actorId uint32, err error) Msg {
+	return &Packet_InteractWithNpcResponse{
+		InteractWithNpcResponse: &InteractWithNpcResponse{
+			ActorId: actorId,
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}
+
+func NewNpcDialogue(dialogue []string) Msg {
+	return &Packet_NpcDialogue{
+		NpcDialogue: &NpcDialogue{
+			Dialogue: dialogue,
+		},
+	}
+}

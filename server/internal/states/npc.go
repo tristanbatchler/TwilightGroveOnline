@@ -61,6 +61,8 @@ func (n *Npc) HandleMessage(senderId uint32, message packets.Msg) {
 		n.removeFromOtherInLevel(senderId)
 	case *packets.Packet_Disconnect:
 		n.removeFromOtherInLevel(senderId)
+	case *packets.Packet_InteractWithNpcRequest:
+		n.handleInteractWithNpcRequest(senderId, message)
 	}
 }
 
@@ -106,6 +108,33 @@ func (n *Npc) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 		n.cancelMoveLoop = cancel
 		go n.moveLoop(ctx)
 	}
+}
+
+func (n *Npc) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
+	if senderId == n.client.Id() {
+		n.logger.Printf("Received an interact with NPC request from itself, ignoring, and I should never see this message")
+		return
+	}
+
+	if message.InteractWithNpcRequest.ActorId != n.client.Id() {
+		n.logger.Printf("Received an interact with NPC request for an actor that is not me, ignoring. I should never see this message")
+		return
+	}
+
+	n.logger.Printf("Received an interact with NPC request from client %d", senderId)
+
+	if !n.isOtherKnown(senderId) {
+		n.logger.Printf("Client %d is not in the othersInLevel map", senderId)
+		return
+	}
+
+	senderActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
+	if !exists {
+		n.logger.Printf("Client %d is not in the actors map", senderId)
+		return
+	}
+
+	n.client.Broadcast(packets.NewChat(fmt.Sprintf("%s... I don't want to talk right now.", senderActor.Name)), n.othersInLevel)
 }
 
 func (n *Npc) removeFromOtherInLevel(clientId uint32) {

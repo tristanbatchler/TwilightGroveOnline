@@ -112,6 +112,8 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.client.SocketSendAs(message, senderId)
 	case *packets.Packet_Ore:
 		g.client.SocketSendAs(message, senderId)
+	case *packets.Packet_InteractWithNpcRequest:
+		g.handleInteractWithNpcRequest(senderId, message)
 	}
 }
 
@@ -611,6 +613,23 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 
 	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
 	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+}
+
+func (g *InGame) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
+	if senderId != g.client.Id() {
+		g.logger.Printf("Received an interact with NPC request from client %d, but we only accept requests from ourselves - ignoring", senderId)
+		return
+	}
+
+	// ActorID is stored in the othersInLevel slice and corresponds to the dummy client ID, so we can just pass the message to the dummy client
+	clientId := message.InteractWithNpcRequest.ActorId
+	if !g.isOtherKnown(clientId) {
+		g.logger.Printf("Tried to interact with NPC with client ID %d, but they're not known to us", clientId)
+		g.client.SocketSend(packets.NewInteractWithNpcResponse(false, 0, errors.New("That person is unknown")))
+		return
+	}
+
+	g.client.PassToPeer(message, clientId)
 }
 
 func (g *InGame) OnExit() {
