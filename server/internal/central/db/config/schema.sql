@@ -47,6 +47,14 @@ CREATE TABLE IF NOT EXISTS levels_shrubs (
     y INTEGER NOT NULL 
 );
 
+CREATE TABLE IF NOT EXISTS levels_ores (
+    id SERIAL PRIMARY KEY,
+    level_id INTEGER NOT NULL REFERENCES levels(id) ON DELETE CASCADE,
+    strength INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL 
+);
+
 CREATE TABLE IF NOT EXISTS levels_doors (
     id SERIAL PRIMARY KEY,
     level_id INTEGER NOT NULL REFERENCES levels(id) ON DELETE CASCADE, -- delete from levels_doors when level with id level_id is deleted
@@ -61,7 +69,7 @@ CREATE TABLE IF NOT EXISTS tool_properties (
     id SERIAL PRIMARY KEY,
     strength INTEGER NOT NULL,
     level_required INTEGER NOT NULL,
-    harvests INTEGER NOT NULL, -- 0 = NONE, 1 = SHRUB, ...
+    harvests INTEGER NOT NULL, -- 0 = NONE, 1 = SHRUB, 2 = ORE
     CONSTRAINT unique_tool_properties_combination UNIQUE (strength, level_required, harvests)
 );
 

@@ -1606,6 +1606,89 @@ class Shrub:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class Ore:
+	func _init():
+		var service
+		
+		_id = PBField.new("id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = _id
+		data[_id.tag] = service
+		
+		_x = PBField.new("x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _x
+		data[_x.tag] = service
+		
+		_y = PBField.new("y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _y
+		data[_y.tag] = service
+		
+		_strength = PBField.new("strength", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _strength
+		data[_strength.tag] = service
+		
+	var data = {}
+	
+	var _id: PBField
+	func get_id() -> int:
+		return _id.value
+	func clear_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_id(value : int) -> void:
+		_id.value = value
+	
+	var _x: PBField
+	func get_x() -> int:
+		return _x.value
+	func clear_x() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_x(value : int) -> void:
+		_x.value = value
+	
+	var _y: PBField
+	func get_y() -> int:
+		return _y.value
+	func clear_y() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_y(value : int) -> void:
+		_y.value = value
+	
+	var _strength: PBField
+	func get_strength() -> int:
+		return _strength.value
+	func clear_strength() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_strength.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_strength(value : int) -> void:
+		_strength.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class Door:
 	func _init():
 		var service
@@ -1719,7 +1802,8 @@ class Door:
 	
 enum Harvestable {
 	NONE = 0,
-	SHRUB = 1
+	SHRUB = 1,
+	ORE = 2
 }
 
 class ToolProps:
@@ -2015,13 +2099,19 @@ class LevelUpload:
 		service.func_ref = Callable(self, "add_shrub")
 		data[_shrub.tag] = service
 		
-		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 5, true, [])
+		_ore = PBField.new("ore", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 5, true, [])
+		service = PBServiceField.new()
+		service.field = _ore
+		service.func_ref = Callable(self, "add_ore")
+		data[_ore.tag] = service
+		
+		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 6, true, [])
 		service = PBServiceField.new()
 		service.field = _door
 		service.func_ref = Callable(self, "add_door")
 		data[_door.tag] = service
 		
-		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 6, true, [])
+		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.REPEATED, 7, true, [])
 		service = PBServiceField.new()
 		service.field = _ground_item
 		service.func_ref = Callable(self, "add_ground_item")
@@ -2069,11 +2159,22 @@ class LevelUpload:
 		_shrub.value.append(element)
 		return element
 	
+	var _ore: PBField
+	func get_ore() -> Array:
+		return _ore.value
+	func clear_ore() -> void:
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_ore.value = []
+	func add_ore() -> Ore:
+		var element = Ore.new()
+		_ore.value.append(element)
+		return element
+	
 	var _door: PBField
 	func get_door() -> Array:
 		return _door.value
 	func clear_door() -> void:
-		data[5].state = PB_SERVICE_STATE.UNFILLED
+		data[6].state = PB_SERVICE_STATE.UNFILLED
 		_door.value = []
 	func add_door() -> Door:
 		var element = Door.new()
@@ -2084,7 +2185,7 @@ class LevelUpload:
 	func get_ground_item() -> Array:
 		return _ground_item.value
 	func clear_ground_item() -> void:
-		data[6].state = PB_SERVICE_STATE.UNFILLED
+		data[7].state = PB_SERVICE_STATE.UNFILLED
 		_ground_item.value = []
 	func add_ground_item() -> GroundItem:
 		var element = GroundItem.new()
@@ -2764,6 +2865,104 @@ class ChopShrubResponse:
 			return PB_ERR.PARSE_INCOMPLETE
 		return result
 	
+class MineOreRequest:
+	func _init():
+		var service
+		
+		_ore_id = PBField.new("ore_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = _ore_id
+		data[_ore_id.tag] = service
+		
+	var data = {}
+	
+	var _ore_id: PBField
+	func get_ore_id() -> int:
+		return _ore_id.value
+	func clear_ore_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_ore_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ore_id(value : int) -> void:
+		_ore_id.value = value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
+class MineOreResponse:
+	func _init():
+		var service
+		
+		_ore_id = PBField.new("ore_id", PB_DATA_TYPE.UINT32, PB_RULE.OPTIONAL, 1, true, DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32])
+		service = PBServiceField.new()
+		service.field = _ore_id
+		data[_ore_id.tag] = service
+		
+		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _response
+		service.func_ref = Callable(self, "new_response")
+		data[_response.tag] = service
+		
+	var data = {}
+	
+	var _ore_id: PBField
+	func get_ore_id() -> int:
+		return _ore_id.value
+	func clear_ore_id() -> void:
+		data[1].state = PB_SERVICE_STATE.UNFILLED
+		_ore_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.UINT32]
+	func set_ore_id(value : int) -> void:
+		_ore_id.value = value
+	
+	var _response: PBField
+	func get_response() -> Response:
+		return _response.value
+	func clear_response() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_response() -> Response:
+		_response.value = Response.new()
+		return _response.value
+	
+	func _to_string() -> String:
+		return PBPacker.message_to_string(data)
+		
+	func to_bytes() -> PackedByteArray:
+		return PBPacker.pack_message(data)
+		
+	func from_bytes(bytes : PackedByteArray, offset : int = 0, limit : int = -1) -> int:
+		var cur_limit = bytes.size()
+		if limit != -1:
+			cur_limit = limit
+		var result = PBPacker.unpack_message(data, bytes, offset, cur_limit)
+		if result == cur_limit:
+			if PBPacker.check_required(data):
+				if limit == -1:
+					return PB_ERR.NO_ERRORS
+			else:
+				return PB_ERR.REQUIRED_FIELDS
+		elif limit == -1 && result > 0:
+			return PB_ERR.PARSE_INCOMPLETE
+		return result
+	
 class XpReward:
 	func _init():
 		var service
@@ -3016,67 +3215,85 @@ class Packet:
 		service.func_ref = Callable(self, "new_shrub")
 		data[_shrub.tag] = service
 		
-		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 26, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_ore = PBField.new("ore", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 26, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _ore
+		service.func_ref = Callable(self, "new_ore")
+		data[_ore.tag] = service
+		
+		_door = PBField.new("door", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 27, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _door
 		service.func_ref = Callable(self, "new_door")
 		data[_door.tag] = service
 		
-		_Item = PBField.new("Item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 27, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_Item = PBField.new("Item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 28, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _Item
 		service.func_ref = Callable(self, "new_Item")
 		data[_Item.tag] = service
 		
-		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 28, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_ground_item = PBField.new("ground_item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 29, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _ground_item
 		service.func_ref = Callable(self, "new_ground_item")
 		data[_ground_item.tag] = service
 		
-		_actor_inventory = PBField.new("actor_inventory", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 29, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_actor_inventory = PBField.new("actor_inventory", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 30, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _actor_inventory
 		service.func_ref = Callable(self, "new_actor_inventory")
 		data[_actor_inventory.tag] = service
 		
-		_drop_item_request = PBField.new("drop_item_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 30, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_drop_item_request = PBField.new("drop_item_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 31, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _drop_item_request
 		service.func_ref = Callable(self, "new_drop_item_request")
 		data[_drop_item_request.tag] = service
 		
-		_drop_item_response = PBField.new("drop_item_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 31, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_drop_item_response = PBField.new("drop_item_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 32, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _drop_item_response
 		service.func_ref = Callable(self, "new_drop_item_response")
 		data[_drop_item_response.tag] = service
 		
-		_chop_shrub_request = PBField.new("chop_shrub_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 32, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_chop_shrub_request = PBField.new("chop_shrub_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 33, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _chop_shrub_request
 		service.func_ref = Callable(self, "new_chop_shrub_request")
 		data[_chop_shrub_request.tag] = service
 		
-		_chop_shrub_response = PBField.new("chop_shrub_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 33, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_chop_shrub_response = PBField.new("chop_shrub_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 34, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _chop_shrub_response
 		service.func_ref = Callable(self, "new_chop_shrub_response")
 		data[_chop_shrub_response.tag] = service
 		
-		_item_quantity = PBField.new("item_quantity", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 34, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_mine_ore_request = PBField.new("mine_ore_request", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 35, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _mine_ore_request
+		service.func_ref = Callable(self, "new_mine_ore_request")
+		data[_mine_ore_request.tag] = service
+		
+		_mine_ore_response = PBField.new("mine_ore_response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 36, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		service = PBServiceField.new()
+		service.field = _mine_ore_response
+		service.func_ref = Callable(self, "new_mine_ore_response")
+		data[_mine_ore_response.tag] = service
+		
+		_item_quantity = PBField.new("item_quantity", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 37, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _item_quantity
 		service.func_ref = Callable(self, "new_item_quantity")
 		data[_item_quantity.tag] = service
 		
-		_xp_reward = PBField.new("xp_reward", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 35, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_xp_reward = PBField.new("xp_reward", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 38, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _xp_reward
 		service.func_ref = Callable(self, "new_xp_reward")
 		data[_xp_reward.tag] = service
 		
-		_skills_xp = PBField.new("skills_xp", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 36, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_skills_xp = PBField.new("skills_xp", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 39, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
 		service.field = _skills_xp
 		service.func_ref = Callable(self, "new_skills_xp")
@@ -3149,28 +3366,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_client_id.value = ClientId.new()
 		return _client_id.value
 	
@@ -3230,28 +3453,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_login_request.value = LoginRequest.new()
 		return _login_request.value
 	
@@ -3311,28 +3540,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_login_response.value = LoginResponse.new()
 		return _login_response.value
 	
@@ -3392,28 +3627,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_register_request.value = RegisterRequest.new()
 		return _register_request.value
 	
@@ -3473,28 +3714,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_register_response.value = RegisterResponse.new()
 		return _register_response.value
 	
@@ -3554,28 +3801,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_logout.value = Logout.new()
 		return _logout.value
 	
@@ -3635,28 +3888,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_chat.value = Chat.new()
 		return _chat.value
 	
@@ -3716,28 +3975,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_yell.value = Yell.new()
 		return _yell.value
 	
@@ -3797,28 +4062,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_actor.value = Actor.new()
 		return _actor.value
 	
@@ -3878,28 +4149,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_actor_move.value = ActorMove.new()
 		return _actor_move.value
 	
@@ -3959,28 +4236,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_motd.value = Motd.new()
 		return _motd.value
 	
@@ -4040,28 +4323,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_disconnect.value = Disconnect.new()
 		return _disconnect.value
 	
@@ -4121,28 +4410,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_admin_login_granted.value = AdminLoginGranted.new()
 		return _admin_login_granted.value
 	
@@ -4202,28 +4497,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_sql_query.value = SqlQuery.new()
 		return _sql_query.value
 	
@@ -4283,28 +4584,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_sql_response.value = SqlResponse.new()
 		return _sql_response.value
 	
@@ -4364,28 +4671,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload.value = LevelUpload.new()
 		return _level_upload.value
 	
@@ -4445,28 +4758,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_level_upload_response.value = LevelUploadResponse.new()
 		return _level_upload_response.value
 	
@@ -4526,28 +4845,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_level_download.value = LevelDownload.new()
 		return _level_download.value
 	
@@ -4607,28 +4932,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_request.value = AdminJoinGameRequest.new()
 		return _admin_join_game_request.value
 	
@@ -4688,28 +5019,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_admin_join_game_response.value = AdminJoinGameResponse.new()
 		return _admin_join_game_response.value
 	
@@ -4769,28 +5106,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_server_message.value = ServerMessage.new()
 		return _server_message.value
 	
@@ -4850,28 +5193,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_request.value = PickupGroundItemRequest.new()
 		return _pickup_ground_item_request.value
 	
@@ -4931,28 +5280,34 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.FILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_pickup_ground_item_response.value = PickupGroundItemResponse.new()
 		return _pickup_ground_item_response.value
 	
@@ -5012,38 +5367,131 @@ class Packet:
 		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		data[25].state = PB_SERVICE_STATE.FILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = Shrub.new()
 		return _shrub.value
 	
+	var _ore: PBField
+	func has_ore() -> bool:
+		return data[26].state == PB_SERVICE_STATE.FILLED
+	func get_ore() -> Ore:
+		return _ore.value
+	func clear_ore() -> void:
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_ore() -> Ore:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		data[26].state = PB_SERVICE_STATE.FILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[32].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[35].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
+		_ore.value = Ore.new()
+		return _ore.value
+	
 	var _door: PBField
 	func has_door() -> bool:
-		return data[26].state == PB_SERVICE_STATE.FILLED
+		return data[27].state == PB_SERVICE_STATE.FILLED
 	func get_door() -> Door:
 		return _door.value
 	func clear_door() -> void:
-		data[26].state = PB_SERVICE_STATE.UNFILLED
+		data[27].state = PB_SERVICE_STATE.UNFILLED
 		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_door() -> Door:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5094,37 +5542,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		data[26].state = PB_SERVICE_STATE.FILLED
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		data[27].state = PB_SERVICE_STATE.FILLED
 		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_door.value = Door.new()
 		return _door.value
 	
 	var _Item: PBField
 	func has_Item() -> bool:
-		return data[27].state == PB_SERVICE_STATE.FILLED
+		return data[28].state == PB_SERVICE_STATE.FILLED
 	func get_Item() -> Item:
 		return _Item.value
 	func clear_Item() -> void:
-		data[27].state = PB_SERVICE_STATE.UNFILLED
+		data[28].state = PB_SERVICE_STATE.UNFILLED
 		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_Item() -> Item:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5175,37 +5629,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		data[27].state = PB_SERVICE_STATE.FILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		data[28].state = PB_SERVICE_STATE.FILLED
 		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_Item.value = Item.new()
 		return _Item.value
 	
 	var _ground_item: PBField
 	func has_ground_item() -> bool:
-		return data[28].state == PB_SERVICE_STATE.FILLED
+		return data[29].state == PB_SERVICE_STATE.FILLED
 	func get_ground_item() -> GroundItem:
 		return _ground_item.value
 	func clear_ground_item() -> void:
-		data[28].state = PB_SERVICE_STATE.UNFILLED
+		data[29].state = PB_SERVICE_STATE.UNFILLED
 		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_ground_item() -> GroundItem:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5256,37 +5716,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		data[28].state = PB_SERVICE_STATE.FILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		data[29].state = PB_SERVICE_STATE.FILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_ground_item.value = GroundItem.new()
 		return _ground_item.value
 	
 	var _actor_inventory: PBField
 	func has_actor_inventory() -> bool:
-		return data[29].state == PB_SERVICE_STATE.FILLED
+		return data[30].state == PB_SERVICE_STATE.FILLED
 	func get_actor_inventory() -> ActorInventory:
 		return _actor_inventory.value
 	func clear_actor_inventory() -> void:
-		data[29].state = PB_SERVICE_STATE.UNFILLED
+		data[30].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_actor_inventory() -> ActorInventory:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5337,37 +5803,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		data[29].state = PB_SERVICE_STATE.FILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		data[30].state = PB_SERVICE_STATE.FILLED
 		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_actor_inventory.value = ActorInventory.new()
 		return _actor_inventory.value
 	
 	var _drop_item_request: PBField
 	func has_drop_item_request() -> bool:
-		return data[30].state == PB_SERVICE_STATE.FILLED
+		return data[31].state == PB_SERVICE_STATE.FILLED
 	func get_drop_item_request() -> DropItemRequest:
 		return _drop_item_request.value
 	func clear_drop_item_request() -> void:
-		data[30].state = PB_SERVICE_STATE.UNFILLED
+		data[31].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_drop_item_request() -> DropItemRequest:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5418,37 +5890,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		data[30].state = PB_SERVICE_STATE.FILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		data[31].state = PB_SERVICE_STATE.FILLED
 		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_request.value = DropItemRequest.new()
 		return _drop_item_request.value
 	
 	var _drop_item_response: PBField
 	func has_drop_item_response() -> bool:
-		return data[31].state == PB_SERVICE_STATE.FILLED
+		return data[32].state == PB_SERVICE_STATE.FILLED
 	func get_drop_item_response() -> DropItemResponse:
 		return _drop_item_response.value
 	func clear_drop_item_response() -> void:
-		data[31].state = PB_SERVICE_STATE.UNFILLED
+		data[32].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_drop_item_response() -> DropItemResponse:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5499,37 +5977,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		data[31].state = PB_SERVICE_STATE.FILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		data[32].state = PB_SERVICE_STATE.FILLED
 		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_drop_item_response.value = DropItemResponse.new()
 		return _drop_item_response.value
 	
 	var _chop_shrub_request: PBField
 	func has_chop_shrub_request() -> bool:
-		return data[32].state == PB_SERVICE_STATE.FILLED
+		return data[33].state == PB_SERVICE_STATE.FILLED
 	func get_chop_shrub_request() -> ChopShrubRequest:
 		return _chop_shrub_request.value
 	func clear_chop_shrub_request() -> void:
-		data[32].state = PB_SERVICE_STATE.UNFILLED
+		data[33].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_chop_shrub_request() -> ChopShrubRequest:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5580,37 +6064,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		data[32].state = PB_SERVICE_STATE.FILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[32].state = PB_SERVICE_STATE.UNFILLED
+		data[33].state = PB_SERVICE_STATE.FILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_request.value = ChopShrubRequest.new()
 		return _chop_shrub_request.value
 	
 	var _chop_shrub_response: PBField
 	func has_chop_shrub_response() -> bool:
-		return data[33].state == PB_SERVICE_STATE.FILLED
+		return data[34].state == PB_SERVICE_STATE.FILLED
 	func get_chop_shrub_response() -> ChopShrubResponse:
 		return _chop_shrub_response.value
 	func clear_chop_shrub_response() -> void:
-		data[33].state = PB_SERVICE_STATE.UNFILLED
+		data[34].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_chop_shrub_response() -> ChopShrubResponse:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5661,37 +6151,217 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		data[33].state = PB_SERVICE_STATE.FILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[33].state = PB_SERVICE_STATE.UNFILLED
+		data[34].state = PB_SERVICE_STATE.FILLED
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_chop_shrub_response.value = ChopShrubResponse.new()
 		return _chop_shrub_response.value
 	
+	var _mine_ore_request: PBField
+	func has_mine_ore_request() -> bool:
+		return data[35].state == PB_SERVICE_STATE.FILLED
+	func get_mine_ore_request() -> MineOreRequest:
+		return _mine_ore_request.value
+	func clear_mine_ore_request() -> void:
+		data[35].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_mine_ore_request() -> MineOreRequest:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[32].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
+		data[35].state = PB_SERVICE_STATE.FILLED
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_request.value = MineOreRequest.new()
+		return _mine_ore_request.value
+	
+	var _mine_ore_response: PBField
+	func has_mine_ore_response() -> bool:
+		return data[36].state == PB_SERVICE_STATE.FILLED
+	func get_mine_ore_response() -> MineOreResponse:
+		return _mine_ore_response.value
+	func clear_mine_ore_response() -> void:
+		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_mine_ore_response() -> MineOreResponse:
+		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_login_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_login_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_register_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[5].state = PB_SERVICE_STATE.UNFILLED
+		_register_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_logout.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_chat.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_yell.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[9].state = PB_SERVICE_STATE.UNFILLED
+		_actor.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[10].state = PB_SERVICE_STATE.UNFILLED
+		_actor_move.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[11].state = PB_SERVICE_STATE.UNFILLED
+		_motd.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[12].state = PB_SERVICE_STATE.UNFILLED
+		_disconnect.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[13].state = PB_SERVICE_STATE.UNFILLED
+		_admin_login_granted.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[14].state = PB_SERVICE_STATE.UNFILLED
+		_sql_query.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[15].state = PB_SERVICE_STATE.UNFILLED
+		_sql_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[16].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[17].state = PB_SERVICE_STATE.UNFILLED
+		_level_upload_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[18].state = PB_SERVICE_STATE.UNFILLED
+		_level_download.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[19].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[20].state = PB_SERVICE_STATE.UNFILLED
+		_admin_join_game_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[21].state = PB_SERVICE_STATE.UNFILLED
+		_server_message.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[22].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[23].state = PB_SERVICE_STATE.UNFILLED
+		_pickup_ground_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[24].state = PB_SERVICE_STATE.UNFILLED
+		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[25].state = PB_SERVICE_STATE.UNFILLED
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[26].state = PB_SERVICE_STATE.UNFILLED
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[27].state = PB_SERVICE_STATE.UNFILLED
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[28].state = PB_SERVICE_STATE.UNFILLED
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[29].state = PB_SERVICE_STATE.UNFILLED
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[30].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[31].state = PB_SERVICE_STATE.UNFILLED
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[32].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[33].state = PB_SERVICE_STATE.UNFILLED
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[35].state = PB_SERVICE_STATE.UNFILLED
+		data[36].state = PB_SERVICE_STATE.FILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_response.value = MineOreResponse.new()
+		return _mine_ore_response.value
+	
 	var _item_quantity: PBField
 	func has_item_quantity() -> bool:
-		return data[34].state == PB_SERVICE_STATE.FILLED
+		return data[37].state == PB_SERVICE_STATE.FILLED
 	func get_item_quantity() -> ItemQuantity:
 		return _item_quantity.value
 	func clear_item_quantity() -> void:
-		data[34].state = PB_SERVICE_STATE.UNFILLED
+		data[37].state = PB_SERVICE_STATE.UNFILLED
 		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_item_quantity() -> ItemQuantity:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5742,37 +6412,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		data[34].state = PB_SERVICE_STATE.FILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[34].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		data[37].state = PB_SERVICE_STATE.FILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_item_quantity.value = ItemQuantity.new()
 		return _item_quantity.value
 	
 	var _xp_reward: PBField
 	func has_xp_reward() -> bool:
-		return data[35].state == PB_SERVICE_STATE.FILLED
+		return data[38].state == PB_SERVICE_STATE.FILLED
 	func get_xp_reward() -> XpReward:
 		return _xp_reward.value
 	func clear_xp_reward() -> void:
-		data[35].state = PB_SERVICE_STATE.UNFILLED
+		data[38].state = PB_SERVICE_STATE.UNFILLED
 		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_xp_reward() -> XpReward:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5823,37 +6499,43 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		data[35].state = PB_SERVICE_STATE.FILLED
-		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[35].state = PB_SERVICE_STATE.UNFILLED
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		data[38].state = PB_SERVICE_STATE.FILLED
+		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_xp_reward.value = XpReward.new()
 		return _xp_reward.value
 	
 	var _skills_xp: PBField
 	func has_skills_xp() -> bool:
-		return data[36].state == PB_SERVICE_STATE.FILLED
+		return data[39].state == PB_SERVICE_STATE.FILLED
 	func get_skills_xp() -> SkillsXp:
 		return _skills_xp.value
 	func clear_skills_xp() -> void:
-		data[36].state = PB_SERVICE_STATE.UNFILLED
+		data[39].state = PB_SERVICE_STATE.UNFILLED
 		_skills_xp.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 	func new_skills_xp() -> SkillsXp:
 		_client_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
@@ -5904,27 +6586,33 @@ class Packet:
 		data[24].state = PB_SERVICE_STATE.UNFILLED
 		_shrub.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[25].state = PB_SERVICE_STATE.UNFILLED
-		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ore.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[26].state = PB_SERVICE_STATE.UNFILLED
-		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_door.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[27].state = PB_SERVICE_STATE.UNFILLED
-		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_Item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[28].state = PB_SERVICE_STATE.UNFILLED
-		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_ground_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[29].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_actor_inventory.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[30].state = PB_SERVICE_STATE.UNFILLED
-		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[31].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_drop_item_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[32].state = PB_SERVICE_STATE.UNFILLED
-		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[33].state = PB_SERVICE_STATE.UNFILLED
-		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_chop_shrub_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[34].state = PB_SERVICE_STATE.UNFILLED
-		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		_mine_ore_request.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
 		data[35].state = PB_SERVICE_STATE.UNFILLED
-		data[36].state = PB_SERVICE_STATE.FILLED
+		_mine_ore_response.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[36].state = PB_SERVICE_STATE.UNFILLED
+		_item_quantity.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[37].state = PB_SERVICE_STATE.UNFILLED
+		_xp_reward.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+		data[38].state = PB_SERVICE_STATE.UNFILLED
+		data[39].state = PB_SERVICE_STATE.FILLED
 		_skills_xp.value = SkillsXp.new()
 		return _skills_xp.value
 	

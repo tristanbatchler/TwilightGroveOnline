@@ -53,6 +53,7 @@ type SharedGameObjects struct {
 	// The ID of the actor is the client ID of the client that owns it
 	Actors      *ds.SharedCollection[*objs.Actor]
 	Shrubs      *ds.SharedCollection[*objs.Shrub]
+	Ores        *ds.SharedCollection[*objs.Ore]
 	Doors       *ds.SharedCollection[*objs.Door]
 	GroundItems *ds.SharedCollection[*objs.GroundItem]
 }
@@ -65,6 +66,7 @@ type GameData struct {
 type LevelPointMaps struct {
 	Collisions  *ds.LevelPointMap[*struct{}]
 	Shrubs      *ds.LevelPointMap[*objs.Shrub]
+	Ores        *ds.LevelPointMap[*objs.Ore]
 	Doors       *ds.LevelPointMap[*objs.Door]
 	GroundItems *ds.LevelPointMap[*objs.GroundItem]
 }
@@ -112,6 +114,7 @@ type ClientInterfacer interface {
 type LevelDataImporters struct {
 	CollisionPointsImporter *levels.DbDataImporter[struct{}, db.LevelsCollisionPoint]
 	ShrubsImporter          *levels.DbDataImporter[objs.Shrub, db.LevelsShrub]
+	OresImporter            *levels.DbDataImporter[objs.Ore, db.LevelsOre]
 	DoorsImporter           *levels.DbDataImporter[objs.Door, db.LevelsDoor]
 	GroundItemsImporter     *levels.DbDataImporter[objs.GroundItem, db.LevelsGroundItem]
 }
@@ -162,6 +165,7 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 		SharedGameObjects: &SharedGameObjects{
 			Actors:      ds.NewSharedCollection[*objs.Actor](),
 			Shrubs:      ds.NewSharedCollection[*objs.Shrub](),
+			Ores:        ds.NewSharedCollection[*objs.Ore](),
 			Doors:       ds.NewSharedCollection[*objs.Door](),
 			GroundItems: ds.NewSharedCollection[*objs.GroundItem](),
 		},
@@ -171,6 +175,7 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 		LevelPointMaps: &LevelPointMaps{
 			Collisions:  ds.NewLevelPointMap[*struct{}](),
 			Shrubs:      ds.NewLevelPointMap[*objs.Shrub](),
+			Ores:        ds.NewLevelPointMap[*objs.Ore](),
 			Doors:       ds.NewLevelPointMap[*objs.Door](),
 			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
 		},
@@ -211,6 +216,17 @@ func (h *Hub) Run(adminPassword string) {
 		func(shrub *objs.Shrub, id uint32) { shrub.Id = id },
 		func(model *db.LevelsShrub) (*objs.Shrub, error) {
 			return objs.NewShrub(0, model.LevelID, model.Strength, model.X, model.Y), nil
+		},
+	)
+	h.LevelDataImporters.OresImporter = levels.NewDbDataImporter(
+		"ore",
+		h.LevelPointMaps.Ores,
+		h.SharedGameObjects.Ores,
+		func(model *db.LevelsOre) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
+		queries.GetLevelOresByLevelId,
+		func(ore *objs.Ore, id uint32) { ore.Id = id },
+		func(model *db.LevelsOre) (*objs.Ore, error) {
+			return objs.NewOre(0, model.LevelID, model.Strength, model.X, model.Y), nil
 		},
 	)
 	h.LevelDataImporters.DoorsImporter = levels.NewDbDataImporter(
@@ -258,6 +274,7 @@ func (h *Hub) Run(adminPassword string) {
 	importFuncs := map[string]func(int32) error{
 		h.LevelDataImporters.CollisionPointsImporter.NameOfObject: h.LevelDataImporters.CollisionPointsImporter.ImportObjects,
 		h.LevelDataImporters.ShrubsImporter.NameOfObject:          h.LevelDataImporters.ShrubsImporter.ImportObjects,
+		h.LevelDataImporters.OresImporter.NameOfObject:            h.LevelDataImporters.OresImporter.ImportObjects,
 		h.LevelDataImporters.DoorsImporter.NameOfObject:           h.LevelDataImporters.DoorsImporter.ImportObjects,
 		h.LevelDataImporters.GroundItemsImporter.NameOfObject:     h.LevelDataImporters.GroundItemsImporter.ImportObjects,
 	}

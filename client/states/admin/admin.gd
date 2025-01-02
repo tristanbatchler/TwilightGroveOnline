@@ -2,6 +2,7 @@ extends Node
 
 const Packets := preload("res://packets.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Ore := preload("res://objects/ore/ore.gd")
 const Door := preload("res://objects/door/door.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 
@@ -80,6 +81,13 @@ func _on_level_browser_file_selected(path: String) -> void:
 			shrub.set_x(node.position.x / node._world_tile_size.x)
 			shrub.set_y(node.position.y / node._world_tile_size.y)
 			print("Found shrub at (%d, %d)" % [shrub.get_x(), shrub.get_y()])
+			
+		elif node is Ore:
+			var ore := level_upload.add_ore()
+			ore.set_strength(node.strength)
+			ore.set_x(node.position.x / node._world_tile_size.x)
+			ore.set_y(node.position.y / node._world_tile_size.y)
+			print("Found ore at (%d, %d)" % [ore.get_x(), ore.get_y()])
 			
 		elif node is Door:
 			var door := level_upload.add_door()

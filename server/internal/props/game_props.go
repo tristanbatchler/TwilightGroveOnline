@@ -2,12 +2,17 @@ package props
 
 type Harvestable struct {
 	Shrub *struct{}
+	Ore   *struct{}
 }
 
 var NoneHarvestable = &Harvestable{}
 
 var ShrubHarvestable = &Harvestable{
 	Shrub: &struct{}{},
+}
+
+var OreHarvestable = &Harvestable{
+	Ore: &struct{}{},
 }
 
 type ToolProps struct {

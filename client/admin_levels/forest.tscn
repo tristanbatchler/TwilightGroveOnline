@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=4 uid="uid://b1gqqlouulpyn"]
+[gd_scene load_steps=14 format=4 uid="uid://b1gqqlouulpyn"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkt55ywfhh" path="res://resources/art/colored_tilemap_packed.png" id="1_rprl3"]
 [ext_resource type="PackedScene" uid="uid://7lm0b0ei76wc" path="res://objects/shrub/shrub.tscn" id="2_lfbik"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://yow2aapvd2mj" path="res://objects/ground_item/ground_item.tscn" id="4_di3mq"]
 [ext_resource type="PackedScene" uid="uid://d03ug02ej8y74" path="res://objects/item/item.tscn" id="6_df7dt"]
 [ext_resource type="Script" path="res://resources/properties/tool_properties.gd" id="6_e0sd5"]
+[ext_resource type="PackedScene" uid="uid://brit2brogxh0x" path="res://objects/ore/ore.tscn" id="7_w00nl"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rjr36"]
 texture = ExtResource("1_rprl3")
@@ -208,6 +209,24 @@ strength = 1
 level_required = 1
 harvests = 1
 
+[sub_resource type="Resource" id="Resource_81vyb"]
+script = ExtResource("6_e0sd5")
+strength = 1
+level_required = 1
+harvests = 2
+
+[sub_resource type="Resource" id="Resource_v14r7"]
+script = ExtResource("6_e0sd5")
+strength = 2
+level_required = 5
+harvests = 2
+
+[sub_resource type="Resource" id="Resource_o8kd7"]
+script = ExtResource("6_e0sd5")
+strength = 3
+level_required = 10
+harvests = 2
+
 [node name="Forest" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
@@ -309,3 +328,54 @@ strength = 3
 [node name="Shrub12" parent="." instance=ExtResource("2_lfbik")]
 position = Vector2(48, 120)
 strength = 2
+
+[node name="Ore" parent="." instance=ExtResource("7_w00nl")]
+position = Vector2(104, 48)
+
+[node name="Ore2" parent="." instance=ExtResource("7_w00nl")]
+position = Vector2(72, 0)
+
+[node name="Ore3" parent="." instance=ExtResource("7_w00nl")]
+position = Vector2(48, 0)
+strength = 3
+
+[node name="Ore4" parent="." instance=ExtResource("7_w00nl")]
+position = Vector2(64, -16)
+strength = 2
+
+[node name="Ore5" parent="." instance=ExtResource("7_w00nl")]
+position = Vector2(40, -16)
+strength = 1
+
+[node name="GroundItem6" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
+position = Vector2(144, 152)
+item = NodePath("Item")
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem6" instance=ExtResource("6_df7dt")]
+region_rect = Rect2(128, 56, 8, 8)
+item_name = "Bronze pickaxe"
+description = "A dirty old pick"
+tool_properties = SubResource("Resource_81vyb")
+
+[node name="GroundItem7" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
+position = Vector2(232, 168)
+item = NodePath("Item")
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem7" instance=ExtResource("6_df7dt")]
+region_rect = Rect2(128, 64, 8, 8)
+item_name = "Steel pickaxe"
+description = "A fine tool for mining ore"
+tool_properties = SubResource("Resource_v14r7")
+
+[node name="GroundItem8" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
+position = Vector2(192, 184)
+item = NodePath("Item")
+metadata/_edit_group_ = true
+
+[node name="Item" parent="GroundItem8" instance=ExtResource("6_df7dt")]
+region_rect = Rect2(128, 72, 8, 8)
+item_name = "Golden pickaxe"
+description = "A mighty tool for harvesting even the most stubborn minerals of the Earth."
+tool_properties = SubResource("Resource_o8kd7")

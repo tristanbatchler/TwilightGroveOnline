@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://brit2brogxh0x"]
+
+[ext_resource type="Script" path="res://objects/ore/ore.gd" id="1_n28nl"]
+[ext_resource type="PackedScene" uid="uid://dgtfkq31ugw5c" path="res://resources/art/sprite_texture_map.tscn" id="2_xfkln"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gxqr8"]
+resource_local_to_scene = true
+
+[node name="Ore" type="Area2D"]
+script = ExtResource("1_n28nl")
+
+[node name="Sprite2D" parent="." instance=ExtResource("2_xfkln")]
+region_rect = Rect2(32, 80, 8, 8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, 4)
+scale = Vector2(0.4, 0.4)
+shape = SubResource("RectangleShape2D_gxqr8")

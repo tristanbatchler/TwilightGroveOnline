@@ -3,6 +3,7 @@ extends Node
 const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Ore := preload("res://objects/ore/ore.gd")
 const Item := preload("res://objects/item/item.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
@@ -25,6 +26,7 @@ var _world_tilemap_layer: TileMapLayer
 var _actors: Dictionary[int, Actor]
 var _ground_items: Dictionary[int, GroundItem]
 var _shrubs: Dictionary[int, Shrub]
+var _ores: Dictionary[int, Ore]
 
 var _left_click_held: bool = false
 
@@ -107,6 +109,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_ground_item(packet.get_ground_item())
 	elif packet.has_shrub():
 		_handle_shrub(packet.get_shrub())
+	elif packet.has_ore():
+		_handle_ore(packet.get_ore())
 	elif packet.has_actor_inventory():
 		_handle_actor_inventory(packet.get_actor_inventory())
 	elif packet.has_drop_item_response():
@@ -115,6 +119,10 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_chop_shrub_response(packet.get_chop_shrub_response())
 	elif packet.has_chop_shrub_request():
 		_handle_chop_shrub_request(sender_id, packet.get_chop_shrub_request())
+	elif packet.has_mine_ore_response():
+		_handle_mine_ore_response(packet.get_mine_ore_response())
+	elif packet.has_mine_ore_request():
+		_handle_mine_ore_request(sender_id, packet.get_mine_ore_request())
 	elif packet.has_item_quantity():
 		_handle_item_quantity(packet.get_item_quantity())
 	elif packet.has_xp_reward():
@@ -277,6 +285,14 @@ func _handle_chop_shrub_request(sender_id: int, chop_shrub_request: Packets.Chop
 	if shrub_id in _shrubs:
 		var shrub := _shrubs[shrub_id]
 		_remove_shrub(shrub_id)
+		
+# This gets forwarded to us from the server only when the other player *successfully* mines some ore
+func _handle_mine_ore_request(sender_id: int, mine_ore_request: Packets.MineOreRequest) -> void:
+	var ore_id := mine_ore_request.get_ore_id()
+	
+	if ore_id in _ores:
+		var ore := _ores[ore_id]
+		_remove_ore(ore_id)
 
 func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var gid := ground_item_msg.get_id()
@@ -315,6 +331,17 @@ func _handle_shrub(shrub_msg: Packets.Shrub) -> void:
 	var shrub_obj := Shrub.instantiate(sid, x, y, strength)
 	_shrubs[sid] = shrub_obj
 	shrub_obj.place(_world_tilemap_layer)
+	
+func _handle_ore(ore_msg: Packets.Ore) -> void:
+	var oid := ore_msg.get_id()
+	if oid in _ores:
+		return
+	var x := ore_msg.get_x()
+	var y := ore_msg.get_y()
+	var strength := ore_msg.get_strength()
+	var ore_obj := Ore.instantiate(oid, x, y, strength)
+	_ores[oid] = ore_obj
+	ore_obj.place(_world_tilemap_layer)
 
 func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
 	_inventory.clear()
@@ -348,6 +375,11 @@ func _remove_shrub(shrub_id: int) -> void:
 	if shrub_id in _shrubs:
 		_shrubs[shrub_id].queue_free()
 		_shrubs.erase(shrub_id)
+		
+func _remove_ore(ore_id: int) -> void:
+	if ore_id in _ores:
+		_ores[ore_id].queue_free()
+		_ores.erase(ore_id)
 	
 func _handle_logout(sender_id: int) -> void:
 	if sender_id in _actors:
@@ -399,19 +431,32 @@ func _drop_item(item: Item, item_qty: int) -> void:
 	
 	
 func _harvest_nearby_resource() -> void:
-	var shrub: Shrub
 	if GameManager.client_id in _actors:
 		var player := _actors[GameManager.client_id]
-		shrub = player.get_shrub_standing_on()
-		if shrub == null:
-			# _log.warning("No trees to chop down here...")
+		
+		var shrub = player.get_shrub_standing_on()
+		if shrub != null:
+			_send_chop_shrub_request(shrub)
 			return
 		
+		var ore = player.get_ore_standing_on()
+		if ore != null:
+			_send_mine_ore_request(ore)
+			return
+			
+		# More resource gathering here...
+			
+func _send_chop_shrub_request(shrub: Shrub) -> void:
 	var packet := Packets.Packet.new()
 	var harvest_request_msg := packet.new_chop_shrub_request()
 	harvest_request_msg.set_shrub_id(shrub.shrub_id)
+	WS.send(packet)
 	
-	WS.send(packet)		
+func _send_mine_ore_request(ore: Ore) -> void:
+	var packet := Packets.Packet.new()
+	var harvest_request_msg := packet.new_mine_ore_request()
+	harvest_request_msg.set_ore_id(ore.ore_id)
+	WS.send(packet)
 
 func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
 	var response := chop_shrub_response.get_response()
@@ -422,6 +467,16 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 	var shrub_id := chop_shrub_response.get_shrub_id()
 	_remove_shrub(shrub_id)
 	_log.success("You manage to fell the shrub")
+	
+func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> void:
+	var response := mine_ore_response.get_response()
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+	var ore_id := mine_ore_response.get_ore_id()
+	_remove_ore(ore_id)
+	_log.success("You manage to mine some ore")
 
 func _process(delta: float) -> void:
 	var player: Actor = null
@@ -480,6 +535,8 @@ func _handle_xp_reward(xp_reward_msg: Packets.XpReward, from_initial_skills: boo
 	var xp = xp_reward_msg.get_xp()
 	if skill == GameManager.Skill.WOODCUTTING:
 		_experience.woodcutting.xp = _experience.woodcutting.xp * int(not from_initial_skills) + xp
+	elif skill == GameManager.Skill.MINING:
+		_experience.mining.xp = _experience.mining.xp * int(not from_initial_skills) + xp
 	# Add more skill rewards here
 		
 	if not from_initial_skills:

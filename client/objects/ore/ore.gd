@@ -1,8 +1,8 @@
 @tool
 extends Area2D
 
-const Shrub := preload("res://objects/shrub/shrub.gd")
-const Scene: PackedScene = preload("res://objects/shrub/shrub.tscn")
+const Ore := preload("res://objects/ore/ore.gd")
+const Scene: PackedScene = preload("res://objects/ore/ore.tscn")
 
 var _world_tile_size := Vector2i(8, 8)
 var _initial_sprite_region_x: int
@@ -13,7 +13,7 @@ var _initial_sprite_region_x: int
 		strength = value
 		update_sprite()
 
-var shrub_id: int
+var ore_id: int
 
 var x: int:
 	set(value):
@@ -27,13 +27,13 @@ var y: int:
 		if is_node_ready():
 			position.y = _world_tile_size.y * y
 
-static func instantiate(shrub_id: int, x: int, y: int, strength: int) -> Shrub:
-	var shrub := Scene.instantiate() as Shrub
-	shrub.shrub_id = shrub_id
-	shrub.strength = strength
-	shrub.x = x
-	shrub.y = y
-	return shrub
+static func instantiate(ore_id: int, x: int, y: int, strength: int) -> Ore:
+	var ore := Scene.instantiate() as Ore
+	ore.ore_id = ore_id
+	ore.strength = strength
+	ore.x = x
+	ore.y = y
+	return ore
 	
 func place(world: TileMapLayer) -> void:
 	_world_tile_size = world.tile_set.tile_size

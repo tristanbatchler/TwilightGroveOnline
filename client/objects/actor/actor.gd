@@ -6,6 +6,7 @@ const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Ore := preload("res://objects/ore/ore.gd")
 
 var target_pos: Vector2
 var _target_zoom := 3.0
@@ -123,6 +124,12 @@ func get_shrub_standing_on() -> Shrub:
 	for area in _area.get_overlapping_areas():
 		if area is Shrub:
 			return area as Shrub
+	return null
+	
+func get_ore_standing_on() -> Ore:
+	for area in _area.get_overlapping_areas():
+		if area is Ore:
+			return area as Ore
 	return null
 	
 func chat(message: String) -> void:

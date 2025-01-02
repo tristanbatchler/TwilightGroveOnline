@@ -79,6 +79,14 @@ type LevelsGroundItem struct {
 	RespawnSeconds int32
 }
 
+type LevelsOre struct {
+	ID       int32
+	LevelID  int32
+	Strength int32
+	X        int32
+	Y        int32
+}
+
 type LevelsShrub struct {
 	ID       int32
 	LevelID  int32

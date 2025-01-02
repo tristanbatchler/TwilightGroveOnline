@@ -88,6 +88,13 @@ message Shrub {
     int32 strength = 4;
 }
 
+message Ore {
+    uint32 id = 1;
+    int32 x = 2;
+    int32 y = 3;
+    int32 strength = 4;
+}
+
 message Door {
     uint32 id = 1;
     string destination_level_gd_res_path = 2;
@@ -100,6 +107,7 @@ message Door {
 enum Harvestable {
     NONE = 0;
     SHRUB = 1;
+    ORE = 2;
 }
 
 message ToolProps {
@@ -129,8 +137,9 @@ message LevelUpload {
     bytes tscn_data = 2;
     repeated CollisionPoint collision_point = 3;
     repeated Shrub shrub = 4;
-    repeated Door door = 5;
-    repeated GroundItem ground_item = 6;
+    repeated Ore ore =5;
+    repeated Door door = 6;
+    repeated GroundItem ground_item = 7;
 }
 
 message LevelUploadResponse {
@@ -190,6 +199,15 @@ message ChopShrubResponse {
     Response response = 2;
 }
 
+message MineOreRequest {
+    uint32 ore_id = 1;
+}
+
+message MineOreResponse {
+    uint32 ore_id = 1;
+    Response response = 2;
+}
+
 message XpReward {
     uint32 skill = 1;
     uint32 xp = 2;
@@ -226,16 +244,19 @@ message Packet {
         PickupGroundItemRequest pickup_ground_item_request = 23;
         PickupGroundItemResponse pickup_ground_item_response = 24;
         Shrub shrub = 25;
-        Door door = 26;
-        Item Item = 27;
-        GroundItem ground_item = 28;
-        ActorInventory actor_inventory = 29;
-        DropItemRequest drop_item_request = 30;
-        DropItemResponse drop_item_response = 31;
-        ChopShrubRequest chop_shrub_request = 32;
-        ChopShrubResponse chop_shrub_response = 33;
-        ItemQuantity item_quantity = 34;
-        XpReward xp_reward = 35;
-        SkillsXp skills_xp = 36;
+        Ore ore = 26;
+        Door door = 27;
+        Item Item = 28;
+        GroundItem ground_item = 29;
+        ActorInventory actor_inventory = 30;
+        DropItemRequest drop_item_request = 31;
+        DropItemResponse drop_item_response = 32;
+        ChopShrubRequest chop_shrub_request = 33;
+        ChopShrubResponse chop_shrub_response = 34;
+        MineOreRequest mine_ore_request = 35;
+        MineOreResponse mine_ore_response = 36;
+        ItemQuantity item_quantity = 37;
+        XpReward xp_reward = 38;
+        SkillsXp skills_xp = 39;
     }
 }

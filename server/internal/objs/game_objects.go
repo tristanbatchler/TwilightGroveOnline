@@ -34,6 +34,14 @@ type Shrub struct {
 	RespawnSeconds int32
 }
 
+type Ore struct {
+	Id             uint32
+	LevelId        int32
+	Strength       int32
+	X, Y           int32
+	RespawnSeconds int32
+}
+
 func NewShrub(id uint32, levelId int32, strength int32, x, y int32) *Shrub {
 	return &Shrub{
 		Id:             id,
@@ -41,7 +49,18 @@ func NewShrub(id uint32, levelId int32, strength int32, x, y int32) *Shrub {
 		Strength:       strength,
 		X:              x,
 		Y:              y,
-		RespawnSeconds: 5 + strength*2, // TODO: Make this receivable from the client and stored in the db
+		RespawnSeconds: 5 + strength*2, // TODO: Make this receivable from the admin client and stored in the db
+	}
+}
+
+func NewOre(id uint32, levelId int32, strength int32, x, y int32) *Ore {
+	return &Ore{
+		Id:             id,
+		LevelId:        levelId,
+		Strength:       strength,
+		X:              x,
+		Y:              y,
+		RespawnSeconds: 5 + strength*2, // TODO: Make this receivable from the admin client and stored in the db
 	}
 }
 

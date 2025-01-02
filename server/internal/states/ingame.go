@@ -106,7 +106,11 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.handleDropItemRequest(senderId, message)
 	case *packets.Packet_ChopShrubRequest:
 		g.handleChopShrubRequest(senderId, message)
+	case *packets.Packet_MineOreRequest:
+		g.handleMineOreRequest(senderId, message)
 	case *packets.Packet_Shrub:
+		g.client.SocketSendAs(message, senderId)
+	case *packets.Packet_Ore:
 		g.client.SocketSendAs(message, senderId)
 	}
 }
@@ -326,28 +330,26 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 
 	// Check if the player has a tool that can chop the shrub
 	shrubStrength := sgoShrub.Strength
-	if shrubStrength > 0 {
-		canChop := false
-		g.inventory.ForEach(func(item objs.Item, quantity uint32) {
-			if canChop {
-				return
-			}
-			if item.ToolProps == nil {
-				return
-			}
-			if item.ToolProps.Harvests.Shrub == nil {
-				return
-			}
-			if item.ToolProps.Strength >= shrubStrength {
-				canChop = true
-				return
-			}
-		})
-		if !canChop {
-			g.logger.Printf("Client %d tried to chop a shrub with strength %d, but doesn't have a tool with enough strength", senderId, shrubStrength)
-			g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("No tool with enough strength to chop that shrub")))
+	canChop := false
+	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+		if canChop {
 			return
 		}
+		if item.ToolProps == nil {
+			return
+		}
+		if item.ToolProps.Harvests.Shrub == nil {
+			return
+		}
+		if item.ToolProps.Strength > shrubStrength {
+			canChop = true
+			return
+		}
+	})
+	if !canChop {
+		g.logger.Printf("Client %d tried to chop a shrub with strength %d, but doesn't have a tool with enough strength", senderId, shrubStrength)
+		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("No tool with enough strength to chop that shrub")))
+		return
 	}
 
 	point := ds.Point{X: sgoShrub.X, Y: sgoShrub.Y}
@@ -357,7 +359,7 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
 		if sgoShrub.X != g.player.X || sgoShrub.Y != g.player.Y {
 			g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location", senderId)
-			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Shrub doesn't exist at your location")))
+			g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Shrub doesn't exist at your location")))
 			return
 		}
 	} else {
@@ -413,6 +415,107 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 
 }
 
+func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_MineOreRequest) {
+	if senderId != g.client.Id() {
+		// If the client isn't us, we just forward the message
+		go g.client.SocketSendAs(message, senderId)
+		return
+	}
+
+	sgoOre, sgoExists := g.client.SharedGameObjects().Ores.Get(message.MineOreRequest.OreId)
+	if !sgoExists {
+		g.logger.Println("Client tried to mine ore that doesn't exist in the shared game object collection")
+		g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("Ore doesn't exist")))
+		return
+	}
+
+	// Check if the player has a tool that can mine the ore
+	oreStrength := sgoOre.Strength
+	canMine := false
+	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+		if canMine {
+			return
+		}
+		if item.ToolProps == nil {
+			return
+		}
+		if item.ToolProps.Harvests.Ore == nil {
+			return
+		}
+		if item.ToolProps.Strength > oreStrength {
+			canMine = true
+			return
+		}
+	})
+	if !canMine {
+		g.logger.Printf("Client %d tried to mine an ore with strength %d, but doesn't have a tool with enough strength", senderId, oreStrength)
+		g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("No tool with enough strength to mine that ore")))
+		return
+	}
+
+	point := ds.Point{X: sgoOre.X, Y: sgoOre.Y}
+
+	_, lpmExists := g.client.LevelPointMaps().Ores.Get(g.levelId, point)
+	if !lpmExists {
+		g.logger.Printf("Client %d tried to mine and ore that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
+		if sgoOre.X != g.player.X || sgoOre.Y != g.player.Y {
+			g.logger.Printf("Client %d tried to mine and ore that doesn't exist at their location", senderId)
+			g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("Ore doesn't exist at your location")))
+			return
+		}
+	} else {
+		g.client.LevelPointMaps().Ores.Remove(g.levelId, point)
+	}
+
+	g.client.SharedGameObjects().Ores.Remove(sgoOre.Id)
+
+	ore := sgoOre
+
+	go g.queries.DeleteLevelOre(context.Background(), db.DeleteLevelOreParams{
+		LevelID: g.levelId,
+		X:       ore.X,
+		Y:       ore.Y,
+	})
+
+	// Start the respawn time
+	if ore.RespawnSeconds > 0 {
+		go func() {
+			time.Sleep(time.Duration(ore.RespawnSeconds) * time.Second)
+			g.client.LevelPointMaps().Ores.Add(g.levelId, point, ore)
+			ore.Id = g.client.SharedGameObjects().Ores.Add(ore)
+			g.queries.CreateLevelOre(context.Background(), db.CreateLevelOreParams{
+				LevelID:  g.levelId,
+				Strength: ore.Strength,
+				X:        ore.X,
+				Y:        ore.Y,
+			})
+			g.client.Broadcast(packets.NewOre(ore.Id, ore), g.othersInLevel)
+			g.client.SocketSend(packets.NewOre(ore.Id, ore))
+			g.logger.Printf("Ore %d respawned at (%d, %d)", ore.Id, ore.X, ore.Y)
+		}()
+	}
+
+	// Tell all the clients in the level that the ore was mined
+	g.client.Broadcast(message, g.othersInLevel)
+
+	g.logger.Printf("Client %d mined ore %d", senderId, ore.Id)
+
+	// Send the response and reward the player with some XP
+	go func() {
+		g.client.SocketSend(packets.NewMineOreResponse(true, ore.Id, nil))
+		time.Sleep(100 * time.Millisecond) // Just to make sure the client receives the response before the XP reward
+		g.awardPlayerXp(skills.Mining, 30*uint32(oreStrength+1))
+	}()
+
+	// Award the player with some rocks after a tiny delay
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		g.addInventoryItem(*items.Rocks, 1)
+		g.client.SocketSend(packets.NewItemQuantity(items.Rocks, 1))
+	}()
+
+}
+
 func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
 	if senderId != g.client.Id() {
 		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
@@ -448,6 +551,8 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 			toolProps.Harvests = props.NoneHarvestable
 		case packets.Harvestable_SHRUB:
 			toolProps.Harvests = props.ShrubHarvestable
+		case packets.Harvestable_ORE:
+			toolProps.Harvests = props.OreHarvestable
 		}
 	}
 
@@ -555,6 +660,11 @@ func (g *InGame) sendLevel() {
 			go g.client.SocketSend(packets.NewShrub(id, shrub))
 		}
 	})
+	g.client.SharedGameObjects().Ores.ForEach(func(id uint32, ore *objs.Ore) {
+		if ore.LevelId == g.levelId {
+			go g.client.SocketSend(packets.NewOre(id, ore))
+		}
+	})
 }
 
 func (g *InGame) loadInventory() {
@@ -576,11 +686,13 @@ func (g *InGame) loadInventory() {
 				g.logger.Printf("Failed to get tool properties: %v", err)
 			} else {
 				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
-				switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub - corrsponds directly to packets Harvestable enum
+				switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub, 2 = Ore - corrsponds directly to packets Harvestable enum
 				case int32(packets.Harvestable_NONE):
 					toolProps.Harvests = props.NoneHarvestable
 				case int32(packets.Harvestable_SHRUB):
 					toolProps.Harvests = props.ShrubHarvestable
+				case int32(packets.Harvestable_ORE):
+					toolProps.Harvests = props.OreHarvestable
 				}
 			}
 		}

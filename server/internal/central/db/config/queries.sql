@@ -133,12 +133,36 @@ INSERT INTO levels_shrubs (
 )
 RETURNING *;
 
+-- name: CreateLevelOre :one
+INSERT INTO levels_ores (
+    level_id, strength, x, y
+) VALUES (
+    $1, $2, $3, $4
+)
+RETURNING *;
+
 -- name: DeleteLevelShrubsByLevelId :exec
 DELETE FROM levels_shrubs
 WHERE level_id = $1;
 
+-- name: DeleteLevelOresByLevelId :exec
+DELETE FROM levels_ores
+WHERE level_id = $1;
+
 -- name: GetLevelShrubsByLevelId :many
 SELECT * FROM levels_shrubs
+WHERE level_id = $1;
+
+-- name: GetLevelOresByLevelId :many
+SELECT * FROM levels_ores
+WHERE level_id = $1;
+
+-- name: GetLevelShrub :one
+SELECT * FROM levels_shrubs
+WHERE level_id = $1;
+
+-- name: GetLevelOre :one
+SELECT * FROM levels_ores
 WHERE level_id = $1;
 
 -- name: CreateLevelDoor :one
@@ -272,6 +296,16 @@ WHERE id IN (
     WHERE ls.level_id = $1
     AND ls.x = $2
     AND ls.y = $3
+    LIMIT 1
+);
+
+-- name: DeleteLevelOre :exec
+DELETE FROM levels_ores
+WHERE id IN (
+    SELECT lo.id FROM levels_ores lo
+    WHERE lo.level_id = $1
+    AND lo.x = $2
+    AND lo.y = $3
     LIMIT 1
 );
 

@@ -1,8 +1,10 @@
+@tool
 extends PanelContainer
 class_name ExperienceIcon
 
 @onready var _level_label: Label = $LevelLabel
 @onready var _xp_label: Label = $XpLabel
+
 @export var skill: GameManager.Skill
 
 var xp: int = 0:

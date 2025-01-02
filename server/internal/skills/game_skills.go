@@ -6,11 +6,12 @@ type Skill uint32
 
 const (
 	Woodcutting Skill = iota
-	// Add other skills here, iota will auto-increment
+	Mining            // 1
 )
 
 var SkillNames = map[Skill]string{
 	Woodcutting: "woodcutting",
+	Mining:      "mining",
 }
 
 // How much experience is required to reach a certain level.

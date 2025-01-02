@@ -13,3 +13,12 @@ script = ExtResource("1_lht8u")
 
 [node name="WoodCutting" parent="." instance=ExtResource("1_pcklp")]
 layout_mode = 2
+
+[node name="Mining" parent="." instance=ExtResource("1_pcklp")]
+layout_mode = 2
+skill = 1
+
+[node name="Sprite2D" parent="Mining/MarginContainer/SubViewportContainer/SubViewport" index="0"]
+region_rect = Rect2(128, 8, 8, 8)
+
+[editable path="Mining"]

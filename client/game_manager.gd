@@ -1,6 +1,7 @@
 extends Node
 
 const Shrub := preload("res://objects/shrub/shrub.gd")
+const Ore := preload("res://objects/ore/ore.gd")
 
 enum State {
 	ENTERED,
@@ -33,28 +34,34 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 enum Harvestable {
 	NONE,
 	SHRUB,
+	ORE,
 }
 
 var _harvestables_classes: Dictionary[Harvestable, Variant] = {
 	Harvestable.NONE: null,
 	Harvestable.SHRUB: Shrub,
+	Harvestable.ORE: Ore,
 }
 
 var _ids_harvestables: Dictionary[int, Harvestable] = {
 	0: Harvestable.NONE,
 	1: Harvestable.SHRUB,
+	2: Harvestable.ORE,
 }
 
 enum Skill {
 	WOODCUTTING,
+	MINING,
 }
 
 var _skills_names: Dictionary[Skill, String] = {
 	Skill.WOODCUTTING: "wood cutting",
+	Skill.MINING: "mining",
 }
 
 var _ids_skills: Dictionary[int, Skill] = {
 	0: Skill.WOODCUTTING,
+	1: Skill.MINING,
 }
 
 func get_harvestable_enum_from_int(id: int) -> Harvestable:
@@ -98,4 +105,3 @@ func get_config(key: ConfigKey, default: Variant = null) -> Variant:
 func clear_config(key: ConfigKey) -> void:
 	_config.erase_section_key("global", _config_key_names[key])
 	_config.save(_config_path)
-	

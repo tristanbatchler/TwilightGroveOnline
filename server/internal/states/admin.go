@@ -20,6 +20,7 @@ import (
 type LevelDataImporters struct {
 	CollisionPointsImporter *levels.PacketDataImporter[struct{}, packets.CollisionPoint]
 	ShrubsImporter          *levels.PacketDataImporter[objs.Shrub, packets.Shrub]
+	OresImporter            *levels.PacketDataImporter[objs.Ore, packets.Ore]
 	DoorsImporter           *levels.PacketDataImporter[objs.Door, packets.Door]
 	GroundItemsImporter     *levels.PacketDataImporter[objs.GroundItem, packets.GroundItem]
 }
@@ -63,6 +64,17 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 			func(s *objs.Shrub, id uint32) { s.Id = id },
 			nil,
 			func(s *objs.Shrub) int32 { return s.LevelId },
+		),
+		OresImporter: levels.NewPacketDataImporter(
+			"ores",
+			a.client.LevelPointMaps().Ores,
+			a.client.SharedGameObjects().Ores,
+			func(o *packets.Ore) ds.Point { return ds.NewPoint(o.X, o.Y) },
+			a.addOreToDb,
+			a.queries.DeleteLevelOresByLevelId,
+			func(o *objs.Ore, id uint32) { o.Id = id },
+			nil,
+			func(o *objs.Ore) int32 { return o.LevelId },
 		),
 		DoorsImporter: levels.NewPacketDataImporter(
 			"doors",
@@ -205,6 +217,9 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 			return a.levelDataImporters.ShrubsImporter.ImportObjects(level.ID, message.LevelUpload.Shrub)
 		},
 		func() error {
+			return a.levelDataImporters.OresImporter.ImportObjects(level.ID, message.LevelUpload.Ore)
+		},
+		func() error {
 			return a.levelDataImporters.DoorsImporter.ImportObjects(level.ID, message.LevelUpload.Door)
 		},
 		func() error {
@@ -214,6 +229,9 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 
 	a.levelDataImporters.ShrubsImporter.MakeGameObject = func(s *packets.Shrub) (*objs.Shrub, error) {
 		return objs.NewShrub(0, level.ID, s.Strength, s.X, s.Y), nil
+	}
+	a.levelDataImporters.OresImporter.MakeGameObject = func(o *packets.Ore) (*objs.Ore, error) {
+		return objs.NewOre(0, level.ID, o.Strength, o.X, o.Y), nil
 	}
 	a.levelDataImporters.DoorsImporter.MakeGameObject = func(d *packets.Door) (*objs.Door, error) {
 		destinationLevelId, err := a.getDoorDestinationLevelId(d.DestinationLevelGdResPath)
@@ -234,6 +252,8 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 				toolProps.Harvests = props.NoneHarvestable
 			case packets.Harvestable_SHRUB:
 				toolProps.Harvests = props.ShrubHarvestable
+			case packets.Harvestable_ORE:
+				toolProps.Harvests = props.OreHarvestable
 			}
 		}
 
@@ -296,6 +316,7 @@ func (a *Admin) clearLevelData(dbCtx context.Context, levelId int32, levelName s
 
 	a.levelDataImporters.CollisionPointsImporter.ClearObjects(levelId)
 	a.levelDataImporters.ShrubsImporter.ClearObjects(levelId)
+	a.levelDataImporters.OresImporter.ClearObjects(levelId)
 	a.levelDataImporters.DoorsImporter.ClearObjects(levelId)
 	a.levelDataImporters.GroundItemsImporter.ClearObjects(levelId)
 
@@ -318,6 +339,16 @@ func (a *Admin) addCollisionPointToDb(ctx context.Context, levelId int32, messag
 
 func (a *Admin) addShrubToDb(ctx context.Context, levelId int32, message *packets.Shrub) error {
 	_, err := a.queries.CreateLevelShrub(ctx, db.CreateLevelShrubParams{
+		LevelID:  levelId,
+		X:        message.X,
+		Y:        message.Y,
+		Strength: message.Strength,
+	})
+	return err
+}
+
+func (a *Admin) addOreToDb(ctx context.Context, levelId int32, message *packets.Ore) error {
+	_, err := a.queries.CreateLevelOre(ctx, db.CreateLevelOreParams{
 		LevelID:  levelId,
 		X:        message.X,
 		Y:        message.Y,

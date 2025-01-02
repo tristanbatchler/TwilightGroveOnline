@@ -78,12 +78,26 @@ func NewShrub(id uint32, shrub *objs.Shrub) Msg {
 	}
 }
 
+func NewOre(id uint32, ore *objs.Ore) Msg {
+	return &Packet_Ore{
+		Ore: &Ore{
+			Id:       id,
+			Strength: ore.Strength,
+			X:        ore.X,
+			Y:        ore.Y,
+		},
+	}
+}
+
 func newHarvestable(harvestable *props.Harvestable) Harvestable {
 	if harvestable == nil {
 		return Harvestable_NONE
 	}
 	if harvestable.Shrub != nil {
 		return Harvestable_SHRUB
+	}
+	if harvestable.Ore != nil {
+		return Harvestable_ORE
 	}
 	return Harvestable_NONE
 }
@@ -264,6 +278,18 @@ func NewChopShrubResponse(success bool, shrubId uint32, err error) Msg {
 	return &Packet_ChopShrubResponse{
 		ChopShrubResponse: &ChopShrubResponse{
 			ShrubId: shrubId,
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}
+
+func NewMineOreResponse(success bool, oreId uint32, err error) Msg {
+	return &Packet_MineOreResponse{
+		MineOreResponse: &MineOreResponse{
+			OreId: oreId,
 			Response: &Response{
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),

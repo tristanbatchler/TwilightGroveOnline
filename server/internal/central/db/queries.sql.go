@@ -313,6 +313,40 @@ func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGrou
 	return i, err
 }
 
+const createLevelOre = `-- name: CreateLevelOre :one
+INSERT INTO levels_ores (
+    level_id, strength, x, y
+) VALUES (
+    $1, $2, $3, $4
+)
+RETURNING id, level_id, strength, x, y
+`
+
+type CreateLevelOreParams struct {
+	LevelID  int32
+	Strength int32
+	X        int32
+	Y        int32
+}
+
+func (q *Queries) CreateLevelOre(ctx context.Context, arg CreateLevelOreParams) (LevelsOre, error) {
+	row := q.db.QueryRow(ctx, createLevelOre,
+		arg.LevelID,
+		arg.Strength,
+		arg.X,
+		arg.Y,
+	)
+	var i LevelsOre
+	err := row.Scan(
+		&i.ID,
+		&i.LevelID,
+		&i.Strength,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
 const createLevelShrub = `-- name: CreateLevelShrub :one
 INSERT INTO levels_shrubs (
     level_id, strength, x, y
@@ -474,6 +508,38 @@ WHERE level_id = $1
 
 func (q *Queries) DeleteLevelGroundItemsByLevelId(ctx context.Context, levelID int32) error {
 	_, err := q.db.Exec(ctx, deleteLevelGroundItemsByLevelId, levelID)
+	return err
+}
+
+const deleteLevelOre = `-- name: DeleteLevelOre :exec
+DELETE FROM levels_ores
+WHERE id IN (
+    SELECT lo.id FROM levels_ores lo
+    WHERE lo.level_id = $1
+    AND lo.x = $2
+    AND lo.y = $3
+    LIMIT 1
+)
+`
+
+type DeleteLevelOreParams struct {
+	LevelID int32
+	X       int32
+	Y       int32
+}
+
+func (q *Queries) DeleteLevelOre(ctx context.Context, arg DeleteLevelOreParams) error {
+	_, err := q.db.Exec(ctx, deleteLevelOre, arg.LevelID, arg.X, arg.Y)
+	return err
+}
+
+const deleteLevelOresByLevelId = `-- name: DeleteLevelOresByLevelId :exec
+DELETE FROM levels_ores
+WHERE level_id = $1
+`
+
+func (q *Queries) DeleteLevelOresByLevelId(ctx context.Context, levelID int32) error {
+	_, err := q.db.Exec(ctx, deleteLevelOresByLevelId, levelID)
 	return err
 }
 
@@ -858,6 +924,73 @@ func (q *Queries) GetLevelIds(ctx context.Context) ([]int32, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getLevelOre = `-- name: GetLevelOre :one
+SELECT id, level_id, strength, x, y FROM levels_ores
+WHERE level_id = $1
+`
+
+func (q *Queries) GetLevelOre(ctx context.Context, levelID int32) (LevelsOre, error) {
+	row := q.db.QueryRow(ctx, getLevelOre, levelID)
+	var i LevelsOre
+	err := row.Scan(
+		&i.ID,
+		&i.LevelID,
+		&i.Strength,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
+}
+
+const getLevelOresByLevelId = `-- name: GetLevelOresByLevelId :many
+SELECT id, level_id, strength, x, y FROM levels_ores
+WHERE level_id = $1
+`
+
+func (q *Queries) GetLevelOresByLevelId(ctx context.Context, levelID int32) ([]LevelsOre, error) {
+	rows, err := q.db.Query(ctx, getLevelOresByLevelId, levelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LevelsOre
+	for rows.Next() {
+		var i LevelsOre
+		if err := rows.Scan(
+			&i.ID,
+			&i.LevelID,
+			&i.Strength,
+			&i.X,
+			&i.Y,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLevelShrub = `-- name: GetLevelShrub :one
+SELECT id, level_id, strength, x, y FROM levels_shrubs
+WHERE level_id = $1
+`
+
+func (q *Queries) GetLevelShrub(ctx context.Context, levelID int32) (LevelsShrub, error) {
+	row := q.db.QueryRow(ctx, getLevelShrub, levelID)
+	var i LevelsShrub
+	err := row.Scan(
+		&i.ID,
+		&i.LevelID,
+		&i.Strength,
+		&i.X,
+		&i.Y,
+	)
+	return i, err
 }
 
 const getLevelShrubsByLevelId = `-- name: GetLevelShrubsByLevelId :many
