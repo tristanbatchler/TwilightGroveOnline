@@ -19,6 +19,7 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _debug_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/DebugLabel
 @onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
 @onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/Experience
+@onready var _dialogue_box: DialogueBox = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Dialogue
 
 var _world: Node2D
 var _world_tilemap_layer: TileMapLayer
@@ -523,9 +524,12 @@ func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialog
 		var npc_actor := _actors[npc_actor_id]
 		
 		var lines := npc_dialogue_msg.get_dialogue()
-		for line: String in lines:
-			npc_actor.chat(line)
-			_log.chat(npc_actor.actor_name, line)
+		
+		_dialogue_box.show()
+		_dialogue_box.set_dialogue_lines(lines)
+		_dialogue_box.finished_dialogue.connect(func():
+			_dialogue_box.hide()	
+		)
 
 func _process(delta: float) -> void:
 	var player: Actor = null

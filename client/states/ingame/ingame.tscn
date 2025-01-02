@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cn3josm57s4u"]
+[gd_scene load_steps=7 format=3 uid="uid://cn3josm57s4u"]
 
 [ext_resource type="Script" path="res://states/ingame/ingame.gd" id="1_5whee"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_mm4dv"]
 [ext_resource type="PackedScene" uid="uid://c8su8ebdyg06f" path="res://ui/experience/experience.tscn" id="3_77d3j"]
 [ext_resource type="PackedScene" uid="uid://b34vntdhsm4su" path="res://ui/inventory/inventory.tscn" id="4_wlbng"]
 [ext_resource type="Script" path="res://ui/log/log.gd" id="5_perjg"]
+[ext_resource type="PackedScene" uid="uid://cyrpw4ikfg6l5" path="res://ui/dialogue_box/dialogue_box.tscn" id="6_hysag"]
 
 [node name="InGame" type="Node"]
 script = ExtResource("1_5whee")
@@ -91,6 +92,11 @@ metadata/_tab_index = 1
 
 [node name="Inventory" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory" instance=ExtResource("4_wlbng")]
 layout_mode = 2
+
+[node name="Dialogue" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer" instance=ExtResource("6_hysag")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="LevelTransition" type="ColorRect" parent="CanvasLayer"]
 visible = false

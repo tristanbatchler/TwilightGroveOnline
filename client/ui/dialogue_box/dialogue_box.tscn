@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3 uid="uid://cyrpw4ikfg6l5"]
+
+[ext_resource type="Script" path="res://ui/dialogue_box/dialogue_box.gd" id="1_pdn1u"]
+
+[node name="DialogueBox" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pdn1u")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RichTextLabel" type="RichTextLabel" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ContinuePrompt" type="RichTextLabel" parent="."]
+layout_mode = 2
+bbcode_enabled = true
+text = "
+[center][color=#E3A071][url=next]Continue[/url][/color][/center]
+
+"
+fit_content = true
