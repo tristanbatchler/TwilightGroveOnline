@@ -35,7 +35,7 @@ func (n *Npc) SetClient(client central.ClientInterfacer) {
 
 func (n *Npc) OnEnter() {
 	n.levelId = 1
-	n.actor = objs.NewActor(n.levelId, 18, 5, "NPC", 0)
+	n.actor = objs.NewActor(n.levelId, 18, 5, "Rickert", 0)
 
 	n.client.SharedGameObjects().Actors.Add(n.actor, n.client.Id())
 
