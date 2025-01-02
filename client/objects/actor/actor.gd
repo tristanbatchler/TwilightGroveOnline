@@ -32,6 +32,9 @@ var _world_tile_size := Vector2i(1, 1)
 @onready var _camera: Camera2D = $Camera2D
 @onready var _area: Area2D = $Area2D
 @onready var _name_plate_position: Marker2D = $NamePlatePosition
+@onready var _chat_label_position: Marker2D = $ChatLabelPosition
+@onready var _chat_label: RichTextLabel = $CanvasLayer/ChatLabel
+@onready var _chat_timer: Timer = $CanvasLayer/ChatLabel/Timer
 
 
 static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> Actor:
@@ -53,7 +56,7 @@ func _ready() -> void:
 	position = Vector2(x * _world_tile_size.x, y * _world_tile_size.y)
 	target_pos = position
 	_name_plate.text = actor_name
-
+	_chat_timer.timeout.connect(_chat_label.hide)
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_player:
 		return
@@ -68,6 +71,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 func _process(delta: float) -> void:
 	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2.0, 0)
+	_chat_label.position = _chat_label_position.get_global_transform_with_canvas().origin - Vector2(500/2.0, 0)
 	
 	if not is_player:
 		return
@@ -120,3 +124,9 @@ func get_shrub_standing_on() -> Shrub:
 		if area is Shrub:
 			return area as Shrub
 	return null
+	
+func chat(message: String) -> void:
+	_chat_label.text = message
+	_chat_label.show()
+	_chat_timer.start()
+	

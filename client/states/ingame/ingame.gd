@@ -148,10 +148,13 @@ func _on_send_button_pressed() -> void:
 		chat.set_msg(entered_text)
 	
 	if WS.send(packet) == OK:
-		if is_yelling:
-			_log.yell("You", entered_text)
-		else:
-			_log.chat("You", entered_text)
+		if GameManager.client_id in _actors:
+			var player := _actors[GameManager.client_id]
+			if is_yelling:
+				_log.yell("You", entered_text)
+			else:
+				_log.chat("You", entered_text)
+				player.chat(entered_text)
 
 	_line_edit.clear()
 	#_line_edit.release_focus()
@@ -194,7 +197,10 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 
 func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 	if sender_id in _actors: 
-		_log.chat(_actors[sender_id].actor_name, chat.get_msg())
+		var actor := _actors[sender_id]
+		var message := chat.get_msg()
+		actor.chat(message)
+		_log.chat(actor.actor_name, message)
 
 func _handle_yell(sender_id: int, yell: Packets.Yell) -> void:
 	_log.yell(yell.get_sender_name(), yell.get_msg())
