@@ -182,6 +182,8 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 		_actors.clear()
 		_ground_items.clear()
 		_shrubs.clear()
+		_ores.clear()
+		# Clear more stuff here as needed
 	
 	var data := level_download.get_data()
 	var file := FileAccess.open(download_destination_scene_path, FileAccess.WRITE)
