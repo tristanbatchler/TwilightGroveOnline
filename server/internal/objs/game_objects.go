@@ -21,6 +21,7 @@ func NewActor(levelId int32, x, y int32, name string, dbId int32) *Actor {
 		Name:    name,
 		SkillsXp: map[skills.Skill]uint32{
 			skills.Woodcutting: 0,
+			skills.Mining:      0,
 		},
 		DbId: dbId,
 	}

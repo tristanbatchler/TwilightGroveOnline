@@ -22,5 +22,5 @@ func XpAtLevel(level uint32) uint32 {
 
 func Level(xp uint32) uint32 {
 	// level = sqrt(xp / 100)
-	return uint32(math.Sqrt(float64(xp) / 100))
+	return 1 + uint32(math.Sqrt(float64(xp)/100))
 }
