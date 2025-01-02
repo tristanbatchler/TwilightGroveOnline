@@ -114,6 +114,10 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.client.SocketSendAs(message, senderId)
 	case *packets.Packet_InteractWithNpcRequest:
 		g.handleInteractWithNpcRequest(senderId, message)
+	case *packets.Packet_InteractWithNpcResponse:
+		g.client.SocketSendAs(message, senderId)
+	case *packets.Packet_NpcDialogue:
+		g.client.SocketSendAs(message, senderId)
 	}
 }
 

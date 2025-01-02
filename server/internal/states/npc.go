@@ -134,7 +134,13 @@ func (n *Npc) handleInteractWithNpcRequest(senderId uint32, message *packets.Pac
 		return
 	}
 
-	n.client.Broadcast(packets.NewChat(fmt.Sprintf("%s... I don't want to talk right now.", senderActor.Name)), n.othersInLevel)
+	// n.client.Broadcast(packets.NewChat(fmt.Sprintf("%s... I don't want to talk right now.", senderActor.Name)), n.othersInLevel)
+	dialogue := []string{
+		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
+		"I'm Rickert. What's your name?",
+		fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
+	}
+	n.client.PassToPeer(packets.NewNpcDialogue(dialogue), senderId)
 }
 
 func (n *Npc) removeFromOtherInLevel(clientId uint32) {

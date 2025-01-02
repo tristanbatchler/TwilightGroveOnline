@@ -133,6 +133,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_skills_xp(packet.get_skills_xp())
 	elif packet.has_interact_with_npc_response():
 		_handle_interact_with_npc_response(packet.get_interact_with_npc_response())
+	elif packet.has_npc_dialogue():
+		_handle_npc_dialogue(sender_id, packet.get_npc_dialogue())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -515,6 +517,15 @@ func _handle_interact_with_npc_response(interact_with_npc_response: Packets.Inte
 	if not response.get_success():
 		if response.has_msg():
 			_log.error(response.get_msg())
+
+func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialogue) -> void:
+	if npc_actor_id in _actors:
+		var npc_actor := _actors[npc_actor_id]
+		
+		var lines := npc_dialogue_msg.get_dialogue()
+		for line: String in lines:
+			npc_actor.chat(line)
+			_log.chat(npc_actor.actor_name, line)
 
 func _process(delta: float) -> void:
 	var player: Actor = null
