@@ -2,7 +2,6 @@ extends VBoxContainer
 class_name Inventory
 
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
-const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const Item := preload("res://objects/item/item.gd")
 
 var _rows: Dictionary[StringName, InventoryRow]

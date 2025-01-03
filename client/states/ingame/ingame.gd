@@ -15,6 +15,8 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
 @onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
+
+@onready var _shop: Shop = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/Shop
 @onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/Experience
 
 @onready var _tab_container: TabContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer
@@ -535,6 +537,11 @@ func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialog
 			_dialogue_box.hide()
 			_tab_container.current_tab = tab_before_dialogue
 		)
+		
+		# Example: TODO: make this appear when a shop packet is received
+		_shop.show()
+		_shop.set_title("%s's shop" % npc_actor.actor_name)
+		_shop.closed.connect(_shop.hide)
 
 func _process(delta: float) -> void:
 	var player: Actor = null

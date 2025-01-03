@@ -41,11 +41,13 @@ size_flags_vertical = 3
 theme_override_constants/separation = 30
 
 [node name="Shop" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer" instance=ExtResource("4_gbxnh")]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="RightMenu" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 10
 
 [node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu"]
 layout_mode = 2

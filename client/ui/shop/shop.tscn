@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c4tapkdiucpsc"]
+[gd_scene load_steps=2 format=3 uid="uid://c4tapkdiucpsc"]
 
 [ext_resource type="Script" path="res://ui/shop/shop.gd" id="1_6o244"]
-[ext_resource type="PackedScene" uid="uid://d0lp1xh615hj6" path="res://ui/inventory/inventory_row.tscn" id="3_vm1v8"]
 
 [node name="Shop" type="PanelContainer"]
 anchors_preset = 15
@@ -11,216 +10,41 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6o244")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="VBoxContainer/HBoxContainer"]
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 text = "The Emporium"
 
-[node name="Close" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="Close" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 text = "Close"
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
 theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 10
 columns = 3
-
-[node name="InventoryRow" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow2" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow3" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow4" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow5" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow6" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow7" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow8" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow9" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow10" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow11" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow12" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow13" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow14" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow15" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow16" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow17" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow18" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow19" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow20" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow21" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow22" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow23" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow24" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow25" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow26" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow27" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow28" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow29" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow30" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow31" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow32" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow33" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow34" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow35" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow36" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow37" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow38" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow39" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow40" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow41" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow42" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow43" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow44" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow45" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow46" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow47" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow48" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow49" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow50" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow51" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow52" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow53" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow54" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow55" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow56" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow57" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow58" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow59" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow60" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
-
-[node name="InventoryRow61" parent="VBoxContainer/ScrollContainer/GridContainer" instance=ExtResource("3_vm1v8")]
-layout_mode = 2
