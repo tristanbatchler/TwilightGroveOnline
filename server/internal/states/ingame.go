@@ -767,6 +767,10 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 
 	g.removeInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
 
+	// TODO: Award the player with some gold equal to the item's value
+	g.addInventoryItem(*items.GoldBars, 1)
+	g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
+
 	g.client.SocketSendAs(message, senderId)
 }
 
