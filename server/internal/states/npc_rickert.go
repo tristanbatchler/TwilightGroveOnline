@@ -64,6 +64,8 @@ func (n *NpcRickert) HandleMessage(senderId uint32, message packets.Msg) {
 		n.removeFromOtherInLevel(senderId)
 	case *packets.Packet_InteractWithNpcRequest:
 		n.handleInteractWithNpcRequest(senderId, message)
+	case *packets.Packet_BuyRequest:
+		n.handleBuyRequest(senderId, message)
 	}
 }
 
@@ -149,6 +151,39 @@ func (n *NpcRickert) handleInteractWithNpcRequest(senderId uint32, message *pack
 		fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
 	}
 	// n.client.PassToPeer(packets.NewNpcDialogue(dialogue), senderId)
+}
+
+func (n *NpcRickert) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRequest) {
+	if senderId == n.client.Id() {
+		n.logger.Printf("Received a buy request from itself, ignoring, and I should never see this message")
+		return
+	}
+
+	if message.BuyRequest.ShopOwnerActorId != n.client.Id() {
+		n.logger.Printf("Received a buy request for an actor that is not me, ignorinn. I should never see this message")
+		return
+	}
+
+	n.logger.Printf("Received a buy request from client %d", senderId)
+
+	if !n.isOtherKnown(senderId) {
+		n.logger.Printf("Client %d is not in the othersInLevel map", senderId)
+		return
+	}
+
+	senderActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
+	if !exists {
+		n.logger.Printf("Client %d is not in the actors map", senderId)
+		return
+	}
+
+	// TODO: Remove this test
+	itemQtyMsg := &packets.ItemQuantity{
+		Item:     message.BuyRequest.Item,
+		Quantity: int32(message.BuyRequest.Quantity),
+	}
+	n.client.PassToPeer(packets.NewBuyResponse(true, n.client.Id(), itemQtyMsg, nil), senderId)
+	n.client.PassToPeer(packets.NewChat(fmt.Sprintf("Pleasure doing business with you, %s!", senderActor.Name)), senderId)
 }
 
 func (n *NpcRickert) removeFromOtherInLevel(clientId uint32) {

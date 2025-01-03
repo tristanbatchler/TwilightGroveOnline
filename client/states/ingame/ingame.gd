@@ -140,6 +140,10 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_interact_with_npc_response(packet.get_interact_with_npc_response())
 	elif packet.has_npc_dialogue():
 		_handle_npc_dialogue(sender_id, packet.get_npc_dialogue())
+	elif packet.has_sell_response():
+		_handle_sell_response(sender_id, packet.get_sell_response())
+	elif packet.has_buy_response():
+		_handle_buy_response(sender_id, packet.get_buy_response())
 
 func _on_logout_button_pressed() -> void:
 	var packet := Packets.Packet.new()
@@ -316,24 +320,11 @@ func _handle_ground_item(ground_item_msg: Packets.GroundItem) -> void:
 	var gid := ground_item_msg.get_id()
 	if gid in _ground_items:
 		return
-	var item_msg := ground_item_msg.get_item()
+	
+	var item := _get_item_obj_from_msg(ground_item_msg.get_item())
+	
 	var x := ground_item_msg.get_x()
 	var y := ground_item_msg.get_y()
-	
-	var item_name := item_msg.get_name()
-	var description := item_msg.get_description()
-	var sprite_region_x := item_msg.get_sprite_region_x()
-	var sprite_region_y := item_msg.get_sprite_region_y()
-	
-	var tool_properties_msg := item_msg.get_tool_props()
-	var tool_properties: ToolProperties = null
-	if tool_properties_msg != null:
-		tool_properties = ToolProperties.new()
-		tool_properties.strength = tool_properties_msg.get_strength()
-		tool_properties.level_required = tool_properties_msg.get_level_required()
-		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
-	
-	var item := Item.instantiate(item_name, description, sprite_region_x, sprite_region_y, tool_properties)
 	
 	var ground_item_obj := GroundItem.instantiate(gid, x, y, item)
 	_ground_items[gid] = ground_item_obj
@@ -473,6 +464,22 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 		
 	return item_msg
 
+func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
+	var item_name := item_msg.get_name()
+	var description := item_msg.get_description()
+	var sprite_region_x := item_msg.get_sprite_region_x()
+	var sprite_region_y := item_msg.get_sprite_region_y()
+	
+	var tool_properties_msg := item_msg.get_tool_props()
+	var tool_properties: ToolProperties = null
+	if tool_properties_msg != null:
+		tool_properties = ToolProperties.new()
+		tool_properties.strength = tool_properties_msg.get_strength()
+		tool_properties.level_required = tool_properties_msg.get_level_required()
+		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
+	
+	return Item.instantiate(item_name, description, sprite_region_x, sprite_region_y, tool_properties)
+
 func _drop_item(item: Item, item_qty: int) -> void:
 	# If we are shopping, we actually want this to sell the item
 	if _shop.visible:
@@ -583,6 +590,44 @@ func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialog
 			_tab_container.current_tab = tab_before_dialogue
 		)
 
+func _handle_sell_response(shop_owner_actor_id: int, sell_response_msg: Packets.SellResponse) -> void:
+	var response := sell_response_msg.get_response()
+	
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+	
+	if shop_owner_actor_id in _actors:
+		var shop_owner_actor := _actors[shop_owner_actor_id]
+		var item_qty := sell_response_msg.get_item_qty()
+		var item_msg := item_qty.get_item()
+		var item_name := item_msg.get_name()
+		var quantity := item_qty.get_quantity()
+		_inventory.remove(item_name, quantity)
+		if _shop.visible and _shop.get_owner_actor_id() == shop_owner_actor_id:
+			var item := _get_item_obj_from_msg(item_msg)
+			_shop.add(item, quantity)
+		
+func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.BuyResponse) -> void:
+	var response := buy_response_msg.get_response()
+	
+	if not response.get_success():
+		if response.has_msg():
+			_log.error(response.get_msg())
+		return
+		
+	if shop_owner_actor_id in _actors:
+		var shop_owner_actor := _actors[shop_owner_actor_id]
+		var item_qty := buy_response_msg.get_item_qty()
+		var item_msg := item_qty.get_item()
+		var item_name := item_msg.get_name()
+		var quantity := item_qty.get_quantity()
+		if _shop.visible and _shop.get_owner_actor_id() == shop_owner_actor_id:
+			_shop.remove(item_name, quantity)
+		var item := _get_item_obj_from_msg(item_msg)
+		_inventory.add(item, quantity)
+		
 
 func _process(delta: float) -> void:
 	var player: Actor = null

@@ -355,3 +355,29 @@ func NewNpcDialogue(dialogue []string) Msg {
 		},
 	}
 }
+
+func NewBuyResponse(success bool, shopOwnerActorId uint32, itemQuantity *ItemQuantity, err error) Msg {
+	return &Packet_BuyResponse{
+		BuyResponse: &BuyResponse{
+			ShopOwnerActorId: shopOwnerActorId,
+			ItemQty:          itemQuantity,
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}
+
+func NewSellResponse(success bool, shopOwnerActorId uint32, itemQuantity *ItemQuantity, err error) Msg {
+	return &Packet_SellResponse{
+		SellResponse: &SellResponse{
+			ShopOwnerActorId: shopOwnerActorId,
+			ItemQty:          itemQuantity,
+			Response: &Response{
+				Success:     success,
+				OptionalMsg: newOptionalResponse(err),
+			},
+		},
+	}
+}

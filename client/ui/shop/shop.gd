@@ -20,8 +20,13 @@ func _ready() -> void:
 func set_title(new_title: String) -> void:
 	_title.text = new_title
 	
+	
+# TODO: just make _owner_actor_id public...
 func set_owner_actor_id(actor_id: int) -> void:
 	_owner_actor_id = actor_id
+
+func get_owner_actor_id() -> int:
+	return _owner_actor_id
 
 func add(item: Item, quantity: int) -> void:
 	if item.item_name in _tiles:

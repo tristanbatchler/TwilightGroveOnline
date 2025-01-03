@@ -239,7 +239,7 @@ message BuyRequest {
 
 message BuyResponse {
     uint32 shop_owner_actor_id = 1;
-    Item item = 2;
+    ItemQuantity item_qty = 2;
     Response response = 3;
 }
 
@@ -251,7 +251,7 @@ message SellRequest {
 
 message SellResponse {
     uint32 shop_owner_actor_id = 1;
-    Item item = 2;
+    ItemQuantity item_qty = 2;
     Response response = 3;
 }
 

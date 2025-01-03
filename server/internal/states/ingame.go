@@ -120,6 +120,10 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.client.SocketSendAs(message, senderId)
 	case *packets.Packet_ActorInventory:
 		g.handleActorInventory(senderId, message)
+	case *packets.Packet_BuyRequest:
+		g.handleBuyRequest(senderId, message)
+	case *packets.Packet_BuyResponse:
+		g.handleBuyResponse(senderId, message)
 	}
 }
 
@@ -547,20 +551,7 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 
 }
 
-func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
-	if senderId != g.client.Id() {
-		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
-		return
-	}
-
-	point := ds.Point{X: g.player.X, Y: g.player.Y}
-	if g.client.LevelPointMaps().GroundItems.Contains(g.levelId, point) {
-		g.logger.Println("Tried to drop an item on top of another item")
-		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that - there's already something there")))
-		return
-	}
-
-	itemMsg := message.DropItemRequest.Item
+func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
 		Description:   itemMsg.Description,
@@ -569,8 +560,7 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item from the database: %v", err)
-		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that right now")))
-		return
+		return nil, err
 	}
 
 	toolPropsMsg := itemMsg.ToolProps
@@ -587,7 +577,28 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 		}
 	}
 
-	itemObj := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID)
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
+}
+
+func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
+	if senderId != g.client.Id() {
+		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
+		return
+	}
+
+	point := ds.Point{X: g.player.X, Y: g.player.Y}
+	if g.client.LevelPointMaps().GroundItems.Contains(g.levelId, point) {
+		g.logger.Println("Tried to drop an item on top of another item")
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that - there's already something there")))
+		return
+	}
+
+	itemMsg := message.DropItemRequest.Item
+
+	itemObj, err := g.itemObjFromMessage(itemMsg)
+	if err != nil {
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that right now")))
+	}
 
 	// Check the item's in the player's inventory
 	if quantity := g.inventory.GetItemQuantity(*itemObj); quantity < message.DropItemRequest.Quantity {
@@ -611,7 +622,7 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 
 	go g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
 		LevelID:        g.levelId,
-		ItemID:         itemModel.ID,
+		ItemID:         itemObj.DbId,
 		X:              g.player.X,
 		Y:              g.player.Y,
 		RespawnSeconds: 0, // Player drops don't respawn
@@ -635,6 +646,8 @@ func (g *InGame) handleInteractWithNpcRequest(senderId uint32, message *packets.
 		return
 	}
 
+	// TODO: Check if the NPC is in range
+
 	g.client.PassToPeer(message, clientId)
 }
 
@@ -643,6 +656,44 @@ func (g *InGame) handleActorInventory(senderId uint32, message *packets.Packet_A
 		g.logger.Println("Received an actor inventory message from ourselves, ignoring")
 		return
 	}
+
+	g.client.SocketSendAs(message, senderId)
+}
+
+func (g *InGame) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRequest) {
+	if senderId != g.client.Id() {
+		g.logger.Println("Received a buy request from a client that isn't us, ignoring")
+		return
+	}
+
+	shopOwnerActorId := message.BuyRequest.ShopOwnerActorId
+	_, exists := g.client.SharedGameObjects().Actors.Get(shopOwnerActorId)
+	if !exists {
+		g.logger.Printf("Tried to buy from actor %d, but they don't exist in the shared game object collection", message.BuyRequest.ShopOwnerActorId)
+		g.client.SocketSend(packets.NewBuyResponse(false, shopOwnerActorId, nil, errors.New("Shop owner unknown")))
+		return
+	}
+
+	// TODO: Check if the shop owner is in range
+
+	g.client.PassToPeer(message, shopOwnerActorId)
+}
+
+func (g *InGame) handleBuyResponse(senderId uint32, message *packets.Packet_BuyResponse) {
+	if senderId == g.client.Id() {
+		g.logger.Println("Received a buy response from ourselves, ignoring")
+		return
+	}
+
+	itemQtyMsg := message.BuyResponse.ItemQty
+
+	itemObj, err := g.itemObjFromMessage(itemQtyMsg.Item)
+	if err != nil {
+		g.client.SocketSendAs(packets.NewBuyResponse(false, message.BuyResponse.ShopOwnerActorId, nil, errors.New("Can't buy that item right now")), senderId)
+		return
+	}
+
+	g.addInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
 
 	g.client.SocketSendAs(message, senderId)
 }

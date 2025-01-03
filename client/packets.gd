@@ -3295,11 +3295,11 @@ class BuyResponse:
 		service.field = _shop_owner_actor_id
 		data[_shop_owner_actor_id.tag] = service
 		
-		_item = PBField.new("item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_item_qty = PBField.new("item_qty", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = _item
-		service.func_ref = Callable(self, "new_item")
-		data[_item.tag] = service
+		service.field = _item_qty
+		service.func_ref = Callable(self, "new_item_qty")
+		data[_item_qty.tag] = service
 		
 		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
@@ -3318,15 +3318,15 @@ class BuyResponse:
 	func set_shop_owner_actor_id(value : int) -> void:
 		_shop_owner_actor_id.value = value
 	
-	var _item: PBField
-	func get_item() -> Item:
-		return _item.value
-	func clear_item() -> void:
+	var _item_qty: PBField
+	func get_item_qty() -> ItemQuantity:
+		return _item_qty.value
+	func clear_item_qty() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_item() -> Item:
-		_item.value = Item.new()
-		return _item.value
+		_item_qty.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item_qty() -> ItemQuantity:
+		_item_qty.value = ItemQuantity.new()
+		return _item_qty.value
 	
 	var _response: PBField
 	func get_response() -> Response:
@@ -3439,11 +3439,11 @@ class SellResponse:
 		service.field = _shop_owner_actor_id
 		data[_shop_owner_actor_id.tag] = service
 		
-		_item = PBField.new("item", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
+		_item_qty = PBField.new("item_qty", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
-		service.field = _item
-		service.func_ref = Callable(self, "new_item")
-		data[_item.tag] = service
+		service.field = _item_qty
+		service.func_ref = Callable(self, "new_item_qty")
+		data[_item_qty.tag] = service
 		
 		_response = PBField.new("response", PB_DATA_TYPE.MESSAGE, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE])
 		service = PBServiceField.new()
@@ -3462,15 +3462,15 @@ class SellResponse:
 	func set_shop_owner_actor_id(value : int) -> void:
 		_shop_owner_actor_id.value = value
 	
-	var _item: PBField
-	func get_item() -> Item:
-		return _item.value
-	func clear_item() -> void:
+	var _item_qty: PBField
+	func get_item_qty() -> ItemQuantity:
+		return _item_qty.value
+	func clear_item_qty() -> void:
 		data[2].state = PB_SERVICE_STATE.UNFILLED
-		_item.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
-	func new_item() -> Item:
-		_item.value = Item.new()
-		return _item.value
+		_item_qty.value = DEFAULT_VALUES_3[PB_DATA_TYPE.MESSAGE]
+	func new_item_qty() -> ItemQuantity:
+		_item_qty.value = ItemQuantity.new()
+		return _item_qty.value
 	
 	var _response: PBField
 	func get_response() -> Response:
