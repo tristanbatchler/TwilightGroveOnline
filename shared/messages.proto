@@ -231,6 +231,30 @@ message NpcDialogue {
     repeated string dialogue = 2;
 }
 
+message BuyRequest {
+    uint32 shop_owner_actor_id = 1;
+    Item item = 2;
+    uint32 quantity = 3;
+}
+
+message BuyResponse {
+    uint32 shop_owner_actor_id = 1;
+    Item item = 2;
+    Response response = 3;
+}
+
+message SellRequest {
+    uint32 shop_owner_actor_id = 1;
+    Item item = 2;
+    uint32 quantity = 3;
+}
+
+message SellResponse {
+    uint32 shop_owner_actor_id = 1;
+    Item item = 2;
+    Response response = 3;
+}
+
 message Packet {
     uint32 sender_id = 1;
     oneof msg {
@@ -275,5 +299,9 @@ message Packet {
         InteractWithNpcResponse interact_with_npc_response = 40;
         InteractWithNpcRequest interact_with_npc_request = 41;
         NpcDialogue npc_dialogue = 42;
+        BuyRequest buy_request = 43;
+        BuyResponse buy_response = 44;
+        SellRequest sell_request = 45;
+        SellResponse sell_response = 46;
     }
 }

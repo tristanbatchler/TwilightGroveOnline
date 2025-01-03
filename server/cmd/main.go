@@ -116,7 +116,7 @@ func main() {
 	log.Printf("Starting server on %s", addr)
 
 	// Add an NPC to the game
-	dummyClient, err := conn.NewDummyClient(hub, &states.Npc{})
+	dummyClient, err := conn.NewDummyClient(hub, &states.NpcRickert{})
 	if err != nil {
 		log.Fatalf("Error creating dummy client: %v", err)
 	}

@@ -118,6 +118,8 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.client.SocketSendAs(message, senderId)
 	case *packets.Packet_NpcDialogue:
 		g.client.SocketSendAs(message, senderId)
+	case *packets.Packet_ActorInventory:
+		g.handleActorInventory(senderId, message)
 	}
 }
 
@@ -634,6 +636,15 @@ func (g *InGame) handleInteractWithNpcRequest(senderId uint32, message *packets.
 	}
 
 	g.client.PassToPeer(message, clientId)
+}
+
+func (g *InGame) handleActorInventory(senderId uint32, message *packets.Packet_ActorInventory) {
+	if senderId == g.client.Id() {
+		g.logger.Println("Received an actor inventory message from ourselves, ignoring")
+		return
+	}
+
+	g.client.SocketSendAs(message, senderId)
 }
 
 func (g *InGame) OnExit() {

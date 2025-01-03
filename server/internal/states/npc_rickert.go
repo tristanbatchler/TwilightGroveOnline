@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
-type Npc struct {
+type NpcRickert struct {
 	client         central.ClientInterfacer
 	actor          *objs.Actor
 	levelId        int32
@@ -23,17 +24,17 @@ type Npc struct {
 	cancelMoveLoop context.CancelFunc
 }
 
-func (n *Npc) Name() string {
-	return "Npc"
+func (n *NpcRickert) Name() string {
+	return "NpcRickert"
 }
 
-func (n *Npc) SetClient(client central.ClientInterfacer) {
+func (n *NpcRickert) SetClient(client central.ClientInterfacer) {
 	n.client = client
 	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), n.Name())
 	n.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
 }
 
-func (n *Npc) OnEnter() {
+func (n *NpcRickert) OnEnter() {
 	n.levelId = 1
 	n.actor = objs.NewActor(n.levelId, 18, 5, "Rickert", 0)
 
@@ -51,7 +52,7 @@ func (n *Npc) OnEnter() {
 	n.client.Broadcast(ourActorInfo, n.othersInLevel)
 }
 
-func (n *Npc) HandleMessage(senderId uint32, message packets.Msg) {
+func (n *NpcRickert) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_Chat:
 		n.handleChat(senderId, message)
@@ -66,7 +67,7 @@ func (n *Npc) HandleMessage(senderId uint32, message packets.Msg) {
 	}
 }
 
-func (n *Npc) handleChat(senderId uint32, message *packets.Packet_Chat) {
+func (n *NpcRickert) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	if strings.TrimSpace(message.Chat.Msg) == "" {
 		n.logger.Println("Received a chat message with no content, ignoring")
 		return
@@ -82,7 +83,7 @@ func (n *Npc) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	}
 }
 
-func (n *Npc) OnExit() {
+func (n *NpcRickert) OnExit() {
 	n.logger.Println("NPC is exiting")
 	n.client.Broadcast(packets.NewLogout(), n.othersInLevel)
 	n.client.SharedGameObjects().Actors.Remove(n.client.Id())
@@ -91,7 +92,7 @@ func (n *Npc) OnExit() {
 	}
 }
 
-func (n *Npc) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
+func (n *NpcRickert) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 	if senderId == n.client.Id() {
 		n.logger.Printf("Received a actor info message from ourselves, ignoring")
 		return
@@ -110,7 +111,7 @@ func (n *Npc) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 	}
 }
 
-func (n *Npc) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
+func (n *NpcRickert) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
 	if senderId == n.client.Id() {
 		n.logger.Printf("Received an interact with NPC request from itself, ignoring, and I should never see this message")
 		return
@@ -134,16 +135,23 @@ func (n *Npc) handleInteractWithNpcRequest(senderId uint32, message *packets.Pac
 		return
 	}
 
+	// TODO: Remove this test
+	// Send a shop dialogue to the client
+	testInventory := ds.NewInventory()
+	testInventory.AddItem(*items.Logs, 5)
+	testInventory.AddItem(*items.Rocks, 3)
+	n.client.PassToPeer(packets.NewInventory(testInventory), senderId)
+
 	// n.client.Broadcast(packets.NewChat(fmt.Sprintf("%s... I don't want to talk right now.", senderActor.Name)), n.othersInLevel)
-	dialogue := []string{
+	_ = []string{
 		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
 		"I'm Rickert. What's your name?",
 		fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
 	}
-	n.client.PassToPeer(packets.NewNpcDialogue(dialogue), senderId)
+	// n.client.PassToPeer(packets.NewNpcDialogue(dialogue), senderId)
 }
 
-func (n *Npc) removeFromOtherInLevel(clientId uint32) {
+func (n *NpcRickert) removeFromOtherInLevel(clientId uint32) {
 	for i, id := range n.othersInLevel {
 		if id == clientId {
 			n.othersInLevel = append(n.othersInLevel[:i], n.othersInLevel[i+1:]...)
@@ -152,7 +160,7 @@ func (n *Npc) removeFromOtherInLevel(clientId uint32) {
 	}
 }
 
-func (n *Npc) isOtherKnown(otherId uint32) bool {
+func (n *NpcRickert) isOtherKnown(otherId uint32) bool {
 	for _, id := range n.othersInLevel {
 		if id == otherId {
 			return true
@@ -161,7 +169,7 @@ func (n *Npc) isOtherKnown(otherId uint32) bool {
 	return false
 }
 
-func (n *Npc) moveLoop(ctx context.Context) {
+func (n *NpcRickert) moveLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -192,7 +200,7 @@ func (n *Npc) moveLoop(ctx context.Context) {
 	}
 }
 
-func (n *Npc) move(dx, dy int32) {
+func (n *NpcRickert) move(dx, dy int32) {
 	targetX := n.actor.X + dx
 	targetY := n.actor.Y + dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}

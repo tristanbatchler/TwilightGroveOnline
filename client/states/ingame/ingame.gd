@@ -38,6 +38,7 @@ func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
 	_logout_button.pressed.connect(_on_logout_button_pressed)
+	_shop.item_purchased.connect(_on_shop_item_purchased)
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
 	_send_button.pressed.connect(_on_send_button_pressed)
 	_inventory.item_dropped.connect(_drop_item)
@@ -118,7 +119,7 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 	elif packet.has_ore():
 		_handle_ore(packet.get_ore())
 	elif packet.has_actor_inventory():
-		_handle_actor_inventory(packet.get_actor_inventory())
+		_handle_actor_inventory(sender_id, packet.get_actor_inventory())
 	elif packet.has_drop_item_response():
 		_handle_drop_item_response(packet.get_drop_item_response())
 	elif packet.has_chop_shrub_response():
@@ -360,12 +361,37 @@ func _handle_ore(ore_msg: Packets.Ore) -> void:
 	_ores[oid] = ore_obj
 	ore_obj.place(_world_tilemap_layer)
 
-func _handle_actor_inventory(actor_inventory_msg: Packets.ActorInventory) -> void:
-	_inventory.clear()
-	for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
-		_handle_item_quantity(item_qty_msg, true)
+func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorInventory) -> void:
+	# If this is our inventory, set it appropriately
+	if sender_id == GameManager.client_id:
+		_inventory.clear()
+		for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
+			_handle_item_quantity(item_qty_msg, true)
+		return
+	
+	# Otherwise, we are getting someone else's inventory so it's a trade
+	if sender_id in _actors:
+		var actor := _actors[sender_id]
+
+		var tab_idx_before_shop := _tab_container.current_tab
+		var tab_before_shop := _tab_container.get_current_tab_control()
 		
-func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = false) -> void:
+		_shop.show()
+		if _tab_container.get_tab_title(tab_idx_before_shop).to_lower() != "inventory": # TODO: This is yuck, there should be a better way
+			tab_before_shop.hide()
+		_inventory.show()
+		_shop.set_title("%s's shop" % actor.actor_name)
+		_shop.set_owner_actor_id(sender_id)
+		_shop.closed.connect(func():
+			tab_before_shop.show()
+			_shop.hide()
+			_tab_container.current_tab = tab_idx_before_shop
+		)
+		_shop.clear()
+		for item_qty_msg: Packets.ItemQuantity in actor_inventory_msg.get_items_quantities():
+			_handle_item_quantity(item_qty_msg, false, true)
+		
+func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = false, from_shop: bool = false) -> void:
 	var item_msg := item_qty_msg.get_item()
 	var item_name := item_msg.get_name()
 	var item_description := item_msg.get_description()
@@ -378,6 +404,12 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 		tool_properties.level_required = tool_props_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
 	var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+	
+	if from_shop:
+		_shop.add(item,qty)
+		return
+		
+	
 	_inventory.add(item, qty)
 
 	if not from_inv:
@@ -425,13 +457,8 @@ func _drop_selected_item() -> void:
 		_drop_item(selected_inventory_row.item, item_qty)
 		
 
-func _drop_item(item: Item, item_qty: int) -> void:
-	var packet := Packets.Packet.new()
-	
-	var drop_item_request_msg := packet.new_drop_item_request()
-	drop_item_request_msg.set_quantity(item_qty)
-	
-	var item_msg := drop_item_request_msg.new_item()
+func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
+	var item_msg: Packets.Item = receiver.new_item()
 	item_msg.set_name(item.item_name)
 	item_msg.set_description(item.description)
 	item_msg.set_sprite_region_x(item.sprite_region_x)
@@ -443,6 +470,24 @@ func _drop_item(item: Item, item_qty: int) -> void:
 		tool_props_msg.set_strength(tool_properties.strength)
 		tool_props_msg.set_level_required(tool_properties.level_required)
 		tool_props_msg.set_harvests(int(tool_properties.harvests))
+		
+	return item_msg
+
+func _drop_item(item: Item, item_qty: int) -> void:
+	# If we are shopping, we actually want this to sell the item
+	if _shop.visible:
+		var packet := Packets.Packet.new()
+		# TODO: Finish this...
+		
+		return
+	
+	# Else, just drop the item normally
+	var packet := Packets.Packet.new()
+	
+	var drop_item_request_msg := packet.new_drop_item_request()
+	drop_item_request_msg.set_quantity(item_qty)
+	
+	_set_item_msg_from_obj(drop_item_request_msg, item)
 	
 	WS.send(packet)
 	
@@ -537,11 +582,7 @@ func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialog
 			_dialogue_box.hide()
 			_tab_container.current_tab = tab_before_dialogue
 		)
-		
-		# Example: TODO: make this appear when a shop packet is received
-		_shop.show()
-		_shop.set_title("%s's shop" % npc_actor.actor_name)
-		_shop.closed.connect(_shop.hide)
+
 
 func _process(delta: float) -> void:
 	var player: Actor = null
@@ -608,3 +649,14 @@ func _handle_xp_reward(xp_reward_msg: Packets.XpReward, from_initial_skills: boo
 func _handle_skills_xp(skills_xp_msg: Packets.SkillsXp) -> void:
 	for xp_reward: Packets.XpReward in skills_xp_msg.get_xp_rewards():
 		_handle_xp_reward(xp_reward, true)
+
+func _on_shop_item_purchased(shop_owner_actor_id: int, item: Item, quantity: int) -> void:
+	var packet := Packets.Packet.new()
+	var buy_request_msg := packet.new_buy_request()
+	_set_item_msg_from_obj(buy_request_msg, item)
+	if _shop.get_quantity(item.item_name) >= quantity:
+		buy_request_msg.set_quantity(quantity)
+	else:
+		_log.warning("Shop does not have enough of that item")
+	buy_request_msg.set_shop_owner_actor_id(shop_owner_actor_id)
+	WS.send(packet)

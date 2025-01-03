@@ -26,7 +26,6 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 bbcode_enabled = true
-text = "Test"
 fit_content = true
 
 [node name="HSeparator" type="HSeparator" parent="."]
