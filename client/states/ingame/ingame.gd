@@ -10,13 +10,12 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 
 @export var download_destination_scene_path: String
 
-@onready var _ground_hint_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/GroundHintLabel
-@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/LogoutButton
+@onready var _ground_hint_label: Label = $CanvasLayer/MarginContainer/GroundHintLabel
+@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/LogoutButton
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
-@onready var _debug_label: Label = $CanvasLayer/MarginContainer/VBoxContainer/DebugLabel
 @onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
-@onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/Experience
+@onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/Experience
 
 @onready var _tab_container: TabContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
@@ -546,9 +545,6 @@ func _process(delta: float) -> void:
 		return
 	
 	var pos_diff := player.get_mouse_diff_from_player_pos()
-		
-	# Debug stuff
-	_debug_label.text = "pos_diff.length_squared() = %s" % pos_diff.length_squared()
 		
 	# Hint at what's on the ground underneath you
 	var ground_item := player.get_ground_item_standing_on()
