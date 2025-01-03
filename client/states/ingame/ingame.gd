@@ -484,8 +484,11 @@ func _drop_item(item: Item, item_qty: int) -> void:
 	# If we are shopping, we actually want this to sell the item
 	if _shop.visible:
 		var packet := Packets.Packet.new()
-		# TODO: Finish this...
-		
+		var sell_request_msg := packet.new_sell_request()
+		_set_item_msg_from_obj(sell_request_msg, item)
+		sell_request_msg.set_quantity(item_qty)
+		sell_request_msg.set_shop_owner_actor_id(_shop.get_owner_actor_id())
+		WS.send(packet)
 		return
 	
 	# Else, just drop the item normally

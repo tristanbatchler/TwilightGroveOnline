@@ -124,6 +124,10 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.handleBuyRequest(senderId, message)
 	case *packets.Packet_BuyResponse:
 		g.handleBuyResponse(senderId, message)
+	case *packets.Packet_SellRequest:
+		g.handleSellRequest(senderId, message)
+	case *packets.Packet_SellResponse:
+		g.handleSellResponse(senderId, message)
 	}
 }
 
@@ -694,6 +698,44 @@ func (g *InGame) handleBuyResponse(senderId uint32, message *packets.Packet_BuyR
 	}
 
 	g.addInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
+
+	g.client.SocketSendAs(message, senderId)
+}
+
+func (g *InGame) handleSellRequest(senderId uint32, message *packets.Packet_SellRequest) {
+	if senderId != g.client.Id() {
+		g.logger.Println("Received a sell request from a client that isn't us, ignoring")
+		return
+	}
+
+	shopOwnerActorId := message.SellRequest.ShopOwnerActorId
+	_, exists := g.client.SharedGameObjects().Actors.Get(shopOwnerActorId)
+	if !exists {
+		g.logger.Printf("Tried to sell to actor %d, but they don't exist in the shared game object collection", message.SellRequest.ShopOwnerActorId)
+		g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, errors.New("Shop owner unknown")))
+		return
+	}
+
+	// TODO: Check if the shop owner is in range
+
+	g.client.PassToPeer(message, shopOwnerActorId)
+}
+
+func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_SellResponse) {
+	if senderId == g.client.Id() {
+		g.logger.Println("Received a sell response from ourselves, ignoring")
+		return
+	}
+
+	itemQtyMsg := message.SellResponse.ItemQty
+
+	itemObj, err := g.itemObjFromMessage(itemQtyMsg.Item)
+	if err != nil {
+		g.client.SocketSendAs(packets.NewSellResponse(false, message.SellResponse.ShopOwnerActorId, nil, errors.New("Can't sell that item right now")), senderId)
+		return
+	}
+
+	g.removeInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
 
 	g.client.SocketSendAs(message, senderId)
 }
