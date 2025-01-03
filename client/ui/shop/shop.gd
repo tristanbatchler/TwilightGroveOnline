@@ -33,7 +33,7 @@ func add(item: Item, quantity: int) -> void:
 		var tile := _tiles[item.item_name]
 		tile.item_quantity += quantity
 	else:
-		var tile := InventoryRow.instantiate(item, quantity)
+		var tile := InventoryRow.instantiate(item, quantity, true)
 		_grid_container.add_child(tile)
 		_tiles[item.item_name] = tile
 		

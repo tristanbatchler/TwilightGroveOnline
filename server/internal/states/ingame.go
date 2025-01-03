@@ -636,23 +636,51 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
 }
 
+func (g *InGame) isActorInRange(actor *objs.Actor) bool {
+	dX := g.player.X - actor.X
+	dY := g.player.Y - actor.Y
+	return dX*dX+dY*dY <= 2
+}
+
+func (g *InGame) checkActorIsInteractable(actorId uint32) error {
+	unknownPersonErr := errors.New("That person is unknown")
+
+	// ActorID is stored in the othersInLevel slice and corresponds to the dummy client ID, so we can just pass the message to the dummy client
+
+	clientId := actorId
+	if !g.isOtherKnown(clientId) {
+		g.logger.Printf("Tried to interact with NPC with client ID %d, but they're not known to us", clientId)
+		return unknownPersonErr
+	}
+
+	actor, exists := g.client.SharedGameObjects().Actors.Get(actorId)
+	if !exists {
+		g.logger.Printf("Tried to interact with NPC with client ID %d, but they don't exist in the shared game object collection", clientId)
+		return unknownPersonErr
+	}
+
+	if !g.isActorInRange(actor) {
+		g.logger.Printf("Tried to interact with NPC with client ID %d, but they're not in range", clientId)
+		return fmt.Errorf("%s is too far away", actor.Name)
+	}
+
+	return nil
+}
+
 func (g *InGame) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
 	if senderId != g.client.Id() {
 		g.logger.Printf("Received an interact with NPC request from client %d, but we only accept requests from ourselves - ignoring", senderId)
 		return
 	}
 
-	// ActorID is stored in the othersInLevel slice and corresponds to the dummy client ID, so we can just pass the message to the dummy client
-	clientId := message.InteractWithNpcRequest.ActorId
-	if !g.isOtherKnown(clientId) {
-		g.logger.Printf("Tried to interact with NPC with client ID %d, but they're not known to us", clientId)
-		g.client.SocketSend(packets.NewInteractWithNpcResponse(false, 0, errors.New("That person is unknown")))
+	actorId := message.InteractWithNpcRequest.ActorId
+	err := g.checkActorIsInteractable(actorId)
+	if err != nil {
+		g.client.SocketSend(packets.NewInteractWithNpcResponse(false, actorId, err))
 		return
 	}
 
-	// TODO: Check if the NPC is in range
-
-	g.client.PassToPeer(message, clientId)
+	g.client.PassToPeer(message, actorId)
 }
 
 func (g *InGame) handleActorInventory(senderId uint32, message *packets.Packet_ActorInventory) {
@@ -671,14 +699,17 @@ func (g *InGame) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRe
 	}
 
 	shopOwnerActorId := message.BuyRequest.ShopOwnerActorId
-	_, exists := g.client.SharedGameObjects().Actors.Get(shopOwnerActorId)
-	if !exists {
-		g.logger.Printf("Tried to buy from actor %d, but they don't exist in the shared game object collection", message.BuyRequest.ShopOwnerActorId)
-		g.client.SocketSend(packets.NewBuyResponse(false, shopOwnerActorId, nil, errors.New("Shop owner unknown")))
-		return
-	}
 
-	// TODO: Check if the shop owner is in range
+	// TODO: Normally I would check if the actor is in range, but the problem is the actor might
+	// move while the client is interacting with them. So I think for now, I don't care. There is
+	// still a check in the InteractWithNpcRequest handler to make sure the actor is in range when
+	// the client tries to interact with them. The solution will probably be to set a flag on the
+	// actor when they're being interacted with, and then check that flag in the BuyRequest handler.
+	// err := g.checkActorIsInteractable(shopOwnerActorId)
+	// if err != nil {
+	// 	g.client.SocketSend(packets.NewBuyResponse(false, shopOwnerActorId, nil, err))
+	// 	return
+	// }
 
 	g.client.PassToPeer(message, shopOwnerActorId)
 }
@@ -709,14 +740,13 @@ func (g *InGame) handleSellRequest(senderId uint32, message *packets.Packet_Sell
 	}
 
 	shopOwnerActorId := message.SellRequest.ShopOwnerActorId
-	_, exists := g.client.SharedGameObjects().Actors.Get(shopOwnerActorId)
-	if !exists {
-		g.logger.Printf("Tried to sell to actor %d, but they don't exist in the shared game object collection", message.SellRequest.ShopOwnerActorId)
-		g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, errors.New("Shop owner unknown")))
-		return
-	}
 
-	// TODO: Check if the shop owner is in range
+	// See the comment in the BuyRequest handler
+	// err := g.checkActorIsInteractable(shopOwnerActorId)
+	// if err != nil {
+	// 	g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, err))
+	// 	return
+	// }
 
 	g.client.PassToPeer(message, shopOwnerActorId)
 }

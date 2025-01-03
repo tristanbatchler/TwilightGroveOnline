@@ -21,10 +21,13 @@ var selected: bool:
 	set(value):
 		set_selected(value)
 
-static func instantiate(item: Item, item_quantity: int) -> InventoryRow:
+var labelless: bool
+
+static func instantiate(item: Item, item_quantity: int, labelless: bool = false) -> InventoryRow:
 	var inventory_row := Scene.instantiate()
 	inventory_row.item = item
 	inventory_row.item_quantity = item_quantity
+	inventory_row.labelless = labelless
 	return inventory_row
 
 func _ready() -> void:
@@ -35,10 +38,17 @@ func _ready() -> void:
 		_item.texture = load("res://resources/art/colored_tilemap_packed.png")
 		_item.region_enabled = true
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
-		_name_label.text = item.item_name
 		
 		tooltip_text = item.description
 		_drop_button.tooltip_text = item.description
+		
+		if not labelless:
+			_name_label.text = item.item_name
+		else:
+			_name_label.text = ""
+			tooltip_text = "%s\n%s" % [item.item_name, tooltip_text]
+			_drop_button.tooltip_text = "%s\n%s" % [item.item_name, _drop_button.tooltip_text]
+			
 
 func set_selected(selected: bool) -> void:
 	selected = selected
