@@ -299,7 +299,11 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		}
 	}
 
-	// TODO: Check if the player is in range of the ground item
+	if !g.isActorInRange(groundItem.X, groundItem.Y) {
+		g.logger.Printf("Client %d tried to pick up ground item %d, but it's not in range", senderId, groundItem.Id)
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("That item is too far away to reach.")))
+		return
+	}
 
 	g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
 
@@ -379,7 +383,11 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		return
 	}
 
-	// TODO: Check if the player is in range of the shrub
+	if !g.isActorInRange(shrub.X, shrub.Y) {
+		g.logger.Printf("Client %d tried to chop shrub %d, but it's not in range", senderId, shrub.Id)
+		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("That shrub is too far away to reach.")))
+		return
+	}
 
 	g.client.SharedGameObjects().Shrubs.Remove(shrub.Id)
 
@@ -449,7 +457,11 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		return
 	}
 
-	// TODO: Check if the player is in range of the ore
+	if !g.isActorInRange(ore.X, ore.Y) {
+		g.logger.Printf("Client %d tried to mine ore %d, but it's not in range", senderId, ore.Id)
+		g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("That ore is too far away to reach.")))
+		return
+	}
 
 	g.client.SharedGameObjects().Ores.Remove(ore.Id)
 
@@ -570,10 +582,10 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
 }
 
-func (g *InGame) isActorInRange(actor *objs.Actor) bool {
-	dX := g.player.X - actor.X
-	dY := g.player.Y - actor.Y
-	return dX*dX+dY*dY <= 2
+func (g *InGame) isActorInRange(x int32, y int32) bool {
+	dX := g.player.X - x
+	dY := g.player.Y - y
+	return dX*dX+dY*dY < 2 // TODO: Maybe be a bit more lenient? If it causes issues, I will
 }
 
 func (g *InGame) checkActorIsInteractable(actorId uint32) error {
@@ -593,7 +605,7 @@ func (g *InGame) checkActorIsInteractable(actorId uint32) error {
 		return unknownPersonErr
 	}
 
-	if !g.isActorInRange(actor) {
+	if !g.isActorInRange(actor.X, actor.Y) {
 		g.logger.Printf("Tried to interact with NPC with client ID %d, but they're not in range", clientId)
 		return fmt.Errorf("%s is too far away", actor.Name)
 	}
