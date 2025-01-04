@@ -118,6 +118,7 @@ func NewItem(item *objs.Item) Msg {
 		Item: &Item{
 			Name:          item.Name,
 			Description:   item.Description,
+			Value:         item.Value,
 			SpriteRegionX: item.SpriteRegionX,
 			SpriteRegionY: item.SpriteRegionY,
 			ToolProps:     NewToolProps(item.ToolProps),

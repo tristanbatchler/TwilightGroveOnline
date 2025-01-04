@@ -285,7 +285,7 @@ func (h *Hub) Run(adminPassword string) {
 			if toolPropsModel != nil {
 				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
 			}
-			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ID)
+			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, model.RespawnSeconds), nil
 		},
 	)
@@ -314,6 +314,7 @@ func (h *Hub) Run(adminPassword string) {
 		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
 			Name:          item.Name,
 			Description:   item.Description,
+			Value:         item.Value,
 			SpriteRegionX: item.SpriteRegionX,
 			SpriteRegionY: item.SpriteRegionY,
 		})
@@ -324,6 +325,7 @@ func (h *Hub) Run(adminPassword string) {
 			itemModel, err = h.NewDbTx().Queries.GetItem(context.Background(), db.GetItemParams{
 				Name:          item.Name,
 				Description:   item.Description,
+				Value:         item.Value,
 				SpriteRegionX: item.SpriteRegionX,
 				SpriteRegionY: item.SpriteRegionY,
 			})
@@ -487,6 +489,7 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 	itemModel, err := queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
 		Description:   itemMsg.Description,
+		Value:         itemMsg.Value,
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
 	})
@@ -497,5 +500,5 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 
 	toolProps := getToolPropsFromInt4Id(queries, itemModel.ToolPropertiesID)
 
-	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
 }

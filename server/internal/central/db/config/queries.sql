@@ -201,16 +201,16 @@ WHERE id = $1 LIMIT 1;
 
 -- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, description, sprite_region_x, sprite_region_y, tool_properties_id
+    name, description, value, sprite_region_x, sprite_region_y, tool_properties_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
-ON CONFLICT (name, description, sprite_region_x, sprite_region_y) DO NOTHING
+ON CONFLICT (name, description, value, sprite_region_x, sprite_region_y) DO NOTHING
 RETURNING *;
 
 -- name: GetItem :one
 SELECT * FROM items
-WHERE name = $1 AND description = $2 AND sprite_region_x = $3 AND sprite_region_y = $4
+WHERE name = $1 AND description = $2 AND value = $3 AND sprite_region_x = $4 AND sprite_region_y = $5
 LIMIT 1;
 
 -- name: GetItemById :one
@@ -259,6 +259,7 @@ SELECT
     i.id as item_id, 
     i.name, 
     i.description,
+    i.value,
     i.sprite_region_x, 
     i.sprite_region_y, 
     i.tool_properties_id,

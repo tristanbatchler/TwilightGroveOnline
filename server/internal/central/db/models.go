@@ -39,6 +39,7 @@ type Item struct {
 	ID               int32
 	Name             string
 	Description      string
+	Value            int32
 	SpriteRegionX    int32
 	SpriteRegionY    int32
 	ToolPropertiesID pgtype.Int4

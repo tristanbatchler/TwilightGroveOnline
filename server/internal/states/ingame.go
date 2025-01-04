@@ -267,6 +267,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          sgoGroundItem.Item.Name,
 		Description:   sgoGroundItem.Item.Description,
+		Value:         sgoGroundItem.Item.Value,
 		SpriteRegionX: sgoGroundItem.Item.SpriteRegionX,
 		SpriteRegionY: sgoGroundItem.Item.SpriteRegionY,
 	})
@@ -559,6 +560,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
 		Name:          itemMsg.Name,
 		Description:   itemMsg.Description,
+		Value:         itemMsg.Value,
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
 	})
@@ -581,7 +583,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 		}
 	}
 
-	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
 }
 
 func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
@@ -864,7 +866,7 @@ func (g *InGame) loadInventory() {
 	g.inventory = ds.NewInventory()
 	for _, itemModel := range invItems {
 		toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
-		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ItemID)
+		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ItemID)
 		g.addInventoryItem(*item, uint32(itemModel.Quantity))
 	}
 	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())

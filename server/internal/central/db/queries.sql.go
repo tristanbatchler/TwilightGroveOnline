@@ -144,17 +144,18 @@ func (q *Queries) CreateAdminIfNotExists(ctx context.Context, userID int32) (Adm
 
 const createItemIfNotExists = `-- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, description, sprite_region_x, sprite_region_y, tool_properties_id
+    name, description, value, sprite_region_x, sprite_region_y, tool_properties_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
-ON CONFLICT (name, description, sprite_region_x, sprite_region_y) DO NOTHING
-RETURNING id, name, description, sprite_region_x, sprite_region_y, tool_properties_id
+ON CONFLICT (name, description, value, sprite_region_x, sprite_region_y) DO NOTHING
+RETURNING id, name, description, value, sprite_region_x, sprite_region_y, tool_properties_id
 `
 
 type CreateItemIfNotExistsParams struct {
 	Name             string
 	Description      string
+	Value            int32
 	SpriteRegionX    int32
 	SpriteRegionY    int32
 	ToolPropertiesID pgtype.Int4
@@ -164,6 +165,7 @@ func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNot
 	row := q.db.QueryRow(ctx, createItemIfNotExists,
 		arg.Name,
 		arg.Description,
+		arg.Value,
 		arg.SpriteRegionX,
 		arg.SpriteRegionY,
 		arg.ToolPropertiesID,
@@ -173,6 +175,7 @@ func (q *Queries) CreateItemIfNotExists(ctx context.Context, arg CreateItemIfNot
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Value,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,
@@ -611,6 +614,7 @@ SELECT
     i.id as item_id, 
     i.name, 
     i.description,
+    i.value,
     i.sprite_region_x, 
     i.sprite_region_y, 
     i.tool_properties_id,
@@ -624,6 +628,7 @@ type GetActorInventoryItemsRow struct {
 	ItemID           int32
 	Name             string
 	Description      string
+	Value            int32
 	SpriteRegionX    int32
 	SpriteRegionY    int32
 	ToolPropertiesID pgtype.Int4
@@ -643,6 +648,7 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int32) ([]
 			&i.ItemID,
 			&i.Name,
 			&i.Description,
+			&i.Value,
 			&i.SpriteRegionX,
 			&i.SpriteRegionY,
 			&i.ToolPropertiesID,
@@ -719,14 +725,15 @@ func (q *Queries) GetAdminByUserId(ctx context.Context, userID int32) (Admin, er
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, name, description, sprite_region_x, sprite_region_y, tool_properties_id FROM items
-WHERE name = $1 AND description = $2 AND sprite_region_x = $3 AND sprite_region_y = $4
+SELECT id, name, description, value, sprite_region_x, sprite_region_y, tool_properties_id FROM items
+WHERE name = $1 AND description = $2 AND value = $3 AND sprite_region_x = $4 AND sprite_region_y = $5
 LIMIT 1
 `
 
 type GetItemParams struct {
 	Name          string
 	Description   string
+	Value         int32
 	SpriteRegionX int32
 	SpriteRegionY int32
 }
@@ -735,6 +742,7 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) 
 	row := q.db.QueryRow(ctx, getItem,
 		arg.Name,
 		arg.Description,
+		arg.Value,
 		arg.SpriteRegionX,
 		arg.SpriteRegionY,
 	)
@@ -743,6 +751,7 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) 
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Value,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,
@@ -751,7 +760,7 @@ func (q *Queries) GetItem(ctx context.Context, arg GetItemParams) (Item, error) 
 }
 
 const getItemById = `-- name: GetItemById :one
-SELECT id, name, description, sprite_region_x, sprite_region_y, tool_properties_id FROM items
+SELECT id, name, description, value, sprite_region_x, sprite_region_y, tool_properties_id FROM items
 WHERE id = $1 LIMIT 1
 `
 
@@ -762,6 +771,7 @@ func (q *Queries) GetItemById(ctx context.Context, id int32) (Item, error) {
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.Value,
 		&i.SpriteRegionX,
 		&i.SpriteRegionY,
 		&i.ToolPropertiesID,

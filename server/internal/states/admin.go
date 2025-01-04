@@ -257,7 +257,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 			}
 		}
 
-		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, 0)
+		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, 0)
 		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds), nil
 	}
 
@@ -407,6 +407,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 	itemModel, err := a.queries.CreateItemIfNotExists(ctx, db.CreateItemIfNotExistsParams{
 		Name:             itemMsg.Name,
 		Description:      itemMsg.Description,
+		Value:            itemMsg.Value,
 		SpriteRegionX:    itemMsg.SpriteRegionX,
 		SpriteRegionY:    itemMsg.SpriteRegionY,
 		ToolPropertiesID: toolPropsId,
@@ -417,6 +418,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 			itemModel, err = a.queries.GetItem(ctx, db.GetItemParams{
 				Name:          itemMsg.Name,
 				Description:   itemMsg.Description,
+				Value:         itemMsg.Value,
 				SpriteRegionX: itemMsg.SpriteRegionX,
 				SpriteRegionY: itemMsg.SpriteRegionY,
 			})
