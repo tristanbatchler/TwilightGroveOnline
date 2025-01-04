@@ -1,5 +1,5 @@
 @tool
-extends Area2D
+extends StaticBody2D
 
 const Ore := preload("res://objects/ore/ore.gd")
 const Scene: PackedScene = preload("res://objects/ore/ore.tscn")

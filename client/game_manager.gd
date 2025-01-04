@@ -64,6 +64,20 @@ var _ids_skills: Dictionary[int, Skill] = {
 	1: Skill.MINING,
 }
 
+var strengths_ores: Dictionary[int, String] = {
+	0: "Copper ore",
+	1: "Iron ore",
+	2: "Gold ore",
+	3: "Mystic ore",
+}
+
+var strengths_shrubs: Dictionary[int, String] = {
+	0: "Sapling",
+	1: "Oak tree",
+	2: "Maple tree",
+	3: "Grove palm",
+}
+
 func get_harvestable_enum_from_int(id: int) -> Harvestable:
 	return _ids_harvestables[id]
 	

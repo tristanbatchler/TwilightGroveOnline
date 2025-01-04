@@ -237,7 +237,6 @@ position = Vector2(-56, -24)
 
 [node name="Ore6" parent="." instance=ExtResource("3_d68st")]
 position = Vector2(-40, -8)
-strength = -1
 
 [node name="Ore7" parent="." instance=ExtResource("3_d68st")]
 position = Vector2(64, -16)

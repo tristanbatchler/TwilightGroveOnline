@@ -121,23 +121,23 @@ func get_mouse_diff_from_player_pos() -> Vector2:
 	return mouse_pos
 
 func get_shrub_standing_on() -> Shrub:
-	for area in _area.get_overlapping_areas():
-		if area is Shrub:
-			return area as Shrub
+	for body in _area.get_overlapping_bodies():
+		if body is Shrub:
+			return body as Shrub
 	return null
 	
 func get_ore_standing_on() -> Ore:
-	for area in _area.get_overlapping_areas():
-		if area is Ore:
-			return area as Ore
-	return 
+	for body in _area.get_overlapping_bodies():
+		if body is Ore:
+			return body as Ore
+	return null
 	
 func get_actor_standing_on() -> Actor:
 	for body in _area.get_overlapping_bodies():
 		var actor := body as Actor
 		if actor != self:
 			return actor
-	return
+	return null
 	
 func chat(message: String) -> void:
 	_chat_label.text = message

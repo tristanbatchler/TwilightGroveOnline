@@ -638,7 +638,19 @@ func _process(delta: float) -> void:
 	# Hint at what's on the ground underneath you
 	var ground_item := player.get_ground_item_standing_on()
 	if ground_item == null or ground_item.item == null:
-		_ground_hint_label.text = ""
+		var shrub := player.get_shrub_standing_on()
+		if shrub == null:
+			var ore := player.get_ore_standing_on()
+			if ore == null:
+				var actor := player.get_actor_standing_on()
+				if actor == null:
+					_ground_hint_label.text = ""
+				else:
+					_ground_hint_label.text = actor.actor_name
+			else:
+				_ground_hint_label.text = GameManager.strengths_ores[ore.strength]
+		else:
+			_ground_hint_label.text  = GameManager.strengths_shrubs[shrub.strength]
 	else:
 		_ground_hint_label.text = ground_item.item.item_name
 	

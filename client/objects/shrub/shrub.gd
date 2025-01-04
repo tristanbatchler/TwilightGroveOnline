@@ -1,5 +1,5 @@
 @tool
-extends Area2D
+extends StaticBody2D
 
 const Shrub := preload("res://objects/shrub/shrub.gd")
 const Scene: PackedScene = preload("res://objects/shrub/shrub.tscn")

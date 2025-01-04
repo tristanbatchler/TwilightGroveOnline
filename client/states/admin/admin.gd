@@ -78,16 +78,30 @@ func _on_level_browser_file_selected(path: String) -> void:
 			# get set properly. Therefore we need to calculate it here again based on position
 			# TODO: This is a bit hacky, plus we are using the fact that node._world_tile_size is 8x8 by default...
 			# still, not a huge deal as long as we commit to 8x8 for our game!
-			shrub.set_x(node.position.x / node._world_tile_size.x)
-			shrub.set_y(node.position.y / node._world_tile_size.y)
+			var node_x := int(node.position.x / node._world_tile_size.x)
+			var node_y := int(node.position.y / node._world_tile_size.y)
+			shrub.set_x(node_x)
+			shrub.set_y(node_y)
 			print("Found shrub at (%d, %d)" % [shrub.get_x(), shrub.get_y()])
+			
+			var collision_point := level_upload.add_collision_point()
+			collision_point.set_x(node_x)
+			collision_point.set_y(node_y)
+			
 			
 		elif node is Ore:
 			var ore := level_upload.add_ore()
 			ore.set_strength(node.strength)
+			
+			var node_x := int(node.position.x / node._world_tile_size.x)
+			var node_y := int(node.position.y / node._world_tile_size.y)
 			ore.set_x(node.position.x / node._world_tile_size.x)
 			ore.set_y(node.position.y / node._world_tile_size.y)
 			print("Found ore at (%d, %d)" % [ore.get_x(), ore.get_y()])
+			
+			var collision_point := level_upload.add_collision_point()
+			collision_point.set_x(node_x)
+			collision_point.set_y(node_y)
 			
 		elif node is Door:
 			var door := level_upload.add_door()
@@ -97,9 +111,13 @@ func _on_level_browser_file_selected(path: String) -> void:
 			door.set_destination_level_gd_res_path(node.destination_level_res_path)
 			door.set_destination_x(node.destination_pos.x)
 			door.set_destination_y(node.destination_pos.y)
+			
+			var node_x := int(node.position.x / node._world_tile_size.x)
+			var node_y := int(node.position.y / node._world_tile_size.y)
 			door.set_x(node.position.x / node._world_tile_size.x)
 			door.set_y(node.position.y / node._world_tile_size.y)
 			print("Found door at (%d, %d)" % [door.get_x(), door.get_y()])
+			
 			
 		elif node is GroundItem:
 			var ground_item_msg := level_upload.add_ground_item()
