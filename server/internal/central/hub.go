@@ -311,12 +311,51 @@ func (h *Hub) Run(adminPassword string) {
 
 	// Add default items like logs, etc., that might not necessarily have been part of the level data
 	for _, item := range items.Defaults {
+		toolPropertiesId := pgtype.Int4{}
+
+		if item.ToolProps != nil {
+			harvestableId := int32(packets.Harvestable_NONE)
+			switch item.ToolProps.Harvests {
+			case props.ShrubHarvestable:
+				harvestableId = int32(packets.Harvestable_SHRUB)
+			case props.OreHarvestable:
+				harvestableId = int32(packets.Harvestable_ORE)
+			}
+
+			toolPropsModel, err := h.NewDbTx().Queries.CreateToolPropertiesIfNotExists(context.Background(), db.CreateToolPropertiesIfNotExistsParams{
+				Strength:      item.ToolProps.Strength,
+				LevelRequired: item.ToolProps.LevelRequired,
+				Harvests:      harvestableId,
+			})
+			if err != nil && err != pgx.ErrNoRows {
+				log.Fatalf("Error creating default tool properties for item %s: %v", item.Name, err)
+			}
+
+			// Inject the ID back into the tool properties
+			if err == nil {
+				item.ToolProps.DbId = toolPropsModel.ID
+				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
+			} else {
+				// The tool properties already exist, so we need to look them up
+				toolPropsModel, err = h.NewDbTx().Queries.GetToolProperties(context.Background(), db.GetToolPropertiesParams{
+					Strength:      item.ToolProps.Strength,
+					LevelRequired: item.ToolProps.LevelRequired,
+					Harvests:      harvestableId,
+				})
+				if err != nil {
+					log.Fatalf("Error getting default tool properties for item %s: %v", item.Name, err)
+				}
+				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
+			}
+		}
+
 		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
-			Name:          item.Name,
-			Description:   item.Description,
-			Value:         item.Value,
-			SpriteRegionX: item.SpriteRegionX,
-			SpriteRegionY: item.SpriteRegionY,
+			Name:             item.Name,
+			Description:      item.Description,
+			Value:            item.Value,
+			SpriteRegionX:    item.SpriteRegionX,
+			SpriteRegionY:    item.SpriteRegionY,
+			ToolPropertiesID: toolPropertiesId,
 		})
 		if err != nil && err != pgx.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)

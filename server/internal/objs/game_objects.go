@@ -11,6 +11,7 @@ type Actor struct {
 	Name     string
 	SkillsXp map[skills.Skill]uint32
 	DbId     int32
+	IsNpc    bool
 }
 
 func NewActor(levelId int32, x, y int32, name string, dbId int32) *Actor {

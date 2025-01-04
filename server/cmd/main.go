@@ -121,7 +121,15 @@ func main() {
 		log.Fatalf("Error creating dummy client: %v", err)
 	}
 	hub.RegisterChan <- dummyClient
-	log.Printf("Added dummy client to the game")
+	log.Printf("Added Rickert to the game")
+
+	// Add another NPC to the game
+	dummyClient2, err := conn.NewDummyClient(hub, &states.NpcMud{})
+	if err != nil {
+		log.Fatalf("Error creating dummy client: %v", err)
+	}
+	hub.RegisterChan <- dummyClient2
+	log.Printf("Added Mud to the game")
 
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)
 	err = http.ListenAndServeTLS(addr, cfg.CertPath, cfg.KeyPath, nil)
