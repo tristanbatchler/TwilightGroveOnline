@@ -70,7 +70,9 @@ func (d *DbDataImporter[O, M]) ImportObjects(
 		batch[d.getPoint(&objectModel)] = object
 	}
 
-	d.levelPointMap.AddBatch(levelId, batch)
-	d.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), d.NameOfObject)
+	if d.levelPointMap != nil {
+		d.levelPointMap.AddBatch(levelId, batch)
+		d.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), d.NameOfObject)
+	}
 	return nil
 }

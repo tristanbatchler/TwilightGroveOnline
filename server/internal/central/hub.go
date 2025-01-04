@@ -71,11 +71,8 @@ type GameData struct {
 }
 
 type LevelPointMaps struct {
-	Collisions  *ds.LevelPointMap[*struct{}]
-	Shrubs      *ds.LevelPointMap[*objs.Shrub]
-	Ores        *ds.LevelPointMap[*objs.Ore]
-	Doors       *ds.LevelPointMap[*objs.Door]
-	GroundItems *ds.LevelPointMap[*objs.GroundItem]
+	Collisions *ds.LevelPointMap[*struct{}]
+	Doors      *ds.LevelPointMap[*objs.Door]
 }
 
 // A structure for the connected client to interface with the hub
@@ -185,11 +182,8 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 			MotdPath: path.Join(dataDirPath, "motd.txt"),
 		},
 		LevelPointMaps: &LevelPointMaps{
-			Collisions:  ds.NewLevelPointMap[*struct{}](),
-			Shrubs:      ds.NewLevelPointMap[*objs.Shrub](),
-			Ores:        ds.NewLevelPointMap[*objs.Ore](),
-			Doors:       ds.NewLevelPointMap[*objs.Door](),
-			GroundItems: ds.NewLevelPointMap[*objs.GroundItem](),
+			Collisions: ds.NewLevelPointMap[*struct{}](),
+			Doors:      ds.NewLevelPointMap[*objs.Door](),
 		},
 		LevelDataImporters: &LevelDataImporters{},
 	}
@@ -228,7 +222,7 @@ func (h *Hub) Run(adminPassword string) {
 	)
 	h.LevelDataImporters.ShrubsImporter = levels.NewDbDataImporter(
 		"shrub",
-		h.LevelPointMaps.Shrubs,
+		nil,
 		h.SharedGameObjects.Shrubs,
 		func(model *db.LevelsShrub) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelShrubsByLevelId,
@@ -239,7 +233,7 @@ func (h *Hub) Run(adminPassword string) {
 	)
 	h.LevelDataImporters.OresImporter = levels.NewDbDataImporter(
 		"ore",
-		h.LevelPointMaps.Ores,
+		nil,
 		h.SharedGameObjects.Ores,
 		func(model *db.LevelsOre) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelOresByLevelId,
@@ -261,7 +255,7 @@ func (h *Hub) Run(adminPassword string) {
 	)
 	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
 		"ground item",
-		h.LevelPointMaps.GroundItems,
+		nil,
 		h.SharedGameObjects.GroundItems,
 		func(model *db.LevelsGroundItem) ds.Point { return ds.Point{X: model.X, Y: model.Y} },
 		queries.GetLevelGroundItemsByLevelId,

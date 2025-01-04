@@ -254,10 +254,9 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		return
 	}
 
-	// sgo = SharedGameObject, ID is different from the one in lpm = LevelPointMap
-	sgoGroundItem, sgoExists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
+	groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 
-	if !sgoExists {
+	if !exists {
 		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
 		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
 		return
@@ -265,28 +264,28 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 
 	// Inject the DB ID of the item into the ground item
 	itemModel, err := g.queries.GetItem(context.Background(), db.GetItemParams{
-		Name:          sgoGroundItem.Item.Name,
-		Description:   sgoGroundItem.Item.Description,
-		Value:         sgoGroundItem.Item.Value,
-		SpriteRegionX: sgoGroundItem.Item.SpriteRegionX,
-		SpriteRegionY: sgoGroundItem.Item.SpriteRegionY,
+		Name:          groundItem.Item.Name,
+		Description:   groundItem.Item.Description,
+		Value:         groundItem.Item.Value,
+		SpriteRegionX: groundItem.Item.SpriteRegionX,
+		SpriteRegionY: groundItem.Item.SpriteRegionY,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
 		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Failed to get item from the database")))
 		return
 	}
-	sgoGroundItem.Item.DbId = itemModel.ID
+	groundItem.Item.DbId = itemModel.ID
 
 	// If this item is a tool, see if the player has the required level to pick it up
 	toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
-	sgoGroundItem.Item.ToolProps = toolProps
+	groundItem.Item.ToolProps = toolProps
 	if toolProps != nil {
 		if toolProps.Harvests.Shrub != nil {
 			wcLvl := int32(skills.Level(g.player.SkillsXp[skills.Woodcutting]))
 			if toolProps.LevelRequired > wcLvl {
 				g.logger.Printf("Client %d tried to pick up a tool with level requirement %d, but only has level %d", senderId, toolProps.LevelRequired, skills.Level(g.player.SkillsXp[skills.Woodcutting]))
-				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a woodcutting level of %d to effectively wield a %s", toolProps.LevelRequired, sgoGroundItem.Item.Name)))
+				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a woodcutting level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
 				return
 			}
 		}
@@ -294,31 +293,15 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 			miningLvl := int32(skills.Level(g.player.SkillsXp[skills.Mining]))
 			if toolProps.LevelRequired > miningLvl {
 				g.logger.Printf("Client %d tried to pick up a tool with level requirement %d, but only has level %d", senderId, toolProps.LevelRequired, skills.Level(g.player.SkillsXp[skills.Mining]))
-				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a mining level of %d to effectively wield a %s", toolProps.LevelRequired, sgoGroundItem.Item.Name)))
+				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a mining level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
 				return
 			}
 		}
 	}
 
-	point := ds.Point{X: sgoGroundItem.X, Y: sgoGroundItem.Y}
+	// TODO: Check if the player is in range of the ground item
 
-	lpmGroundItem, lpmExists := g.client.LevelPointMaps().GroundItems.Get(g.levelId, point)
-	if !lpmExists {
-		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
-		if sgoGroundItem.X != g.player.X || sgoGroundItem.Y != g.player.Y {
-			g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist at their location", senderId)
-			g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist at your location")))
-			return
-		}
-	} else {
-		lpmGroundItem.Item.DbId = itemModel.ID // Not sure if this is needed, but can't hurt
-		lpmGroundItem.Item.ToolProps = toolProps
-		g.client.LevelPointMaps().GroundItems.Remove(g.levelId, point)
-	}
-
-	g.client.SharedGameObjects().GroundItems.Remove(sgoGroundItem.Id)
-
-	groundItem := sgoGroundItem
+	g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
 
 	go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
 		LevelID: g.levelId,
@@ -334,7 +317,6 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	if groundItem.RespawnSeconds > 0 {
 		go func() {
 			time.Sleep(time.Duration(groundItem.RespawnSeconds) * time.Second)
-			g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
 			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
 				LevelID: g.levelId,
@@ -361,15 +343,15 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		return
 	}
 
-	sgoShrub, sgoExists := g.client.SharedGameObjects().Shrubs.Get(message.ChopShrubRequest.ShrubId)
-	if !sgoExists {
+	shrub, exists := g.client.SharedGameObjects().Shrubs.Get(message.ChopShrubRequest.ShrubId)
+	if !exists {
 		g.logger.Println("Client tried to chop a shrub that doesn't exist in the shared game object collection")
 		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Shrub doesn't exist")))
 		return
 	}
 
 	// Check if the player has a tool that can chop the shrub
-	shrubStrength := sgoShrub.Strength
+	shrubStrength := shrub.Strength
 	canChop := false
 	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
 		if canChop {
@@ -392,23 +374,9 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		return
 	}
 
-	point := ds.Point{X: sgoShrub.X, Y: sgoShrub.Y}
+	// TODO: Check if the player is in range of the shrub
 
-	_, lpmExists := g.client.LevelPointMaps().Shrubs.Get(g.levelId, point)
-	if !lpmExists {
-		g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
-		if sgoShrub.X != g.player.X || sgoShrub.Y != g.player.Y {
-			g.logger.Printf("Client %d tried to chop down a shrub that doesn't exist at their location", senderId)
-			g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Shrub doesn't exist at your location")))
-			return
-		}
-	} else {
-		g.client.LevelPointMaps().Shrubs.Remove(g.levelId, point)
-	}
-
-	g.client.SharedGameObjects().Shrubs.Remove(sgoShrub.Id)
-
-	shrub := sgoShrub
+	g.client.SharedGameObjects().Shrubs.Remove(shrub.Id)
 
 	go g.queries.DeleteLevelShrub(context.Background(), db.DeleteLevelShrubParams{
 		LevelID: g.levelId,
@@ -420,7 +388,6 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 	if shrub.RespawnSeconds > 0 {
 		go func() {
 			time.Sleep(time.Duration(shrub.RespawnSeconds) * time.Second)
-			g.client.LevelPointMaps().Shrubs.Add(g.levelId, point, shrub)
 			shrub.Id = g.client.SharedGameObjects().Shrubs.Add(shrub)
 			g.queries.CreateLevelShrub(context.Background(), db.CreateLevelShrubParams{
 				LevelID:  g.levelId,
@@ -462,15 +429,15 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		return
 	}
 
-	sgoOre, sgoExists := g.client.SharedGameObjects().Ores.Get(message.MineOreRequest.OreId)
-	if !sgoExists {
+	ore, exists := g.client.SharedGameObjects().Ores.Get(message.MineOreRequest.OreId)
+	if !exists {
 		g.logger.Println("Client tried to mine ore that doesn't exist in the shared game object collection")
 		g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("Ore doesn't exist")))
 		return
 	}
 
 	// Check if the player has a tool that can mine the ore
-	oreStrength := sgoOre.Strength
+	oreStrength := ore.Strength
 	canMine := false
 	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
 		if canMine {
@@ -493,23 +460,9 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		return
 	}
 
-	point := ds.Point{X: sgoOre.X, Y: sgoOre.Y}
+	// TODO: Check if the player is in range of the ore
 
-	_, lpmExists := g.client.LevelPointMaps().Ores.Get(g.levelId, point)
-	if !lpmExists {
-		g.logger.Printf("Client %d tried to mine and ore that doesn't exist at their location according to the level point map, gonna check if its X-Y match in sgo", senderId)
-		if sgoOre.X != g.player.X || sgoOre.Y != g.player.Y {
-			g.logger.Printf("Client %d tried to mine and ore that doesn't exist at their location", senderId)
-			g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("Ore doesn't exist at your location")))
-			return
-		}
-	} else {
-		g.client.LevelPointMaps().Ores.Remove(g.levelId, point)
-	}
-
-	g.client.SharedGameObjects().Ores.Remove(sgoOre.Id)
-
-	ore := sgoOre
+	g.client.SharedGameObjects().Ores.Remove(ore.Id)
 
 	go g.queries.DeleteLevelOre(context.Background(), db.DeleteLevelOreParams{
 		LevelID: g.levelId,
@@ -521,7 +474,6 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 	if ore.RespawnSeconds > 0 {
 		go func() {
 			time.Sleep(time.Duration(ore.RespawnSeconds) * time.Second)
-			g.client.LevelPointMaps().Ores.Add(g.levelId, point, ore)
 			ore.Id = g.client.SharedGameObjects().Ores.Add(ore)
 			g.queries.CreateLevelOre(context.Background(), db.CreateLevelOreParams{
 				LevelID:  g.levelId,
@@ -592,13 +544,6 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 		return
 	}
 
-	point := ds.Point{X: g.player.X, Y: g.player.Y}
-	if g.client.LevelPointMaps().GroundItems.Contains(g.levelId, point) {
-		g.logger.Println("Tried to drop an item on top of another item")
-		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that - there's already something there")))
-		return
-	}
-
 	itemMsg := message.DropItemRequest.Item
 
 	itemObj, err := g.itemObjFromMessage(itemMsg)
@@ -621,8 +566,6 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 
 	// Create the ground item
 	groundItem := objs.NewGroundItem(0, g.levelId, itemObj, g.player.X, g.player.Y, 0)
-
-	g.client.LevelPointMaps().GroundItems.Add(g.levelId, point, groundItem)
 
 	groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 

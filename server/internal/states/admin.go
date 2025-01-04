@@ -56,7 +56,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		),
 		ShrubsImporter: levels.NewPacketDataImporter(
 			"shrubs",
-			a.client.LevelPointMaps().Shrubs,
+			nil,
 			a.client.SharedGameObjects().Shrubs,
 			func(s *packets.Shrub) ds.Point { return ds.NewPoint(s.X, s.Y) },
 			a.addShrubToDb,
@@ -67,7 +67,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		),
 		OresImporter: levels.NewPacketDataImporter(
 			"ores",
-			a.client.LevelPointMaps().Ores,
+			nil,
 			a.client.SharedGameObjects().Ores,
 			func(o *packets.Ore) ds.Point { return ds.NewPoint(o.X, o.Y) },
 			a.addOreToDb,
@@ -89,7 +89,7 @@ func (a *Admin) SetClient(client central.ClientInterfacer) {
 		),
 		GroundItemsImporter: levels.NewPacketDataImporter(
 			"ground items",
-			a.client.LevelPointMaps().GroundItems,
+			nil,
 			a.client.SharedGameObjects().GroundItems,
 			func(g *packets.GroundItem) ds.Point { return ds.NewPoint(g.X, g.Y) },
 			a.addGroundItemToDb,

@@ -76,15 +76,19 @@ func (p *PacketDataImporter[O, M]) ImportObjects(
 		}
 	}
 
-	p.levelPointMap.AddBatch(levelId, batch)
-	p.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), p.nameOfObject)
+	if p.levelPointMap != nil {
+		p.levelPointMap.AddBatch(levelId, batch)
+		p.logger.Printf("Added %d %s objects to the server's LevelPointMaps DS", len(batch), p.nameOfObject)
+	}
 	return nil
 }
 
 func (p *PacketDataImporter[O, M]) ClearObjects(levelId int32) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	p.levelPointMap.Clear(levelId)
+	if p.levelPointMap != nil {
+		p.levelPointMap.Clear(levelId)
+	}
 	if p.sharedCollection != nil {
 		p.sharedCollection.ForEach(func(id uint32, obj *O) {
 			if p.getObjectLevelId(obj) == levelId {
