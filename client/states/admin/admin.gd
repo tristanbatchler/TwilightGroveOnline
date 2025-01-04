@@ -114,7 +114,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 			if node.item.tool_properties != null:
 				var tool_props_msg := item_msg.new_tool_props()
 				tool_props_msg.set_strength(node.item.tool_properties.strength)
-				tool_props_msg.set_level_required(node.item.tool_properties.strength)
+				tool_props_msg.set_level_required(node.item.tool_properties.level_required)
 				var harvests := int(node.item.tool_properties.harvests)
 				tool_props_msg.set_harvests(harvests)
 				
