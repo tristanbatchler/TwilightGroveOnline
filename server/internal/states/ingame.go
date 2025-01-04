@@ -336,6 +336,27 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
 
+func (g *InGame) canHarvest(harvestableStrength int32, harvestableType *props.Harvestable) bool {
+	canDoIt := false
+	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+		if canDoIt {
+			return
+		}
+		if item.ToolProps == nil {
+			return
+		}
+		toolProps := item.ToolProps
+		if toolProps.Harvests != harvestableType {
+			return
+		}
+		if toolProps.Strength > harvestableStrength {
+			canDoIt = true
+			return
+		}
+	})
+	return canDoIt
+}
+
 func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet_ChopShrubRequest) {
 	if senderId != g.client.Id() {
 		// If the client isn't us, we just forward the message
@@ -352,23 +373,7 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 
 	// Check if the player has a tool that can chop the shrub
 	shrubStrength := shrub.Strength
-	canChop := false
-	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
-		if canChop {
-			return
-		}
-		if item.ToolProps == nil {
-			return
-		}
-		if item.ToolProps.Harvests.Shrub == nil {
-			return
-		}
-		if item.ToolProps.Strength > shrubStrength {
-			canChop = true
-			return
-		}
-	})
-	if !canChop {
+	if canChop := g.canHarvest(shrubStrength, props.ShrubHarvestable); !canChop {
 		g.logger.Printf("Client %d tried to chop a shrub with strength %d, but doesn't have a tool with enough strength", senderId, shrubStrength)
 		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("No tool with enough strength to chop that shrub")))
 		return
@@ -438,23 +443,7 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 
 	// Check if the player has a tool that can mine the ore
 	oreStrength := ore.Strength
-	canMine := false
-	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
-		if canMine {
-			return
-		}
-		if item.ToolProps == nil {
-			return
-		}
-		if item.ToolProps.Harvests.Ore == nil {
-			return
-		}
-		if item.ToolProps.Strength > oreStrength {
-			canMine = true
-			return
-		}
-	})
-	if !canMine {
+	if canMine := g.canHarvest(oreStrength, props.OreHarvestable); !canMine {
 		g.logger.Printf("Client %d tried to mine an ore with strength %d, but doesn't have a tool with enough strength", senderId, oreStrength)
 		g.client.SocketSend(packets.NewMineOreResponse(false, 0, errors.New("No tool with enough strength to mine that ore")))
 		return
