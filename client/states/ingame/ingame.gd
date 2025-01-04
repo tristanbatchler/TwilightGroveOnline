@@ -267,8 +267,7 @@ func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.PickupGroundItemResponse) -> void:
 	var response := pickup_ground_item_response.get_response()
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 	var ground_item_msg := pickup_ground_item_response.get_ground_item()
 	
@@ -285,8 +284,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) -> void:
 	var response := drop_item_response.get_response()
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 	var dropped_item_msg := drop_item_response.get_item()
 	
@@ -544,6 +542,7 @@ func _talk_to_nearby_actor() -> void:
 			var aid := _get_actor_id(actor)
 			if aid == null:
 				_log.error("Nobody to talk to here")
+				_show_dialogue("You", ["There's nobody here to talk to..."])
 				return
 			interact_with_npc_request_msg.set_actor_id(aid)
 			WS.send(packet)
@@ -557,8 +556,7 @@ func _get_actor_id(actor: Actor) -> int:
 func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
 	var response := chop_shrub_response.get_response()
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 	var shrub_id := chop_shrub_response.get_shrub_id()
 	_remove_shrub(shrub_id)
@@ -567,8 +565,7 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> void:
 	var response := mine_ore_response.get_response()
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 	var ore_id := mine_ore_response.get_ore_id()
 	_remove_ore(ore_id)
@@ -577,8 +574,7 @@ func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> vo
 func _handle_interact_with_npc_response(interact_with_npc_response: Packets.InteractWithNpcResponse) -> void:
 	var response := interact_with_npc_response.get_response()
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 
 func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialogue) -> void:
 	if npc_actor_id in _actors:
@@ -586,22 +582,13 @@ func _handle_npc_dialogue(npc_actor_id: int, npc_dialogue_msg: Packets.NpcDialog
 		
 		var lines := npc_dialogue_msg.get_dialogue()
 		
-		var tab_before_dialogue := _tab_container.current_tab
-		
-		_dialogue_box.show()
-		_dialogue_box.set_title(npc_actor.actor_name)
-		_dialogue_box.set_dialogue_lines(lines)
-		_dialogue_box.finished_dialogue.connect(func():
-			_dialogue_box.hide()
-			_tab_container.current_tab = tab_before_dialogue
-		)
+		_show_dialogue(npc_actor.actor_name, lines)
 
 func _handle_sell_response(shop_owner_actor_id: int, sell_response_msg: Packets.SellResponse) -> void:
 	var response := sell_response_msg.get_response()
 	
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 	
 	if shop_owner_actor_id in _actors:
@@ -619,8 +606,7 @@ func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.Bu
 	var response := buy_response_msg.get_response()
 	
 	if not response.get_success():
-		if response.has_msg():
-			_log.error(response.get_msg())
+		_maybe_show_response_error(response)
 		return
 		
 	if shop_owner_actor_id in _actors:
@@ -712,11 +698,33 @@ func _on_shop_item_purchased(shop_owner_actor_id: int, item: Item, quantity: int
 		buy_request_msg.set_quantity(quantity)
 	else:
 		_log.warning("Shop does not have enough of that item")
+		var shop_name := "the shop"
+		if shop_owner_actor_id in _actors:
+			shop_name = _actors[shop_owner_actor_id].actor_name
+		_show_dialogue("You", ["It doesn't look like %s has enough %s at the moment..." % [shop_name, item.item_name] ])
 	
 	# TODO: Bad bad bad hardcoding string. Refactor when I get a chance
 	if _inventory.get_quantity("Golden bars") < item.value:
 		_log.warning("Not enough gold to purchase this item")
+		_show_dialogue("You", ["I don't have enough golden bars to purchase %d %s. I need to make some bank first!" % [quantity, item.item_name]])
 		return
 	
 	buy_request_msg.set_shop_owner_actor_id(shop_owner_actor_id)
 	WS.send(packet)
+
+func _show_dialogue(actor_name: String, lines: Array):
+	var tab_before_dialogue := _tab_container.current_tab
+		
+	_dialogue_box.show()
+	_dialogue_box.set_title(actor_name)
+	_dialogue_box.set_dialogue_lines(lines)
+	_dialogue_box.finished_dialogue.connect(func():
+		_dialogue_box.hide()
+		_tab_container.current_tab = tab_before_dialogue
+	)
+
+func _maybe_show_response_error(response: Packets.Response) -> void:
+	if response.has_msg():
+		var err_msg := response.get_msg()
+		_log.error(err_msg)
+		_show_dialogue("???", [err_msg])

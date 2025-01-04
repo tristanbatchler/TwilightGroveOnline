@@ -224,16 +224,6 @@ position = Vector2(0, -8)
 destination_level_res_path = "res://admin_levels/forest.tscn"
 destination_pos = Vector2i(21, 4)
 
-[node name="GroundItem" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
-position = Vector2(-8, 8)
-item = NodePath("Item")
-respawn_seconds = 2
-metadata/_edit_group_ = true
-
-[node name="Item" parent="GroundItem" instance=ExtResource("4_71104")]
-item_name = "A heart <3"
-description = "Wow, how cute!"
-
 [node name="GroundItem3" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
 position = Vector2(0, 32)
 item = NodePath("Item")
@@ -243,6 +233,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 48, 8, 8)
 item_name = "Golden hatchet"
 description = "A master metalsmith must have forged this fine tool."
+value = 100
 tool_properties = SubResource("Resource_7xsrr")
 
 [node name="GroundItem2" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_wh1jw")]
@@ -254,4 +245,5 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 40, 8, 8)
 item_name = "Iron hatchet"
 description = "A tool for chopping wood."
+value = 20
 tool_properties = SubResource("Resource_tpngs")

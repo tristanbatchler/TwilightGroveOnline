@@ -263,10 +263,6 @@ strength = 3
 position = Vector2(32, 64)
 strength = 3
 
-[node name="Item" parent="." instance=ExtResource("4_rtf0v")]
-item_name = "Steel pickaxe"
-description = "A fine tool for mining ore"
-
 [node name="GroundItem8" parent="." node_paths=PackedStringArray("item") instance=ExtResource("3_6tfxg")]
 position = Vector2(16, 56)
 item = NodePath("Item")
@@ -276,4 +272,5 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 72, 8, 8)
 item_name = "Golden pickaxe"
 description = "A mighty tool for harvesting even the most stubborn minerals of the Earth."
+value = 100
 tool_properties = SubResource("Resource_b552s")
