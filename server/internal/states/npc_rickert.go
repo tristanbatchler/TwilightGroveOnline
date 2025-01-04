@@ -230,7 +230,15 @@ func (n *NpcRickert) handleSellRequest(senderId uint32, message *packets.Packet_
 		return
 	}
 
-	// TODO: Remove this test
+	// Add the item to the shop
+	itemObj, err := n.client.UtilFunctions().ItemMsgToObj(message.SellRequest.Item)
+	if err != nil {
+		n.logger.Printf("Error converting item message to object: %v", err)
+		n.client.PassToPeer(packets.NewSellResponse(false, n.client.Id(), nil, errors.New("Can't sell that item right now")), senderId)
+		return
+	}
+	n.shop.AddItem(*itemObj, uint32(message.SellRequest.Quantity))
+
 	itemQtyMsg := &packets.ItemQuantity{
 		Item:     message.SellRequest.Item,
 		Quantity: int32(message.SellRequest.Quantity),

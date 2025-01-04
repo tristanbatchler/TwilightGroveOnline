@@ -727,6 +727,11 @@ func (g *InGame) handleBuyResponse(senderId uint32, message *packets.Packet_BuyR
 		return
 	}
 
+	if !message.BuyResponse.Response.Success {
+		g.client.SocketSendAs(message, senderId)
+		return
+	}
+
 	itemQtyMsg := message.BuyResponse.ItemQty
 
 	itemObj, err := g.itemObjFromMessage(itemQtyMsg.Item)

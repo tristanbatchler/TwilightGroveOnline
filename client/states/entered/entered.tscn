@@ -6,7 +6,7 @@
 
 [node name="Entered" type="Node"]
 script = ExtResource("1_jjk2u")
-server_url = "wss://dev.twilightgrove.tbat.me:43200/ws"
+server_url = "wss://twilightgrove.tbat.me:43200/ws"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
