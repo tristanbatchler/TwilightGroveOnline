@@ -75,6 +75,10 @@ func (c *DummyClient) RunSql(sql string) (pgx.Rows, error) {
 	return c.hub.RunSql(sql)
 }
 
+func (c *DummyClient) UtilFunctions() *central.UtilFunctions {
+	return c.hub.UtilFunctions
+}
+
 func (c *DummyClient) SharedGameObjects() *central.SharedGameObjects {
 	return c.hub.SharedGameObjects
 }

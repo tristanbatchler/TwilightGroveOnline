@@ -2,6 +2,7 @@ package states
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand/v2"
@@ -18,6 +19,7 @@ import (
 type NpcRickert struct {
 	client         central.ClientInterfacer
 	actor          *objs.Actor
+	shop           *ds.Inventory
 	levelId        int32
 	othersInLevel  []uint32
 	logger         *log.Logger
@@ -50,6 +52,11 @@ func (n *NpcRickert) OnEnter() {
 
 	// Send our info back to all the other clients in the level
 	n.client.Broadcast(ourActorInfo, n.othersInLevel)
+
+	// Don't really need to store the shop inventory in the DB. If the server is restarted, stocks will replenish, that's OK
+	n.shop = ds.NewInventory()
+	n.shop.AddItem(*items.Logs, 10)
+	n.shop.AddItem(*items.Rocks, 5)
 }
 
 func (n *NpcRickert) HandleMessage(senderId uint32, message packets.Msg) {
@@ -139,14 +146,10 @@ func (n *NpcRickert) handleInteractWithNpcRequest(senderId uint32, message *pack
 		return
 	}
 
-	// TODO: Remove this test
-	// Send a shop dialogue to the client
-	testInventory := ds.NewInventory()
-	testInventory.AddItem(*items.Logs, 5)
-	testInventory.AddItem(*items.Rocks, 3)
-	n.client.PassToPeer(packets.NewInventory(testInventory), senderId)
+	// TODO: Rickert doesn't actually sell items, this is just a test
+	n.client.PassToPeer(packets.NewInventory(n.shop), senderId)
 
-	// n.client.Broadcast(packets.NewChat(fmt.Sprintf("%s... I don't want to talk right now.", senderActor.Name)), n.othersInLevel)
+	// TODO: Bring back the dialogue when finished testing the buy/sell requests
 	_ = []string{
 		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
 		"I'm Rickert. What's your name?",
@@ -179,13 +182,28 @@ func (n *NpcRickert) handleBuyRequest(senderId uint32, message *packets.Packet_B
 		return
 	}
 
-	// TODO: Remove this test
+	// Check if we have the item in stock
+	itemObj, err := n.client.UtilFunctions().ItemMsgToObj(message.BuyRequest.Item)
+	if err != nil {
+		n.client.PassToPeer(packets.NewBuyResponse(false, n.client.Id(), nil, err), senderId)
+		return
+	}
+	itemQty := n.shop.GetItemQuantity(*itemObj)
+	if itemQty < uint32(message.BuyRequest.Quantity) {
+		n.client.PassToPeer(packets.NewBuyResponse(false, n.client.Id(), nil, errors.New("Not enough stock")), senderId)
+		return
+	}
+
+	// Tell the client the purchase was successful
 	itemQtyMsg := &packets.ItemQuantity{
 		Item:     message.BuyRequest.Item,
 		Quantity: int32(message.BuyRequest.Quantity),
 	}
 	n.client.PassToPeer(packets.NewBuyResponse(true, n.client.Id(), itemQtyMsg, nil), senderId)
 	n.client.PassToPeer(packets.NewChat(fmt.Sprintf("Pleasure doing business with you, %s!", senderActor.Name)), senderId)
+
+	// Remove the item from the shop
+	n.shop.RemoveItem(*itemObj, uint32(message.BuyRequest.Quantity))
 }
 
 func (n *NpcRickert) handleSellRequest(senderId uint32, message *packets.Packet_SellRequest) {

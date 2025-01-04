@@ -73,6 +73,7 @@
 - [x] Audit use of int64 in game_objects.go and messages.proto
 - [x] Let players cut down trees with an axe
 - [x] Add an XP system and leveling up woodcutting
+- [ ] Add item values to the database and use them to calculate how much gold the player gets for selling items, or whether the player can afford to buy items
 - [ ] Add an NPC that buys wood
 - [ ] Add an NPC that sells faerie dust
 - [ ] Add a quest to heal a wounded soldier with faerie dust to get a key

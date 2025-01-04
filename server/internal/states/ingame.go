@@ -278,7 +278,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	sgoGroundItem.Item.DbId = itemModel.ID
 
 	// If this item is a tool, see if the player has the required level to pick it up
-	toolProps := g.getToolPropsFromInt4Id(itemModel.ToolPropertiesID)
+	toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
 	sgoGroundItem.Item.ToolProps = toolProps
 	if toolProps != nil {
 		if toolProps.Harvests.Shrub != nil {
@@ -863,7 +863,7 @@ func (g *InGame) loadInventory() {
 
 	g.inventory = ds.NewInventory()
 	for _, itemModel := range invItems {
-		toolProps := g.getToolPropsFromInt4Id(itemModel.ToolPropertiesID)
+		toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
 		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ItemID)
 		g.addInventoryItem(*item, uint32(itemModel.Quantity))
 	}
@@ -1029,30 +1029,4 @@ func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint32) {
 	}
 
 	g.player.SkillsXp[skill] += xp
-}
-
-func (g *InGame) getToolPropsFromInt4Id(toolPropertiesID pgtype.Int4) *props.ToolProps {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	var toolProps *props.ToolProps = nil
-
-	if toolPropertiesID.Valid {
-		toolPropsModel, err := g.queries.GetToolPropertiesById(ctx, toolPropertiesID.Int32)
-		if err != nil {
-			g.logger.Printf("Failed to get tool properties: %v", err)
-		} else {
-			toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
-			switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub, 2 = Ore - corrsponds directly to packets Harvestable enum
-			case int32(packets.Harvestable_NONE):
-				toolProps.Harvests = props.NoneHarvestable
-			case int32(packets.Harvestable_SHRUB):
-				toolProps.Harvests = props.ShrubHarvestable
-			case int32(packets.Harvestable_ORE):
-				toolProps.Harvests = props.OreHarvestable
-			}
-		}
-	}
-
-	return toolProps
 }

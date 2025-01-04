@@ -159,6 +159,10 @@ func (c *WebSocketClient) RunSql(sql string) (pgx.Rows, error) {
 	return c.hub.RunSql(sql)
 }
 
+func (c *WebSocketClient) UtilFunctions() *central.UtilFunctions {
+	return c.hub.UtilFunctions
+}
+
 func (c *WebSocketClient) SharedGameObjects() *central.SharedGameObjects {
 	return c.hub.SharedGameObjects
 }

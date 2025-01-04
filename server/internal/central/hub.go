@@ -3,12 +3,14 @@ package central
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"log"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
@@ -47,6 +49,11 @@ type ClientStateHandler interface {
 
 	// Cleanup the state handler and perform any last actions
 	OnExit()
+}
+
+type UtilFunctions struct {
+	ItemMsgToObj        func(msg *packets.Item) (*objs.Item, error)
+	ToolPropsFromInt4Id func(toolPropertiesID pgtype.Int4) *props.ToolProps
 }
 
 type SharedGameObjects struct {
@@ -103,6 +110,7 @@ type ClientInterfacer interface {
 
 	SetState(newState ClientStateHandler)
 
+	UtilFunctions() *UtilFunctions
 	SharedGameObjects() *SharedGameObjects
 	GameData() *GameData
 	LevelPointMaps() *LevelPointMaps
@@ -135,6 +143,9 @@ type Hub struct {
 	// Database connection pool
 	dbPool *pgxpool.Pool
 
+	// Common functions that rely on the database
+	UtilFunctions *UtilFunctions
+
 	// Shared game objects
 	SharedGameObjects *SharedGameObjects
 
@@ -156,12 +167,13 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 		log.Printf("Connected to PostgreSQL database")
 	}
 
-	return &Hub{
+	hub := &Hub{
 		Clients:        ds.NewSharedCollection[ClientInterfacer](),
 		BroadcastChan:  make(chan *packets.Packet),
 		RegisterChan:   make(chan ClientInterfacer),
 		UnregisterChan: make(chan ClientInterfacer),
 		dbPool:         dbPool,
+		UtilFunctions:  &UtilFunctions{},
 		SharedGameObjects: &SharedGameObjects{
 			Actors:      ds.NewSharedCollection[*objs.Actor](),
 			Shrubs:      ds.NewSharedCollection[*objs.Shrub](),
@@ -181,6 +193,13 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 		},
 		LevelDataImporters: &LevelDataImporters{},
 	}
+
+	hub.UtilFunctions.ItemMsgToObj = hub.itemMsgToObj
+	hub.UtilFunctions.ToolPropsFromInt4Id = func(toolPropertiesID pgtype.Int4) *props.ToolProps {
+		return getToolPropsFromInt4Id(hub.NewDbTx().Queries, toolPropertiesID)
+	}
+
+	return hub
 }
 
 func (h *Hub) Run(adminPassword string) {
@@ -431,4 +450,52 @@ func (h *Hub) RunSql(sql string) (pgx.Rows, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func getToolPropsFromInt4Id(queries *db.Queries, toolPropertiesID pgtype.Int4) *props.ToolProps {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	var toolProps *props.ToolProps = nil
+
+	if toolPropertiesID.Valid {
+		toolPropsModel, err := queries.GetToolPropertiesById(ctx, toolPropertiesID.Int32)
+		if err != nil {
+			log.Printf("Failed to get tool properties: %v", err)
+		} else {
+			toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
+			switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub, 2 = Ore - corrsponds directly to packets Harvestable enum
+			case int32(packets.Harvestable_NONE):
+				toolProps.Harvests = props.NoneHarvestable
+			case int32(packets.Harvestable_SHRUB):
+				toolProps.Harvests = props.ShrubHarvestable
+			case int32(packets.Harvestable_ORE):
+				toolProps.Harvests = props.OreHarvestable
+			}
+		}
+	}
+
+	return toolProps
+}
+
+func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
+	queries := h.NewDbTx().Queries
+
+	// This lookup ensures
+	// 1. The item exists in the database
+	// 2. The tool properties are not lost in transmission (timetimes they are nil in the packets and need to be looked up)
+	itemModel, err := queries.GetItem(context.Background(), db.GetItemParams{
+		Name:          itemMsg.Name,
+		Description:   itemMsg.Description,
+		SpriteRegionX: itemMsg.SpriteRegionX,
+		SpriteRegionY: itemMsg.SpriteRegionY,
+	})
+	if err != nil {
+		log.Printf("Failed to get item: %v", err)
+		return nil, errors.New("Failed to get item from the database")
+	}
+
+	toolProps := getToolPropsFromInt4Id(queries, itemModel.ToolPropertiesID)
+
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
 }
