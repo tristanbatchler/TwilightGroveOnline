@@ -86,8 +86,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_released("left_click"):
 		var pos_diff := player.get_mouse_diff_from_player_pos()
 		if pos_diff.length_squared() < 100:
+			# Do any/all of these things when tapping in the middle of the screen
 			_pickup_nearby_ground_item()
 			_harvest_nearby_resource()
+			_talk_to_nearby_actor()
 			_left_click_held = false
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:

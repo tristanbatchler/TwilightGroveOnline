@@ -94,3 +94,4 @@
 - [x] Fix bug where dropping an item on the ground causes some kind of null pointer exception in Godot because it seems the item is null before it goes into the InGame._drop_item method. I think it's getting garbage collected or something.
 - [ ] Sort inventory items by name alphabetically
 - [ ] Rate limit client actions
+- [ ] Figure out how to long tap to hover over an item on mobile to get the tooltips
