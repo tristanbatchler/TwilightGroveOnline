@@ -447,7 +447,12 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 }
 
 func (g *InGame) chopDownShrub(message *packets.Packet_ChopShrubRequest, shrub *objs.Shrub) {
-	g.client.SharedGameObjects().Shrubs.Remove(shrub.Id)
+	success := g.client.SharedGameObjects().Shrubs.Remove(shrub.Id)
+	if !success {
+		g.logger.Printf("Failed to remove shrub %d from the shared game object collection", shrub.Id)
+		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Someone already got to that one")))
+		return
+	}
 
 	go g.queries.DeleteLevelShrub(context.Background(), db.DeleteLevelShrubParams{
 		LevelID: g.levelId,
@@ -541,7 +546,12 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 }
 
 func (g *InGame) mineOre(message *packets.Packet_MineOreRequest, ore *objs.Ore) {
-	g.client.SharedGameObjects().Ores.Remove(ore.Id)
+	success := g.client.SharedGameObjects().Ores.Remove(ore.Id)
+	if !success {
+		g.logger.Printf("Failed to remove ore %d from the shared game object collection", ore.Id)
+		g.client.SocketSend(packets.NewChopShrubResponse(false, 0, errors.New("Someone already got to that one")))
+		return
+	}
 
 	go g.queries.DeleteLevelOre(context.Background(), db.DeleteLevelOreParams{
 		LevelID: g.levelId,

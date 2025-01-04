@@ -42,16 +42,17 @@ func (s *SharedCollection[T]) Add(obj T, id ...uint32) uint32 {
 	return thisId
 }
 
-// Remove removes an object from the map by ID, if it exists.
-func (s *SharedCollection[T]) Remove(id uint32) {
+// Remove removes an object from the map by ID, if it exists, and returns true. Otherwise, returns false.
+func (s *SharedCollection[T]) Remove(id uint32) bool {
 	s.mapMux.Lock()
 	defer s.mapMux.Unlock()
 
 	if _, ok := s.objectsMap[id]; !ok {
 		log.Printf("SharedCollection: object ID %d does not exist so can't be removed", id)
-		return
+		return false
 	}
 	delete(s.objectsMap, id)
+	return true
 }
 
 // Call the callback function for each object in the map.
