@@ -242,6 +242,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 32, 8, 8)
 item_name = "Bronze hatchet"
 description = "A rusty bronze hatchet. Looks like it's seen much better days."
+value = 10
 tool_properties = SubResource("Resource_e24mv")
 
 [node name="GroundItem2" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
@@ -252,6 +253,7 @@ metadata/_edit_group_ = true
 [node name="Item" parent="GroundItem2" instance=ExtResource("6_df7dt")]
 region_rect = Rect2(72, 16, 8, 8)
 item_name = "Dog bowl"
+description = "A bowl full of clean drinking water."
 
 [node name="GroundItem3" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
 position = Vector2(240, 56)
@@ -262,6 +264,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(56, 64, 8, 8)
 item_name = "Half-finished beer"
 description = "Some say there was a tavern here long ago. But now this is the only artefact that remains."
+value = 100
 
 [node name="GroundItem4" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
 position = Vector2(144, 40)
@@ -271,6 +274,8 @@ metadata/_edit_group_ = true
 [node name="Item" parent="GroundItem4" instance=ExtResource("6_df7dt")]
 region_rect = Rect2(80, 64, 8, 8)
 item_name = "Cooked chicken thigh"
+description = "A succulent specialty meal of the Grove"
+value = 40
 
 [node name="GroundItem5" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
 position = Vector2(80, 128)
@@ -280,6 +285,8 @@ metadata/_edit_group_ = true
 [node name="Item" parent="GroundItem5" instance=ExtResource("6_df7dt")]
 region_rect = Rect2(80, 40, 8, 8)
 item_name = "Bronze key"
+description = "Who knows what this is for?"
+value = 4
 
 [node name="Shrub" parent="." instance=ExtResource("2_lfbik")]
 position = Vector2(280, 56)
@@ -339,6 +346,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 56, 8, 8)
 item_name = "Bronze pickaxe"
 description = "A dirty old pick"
+value = 5
 tool_properties = SubResource("Resource_81vyb")
 
 [node name="GroundItem7" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
@@ -350,6 +358,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 64, 8, 8)
 item_name = "Steel pickaxe"
 description = "A fine tool for mining ore"
+value = 10
 tool_properties = SubResource("Resource_v14r7")
 
 [node name="Door2" parent="." instance=ExtResource("3_xd47s")]

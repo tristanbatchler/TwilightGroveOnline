@@ -39,7 +39,7 @@ func _ready() -> void:
 		_item.region_enabled = true
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
 		
-		tooltip_text = item.description
+		tooltip_text = item.description + "\nsG" % Util.pretty_int(item.value)
 		_drop_button.tooltip_text = item.description
 		
 		if not labelless:

@@ -107,6 +107,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 			var item_msg := ground_item_msg.new_item()
 			item_msg.set_name(node.item.item_name)
 			item_msg.set_description(node.item.description)
+			item_msg.set_value(node.item.value)
 			item_msg.set_sprite_region_x(node.item.region_rect.position.x)
 			item_msg.set_sprite_region_y(node.item.region_rect.position.y)
 			

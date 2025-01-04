@@ -700,6 +700,11 @@ func (g *InGame) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRe
 		return
 	}
 
+	if g.inventory.GetItemQuantity(*items.GoldBars) < uint32(message.BuyRequest.Item.Value)*uint32(message.BuyRequest.Quantity) {
+		g.client.SocketSend(packets.NewBuyResponse(false, message.BuyRequest.ShopOwnerActorId, nil, errors.New("Not enough gold to buy that")))
+		return
+	}
+
 	shopOwnerActorId := message.BuyRequest.ShopOwnerActorId
 
 	// TODO: Normally I would check if the actor is in range, but the problem is the actor might
@@ -731,6 +736,7 @@ func (g *InGame) handleBuyResponse(senderId uint32, message *packets.Packet_BuyR
 	}
 
 	g.addInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
+	g.removeInventoryItem(*items.GoldBars, uint32(itemObj.Value)*uint32(itemQtyMsg.Quantity))
 
 	g.client.SocketSendAs(message, senderId)
 }
@@ -769,9 +775,9 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 
 	g.removeInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
 
-	// TODO: Award the player with some gold equal to the item's value
-	g.addInventoryItem(*items.GoldBars, 1)
-	g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
+	// Award the player with some gold equal to the item's value
+	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value))
+	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, uint32(itemObj.Value)))
 
 	g.client.SocketSendAs(message, senderId)
 }

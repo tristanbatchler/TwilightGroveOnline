@@ -278,7 +278,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item := ground_item.item
 		_log.info("You found a %s." % item.item_name)
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
-		var item_copy := Item.instantiate(item.item_name, item.description, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
+		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 
@@ -386,6 +386,7 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 	var item_msg := item_qty_msg.get_item()
 	var item_name := item_msg.get_name()
 	var item_description := item_msg.get_description()
+	var item_value := item_msg.get_value()
 	var qty := item_qty_msg.get_quantity()
 	var tool_props_msg := item_msg.get_tool_props()
 	var tool_properties: ToolProperties = null
@@ -394,7 +395,7 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 		tool_properties.strength = tool_props_msg.get_strength()
 		tool_properties.level_required = tool_props_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
-	var item := Item.instantiate(item_name, item_description, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+	var item := Item.instantiate(item_name, item_description, item_value, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 	
 	if from_shop:
 		_shop.add(item,qty)
@@ -452,6 +453,7 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 	var item_msg: Packets.Item = receiver.new_item()
 	item_msg.set_name(item.item_name)
 	item_msg.set_description(item.description)
+	item_msg.set_value(item.value)
 	item_msg.set_sprite_region_x(item.sprite_region_x)
 	item_msg.set_sprite_region_y(item.sprite_region_y)
 	
@@ -467,6 +469,7 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
 	var item_name := item_msg.get_name()
 	var description := item_msg.get_description()
+	var value := item_msg.get_value()
 	var sprite_region_x := item_msg.get_sprite_region_x()
 	var sprite_region_y := item_msg.get_sprite_region_y()
 	
@@ -478,7 +481,7 @@ func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
 		tool_properties.level_required = tool_properties_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
 	
-	return Item.instantiate(item_name, description, sprite_region_x, sprite_region_y, tool_properties)
+	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties)
 
 func _drop_item(item: Item, item_qty: int) -> void:
 	# If we are shopping, we actually want this to sell the item
@@ -630,6 +633,8 @@ func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.Bu
 			_shop.remove(item_name, quantity)
 		var item := _get_item_obj_from_msg(item_msg)
 		_inventory.add(item, quantity)
+		# TODO: Bad bad bad harcoding
+		_inventory.remove("Golden bars", quantity * item.value)
 		
 
 func _process(delta: float) -> void:
@@ -702,9 +707,16 @@ func _on_shop_item_purchased(shop_owner_actor_id: int, item: Item, quantity: int
 	var packet := Packets.Packet.new()
 	var buy_request_msg := packet.new_buy_request()
 	_set_item_msg_from_obj(buy_request_msg, item)
+	
 	if _shop.get_quantity(item.item_name) >= quantity:
 		buy_request_msg.set_quantity(quantity)
 	else:
 		_log.warning("Shop does not have enough of that item")
+	
+	# TODO: Bad bad bad hardcoding string. Refactor when I get a chance
+	if _inventory.get_quantity("Golden bars") < item.value:
+		_log.warning("Not enough gold to purchase this item")
+		return
+	
 	buy_request_msg.set_shop_owner_actor_id(shop_owner_actor_id)
 	WS.send(packet)
