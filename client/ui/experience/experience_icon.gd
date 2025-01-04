@@ -20,7 +20,7 @@ var xp: int = 0:
 			tooltip_text = "%s XP til next level: %d" % [GameManager.get_skill_name(skill).capitalize(), xp_til_next_lvl]
 
 func get_level(xp: int) -> int:
-	return 1 + sqrt(xp / 100)
+	return 1 + sqrt(xp / 20)
 	
 func get_xp_at_level(level: int) -> int:
-	return 100 * level * level
+	return 20 * level * level

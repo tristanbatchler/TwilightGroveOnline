@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/rand/v2"
 	"strconv"
 	"strings"
@@ -31,6 +32,7 @@ type InGame struct {
 	othersInLevel          []uint32
 	logger                 *log.Logger
 	cancelPlayerUpdateLoop context.CancelFunc
+	cancelHarvestTimer     context.CancelFunc
 }
 
 func (g *InGame) Name() string {
@@ -185,6 +187,8 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 		return
 	}
 
+	g.maybeCancelHarvestTimer()
+
 	targetX := g.player.X + message.ActorMove.Dx
 	targetY := g.player.Y + message.ActorMove.Dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}
@@ -228,6 +232,7 @@ func (g *InGame) handleActorInfo(senderId uint32, message *packets.Packet_Actor)
 
 func (g *InGame) handleLogout(senderId uint32, message *packets.Packet_Logout) {
 	if senderId == g.client.Id() {
+		g.maybeCancelHarvestTimer()
 		g.client.SetState(&Connected{})
 		return
 	}
@@ -238,6 +243,7 @@ func (g *InGame) handleLogout(senderId uint32, message *packets.Packet_Logout) {
 
 func (g *InGame) handleDisconnect(senderId uint32, message *packets.Packet_Disconnect) {
 	if senderId == g.client.Id() {
+		g.maybeCancelHarvestTimer()
 		g.logger.Println("Client sent a disconnect, exiting")
 		g.client.SetState(nil)
 		return
@@ -253,6 +259,8 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		g.client.SocketSendAs(message, senderId)
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	groundItem, exists := g.client.SharedGameObjects().GroundItems.Get(message.PickupGroundItemRequest.GroundItemId)
 
@@ -340,12 +348,10 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
 
-func (g *InGame) canHarvest(harvestableStrength int32, harvestableType *props.Harvestable) bool {
-	canDoIt := false
-	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
-		if canDoIt {
-			return
-		}
+func (g *InGame) strongestToolFor(harvestableType *props.Harvestable) *objs.Item {
+	var bestStrength int32 = -1
+	var bestTool *objs.Item
+	g.inventory.ForEach(func(item objs.Item, _ uint32) {
 		if item.ToolProps == nil {
 			return
 		}
@@ -353,12 +359,41 @@ func (g *InGame) canHarvest(harvestableStrength int32, harvestableType *props.Ha
 		if toolProps.Harvests != harvestableType {
 			return
 		}
-		if toolProps.Strength > harvestableStrength {
-			canDoIt = true
-			return
+		if toolProps.Strength > int32(bestStrength) {
+			bestStrength = toolProps.Strength
+			bestTool = &item
 		}
 	})
-	return canDoIt
+	return bestTool
+}
+
+func (g *InGame) canHarvest(harvestableStrength int32, harvestableType *props.Harvestable) bool {
+	return g.strongestToolFor(harvestableType).ToolProps.Strength > harvestableStrength
+}
+
+// Let $l$ be the player's woodcutting level, and $s_a$ the strength of their axe. The time required in seconds to chop
+// a tree of strength $s_t$ is calculated as follows, only when $s_a > s_t$:
+// \[
+//
+//	T(l, s_a, s_t) := B \exp{\left(1 + s_t - s_a\right)} \left(\frac{101-l}{100}\right)
+//
+// \]
+// Here, $B$ is a constant that represents the base time in seconds to chop a tree at woodcutting level $1$, with an axe
+// of minimum strength required to chop the tree. In other words, $B$ is the worst-case scenario.
+func timeToHarvest(level uint32, toolStrength int32, harvestableStrength int32) time.Duration {
+	baseSeconds := 5.0
+
+	// Calculate the exponential factor and level adjustment
+	expFactor := math.Exp(1 + float64(harvestableStrength-toolStrength))
+	levelAdjustment := 1 - float64(level)/100
+
+	// Edge case if the player's level is over 100
+	if levelAdjustment < 0 {
+		levelAdjustment = 0
+	}
+
+	totalSeconds := baseSeconds * expFactor * levelAdjustment
+	return time.Duration(totalSeconds * float64(time.Second))
 }
 
 func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet_ChopShrubRequest) {
@@ -367,6 +402,8 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		go g.client.SocketSendAs(message, senderId)
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	shrub, exists := g.client.SharedGameObjects().Shrubs.Get(message.ChopShrubRequest.ShrubId)
 	if !exists {
@@ -389,6 +426,27 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		return
 	}
 
+	go func() {
+		g.client.SocketSend(packets.NewServerMessage("You swing your axe at the shrub..."))
+		wcLvl := skills.Level(g.player.SkillsXp[skills.Woodcutting])
+		axeStrength := g.strongestToolFor(props.ShrubHarvestable).ToolProps.Strength
+		timeToChop := timeToHarvest(wcLvl, axeStrength, shrubStrength)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		g.cancelHarvestTimer = cancel
+
+		go func() {
+			select {
+			case <-time.After(timeToChop):
+				g.chopDownShrub(message, shrub)
+			case <-ctx.Done():
+				g.logger.Println("Chopping was interrupted")
+			}
+		}()
+	}()
+}
+
+func (g *InGame) chopDownShrub(message *packets.Packet_ChopShrubRequest, shrub *objs.Shrub) {
 	g.client.SharedGameObjects().Shrubs.Remove(shrub.Id)
 
 	go g.queries.DeleteLevelShrub(context.Background(), db.DeleteLevelShrubParams{
@@ -417,13 +475,13 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 	// Tell all the clients in the level that the shrub was chopped
 	g.client.Broadcast(message, g.othersInLevel)
 
-	g.logger.Printf("Client %d chopped shrub %d", senderId, shrub.Id)
+	g.logger.Printf("hopped shrub %d", shrub.Id)
 
 	// Send the response and reward the player with some XP
 	go func() {
 		g.client.SocketSend(packets.NewChopShrubResponse(true, shrub.Id, nil))
 		time.Sleep(100 * time.Millisecond) // Just to make sure the client receives the response before the XP reward
-		g.awardPlayerXp(skills.Woodcutting, 30*uint32(shrubStrength+1))
+		g.awardPlayerXp(skills.Woodcutting, 30*uint32(shrub.Strength+1))
 	}()
 
 	// Award the player with some logs after a tiny delay
@@ -432,7 +490,6 @@ func (g *InGame) handleChopShrubRequest(senderId uint32, message *packets.Packet
 		g.addInventoryItem(*items.Logs, 1)
 		g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
 	}()
-
 }
 
 func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_MineOreRequest) {
@@ -441,6 +498,8 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		go g.client.SocketSendAs(message, senderId)
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	ore, exists := g.client.SharedGameObjects().Ores.Get(message.MineOreRequest.OreId)
 	if !exists {
@@ -463,6 +522,25 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		return
 	}
 
+	g.client.SocketSend(packets.NewServerMessage("You swing your pickaxe at the ore..."))
+	miningLvl := skills.Level(g.player.SkillsXp[skills.Mining])
+	pickaxeStrength := g.strongestToolFor(props.OreHarvestable).ToolProps.Strength
+	timeToMine := timeToHarvest(miningLvl, pickaxeStrength, oreStrength)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	g.cancelHarvestTimer = cancel
+
+	go func() {
+		select {
+		case <-time.After(timeToMine):
+			g.mineOre(message, ore)
+		case <-ctx.Done():
+			g.logger.Println("Mining was interrupted")
+		}
+	}()
+}
+
+func (g *InGame) mineOre(message *packets.Packet_MineOreRequest, ore *objs.Ore) {
 	g.client.SharedGameObjects().Ores.Remove(ore.Id)
 
 	go g.queries.DeleteLevelOre(context.Background(), db.DeleteLevelOreParams{
@@ -491,13 +569,13 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 	// Tell all the clients in the level that the ore was mined
 	g.client.Broadcast(message, g.othersInLevel)
 
-	g.logger.Printf("Client %d mined ore %d", senderId, ore.Id)
+	g.logger.Printf("Mined ore %d", ore.Id)
 
 	// Send the response and reward the player with some XP
 	go func() {
 		g.client.SocketSend(packets.NewMineOreResponse(true, ore.Id, nil))
 		time.Sleep(100 * time.Millisecond) // Just to make sure the client receives the response before the XP reward
-		g.awardPlayerXp(skills.Mining, 30*uint32(oreStrength+1))
+		g.awardPlayerXp(skills.Mining, 30*uint32(ore.Strength+1))
 	}()
 
 	// Award the player with some rocks after a tiny delay
@@ -506,7 +584,6 @@ func (g *InGame) handleMineOreRequest(senderId uint32, message *packets.Packet_M
 		g.addInventoryItem(*items.Rocks, 1)
 		g.client.SocketSend(packets.NewItemQuantity(items.Rocks, 1))
 	}()
-
 }
 
 func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
@@ -544,6 +621,8 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	itemMsg := message.DropItemRequest.Item
 
@@ -619,6 +698,8 @@ func (g *InGame) handleInteractWithNpcRequest(senderId uint32, message *packets.
 		return
 	}
 
+	g.maybeCancelHarvestTimer()
+
 	actorId := message.InteractWithNpcRequest.ActorId
 	err := g.checkActorIsInteractable(actorId)
 	if err != nil {
@@ -643,6 +724,8 @@ func (g *InGame) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRe
 		g.logger.Println("Received a buy request from a client that isn't us, ignoring")
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	if g.inventory.GetItemQuantity(*items.GoldBars) < uint32(message.BuyRequest.Item.Value)*uint32(message.BuyRequest.Quantity) {
 		g.client.SocketSend(packets.NewBuyResponse(false, message.BuyRequest.ShopOwnerActorId, nil, errors.New("Not enough gold to buy that")))
@@ -695,6 +778,8 @@ func (g *InGame) handleSellRequest(senderId uint32, message *packets.Packet_Sell
 		g.logger.Println("Received a sell request from a client that isn't us, ignoring")
 		return
 	}
+
+	g.maybeCancelHarvestTimer()
 
 	shopOwnerActorId := message.SellRequest.ShopOwnerActorId
 
@@ -986,4 +1071,11 @@ func (g *InGame) awardPlayerXp(skill skills.Skill, xp uint32) {
 	}
 
 	g.player.SkillsXp[skill] += xp
+}
+
+func (g *InGame) maybeCancelHarvestTimer() {
+	if g.cancelHarvestTimer != nil {
+		g.cancelHarvestTimer()
+		g.cancelHarvestTimer = nil
+	}
 }
