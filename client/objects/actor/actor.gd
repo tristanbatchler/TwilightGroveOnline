@@ -136,10 +136,12 @@ func get_ore_standing_on() -> Ore:
 	return null
 	
 func get_actor_standing_on() -> Actor:
-	for body in _area.get_overlapping_bodies():
-		var actor := body as Actor
-		if actor != self:
-			return actor
+	for area in _area.get_overlapping_areas():
+		var area_parent = area.get_parent()
+		if area_parent is Actor:
+			var actor := area_parent as Actor
+			if actor != self:
+				return actor
 	return null
 	
 func chat(message: String) -> void:
@@ -158,4 +160,5 @@ func play_harvest_animation(direction: Vector2i) -> void:
 		_animation_player.play(&"harvest_up")
 	
 func stop_harvesting_animation() -> void:
-	_animation_player.stop()
+	if _animation_player.current_animation:
+		_animation_player.play(&"RESET")

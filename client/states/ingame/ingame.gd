@@ -56,16 +56,16 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_released("ui_accept"):
 			_line_edit.grab_focus()
 		elif event.is_action_released("pickup_item"):
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 			_pickup_nearby_ground_item()
 		elif event.is_action_released("drop_item"):
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 			_drop_selected_item()
 		elif event.is_action_released("harvest"):
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 			_harvest_nearby_resource()
 		elif event.is_action_released("talk"):
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 			_talk_to_nearby_actor()
 		
 		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
@@ -73,7 +73,7 @@ func _input(event: InputEvent) -> void:
 		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
 		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
 		if input_dir != Vector2i.ZERO:
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 		
 		if player.at_target():
 			player.move_and_send(input_dir)
@@ -154,7 +154,7 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_buy_response(sender_id, packet.get_buy_response())
 
 func _on_logout_button_pressed() -> void:
-	GameManager.stop_looped_sound()
+	_stop_harvesting()
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	var packet := Packets.Packet.new()
 	packet.new_logout()
@@ -196,7 +196,7 @@ func _on_send_button_pressed() -> void:
 	#_line_edit.grab_focus.call_deferred() # Don't actually want this any more
 
 func _on_ws_connection_closed() -> void:
-	GameManager.stop_looped_sound()
+	_stop_harvesting()
 	_log.error("Connection to the server lost")
 	GameManager.set_state(GameManager.State.ENTERED)
 
@@ -391,6 +391,7 @@ func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorI
 		_shop.set_title("%s's shop" % actor.actor_name)
 		_shop.set_owner_actor_id(sender_id)
 		_shop.closed.connect(func():
+			GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 			tab_before_shop.show()
 			_shop.hide()
 			_tab_container.current_tab = tab_idx_before_shop
@@ -545,8 +546,7 @@ func _send_chop_shrub_request(shrub: Shrub) -> void:
 	if WS.send(packet) == OK:
 		if GameManager.client_id in _actors:
 			var player := _actors[GameManager.client_id]
-			#var harvest_direction := player.position.direction_to()
-			player.play_harvest_animation(Vector2i.UP)
+			player.play_harvest_animation(player.position.direction_to(shrub.position))
 		GameManager.loop_sound(GameManager.LoopedSound.CHOPPING)
 		
 	
@@ -557,8 +557,7 @@ func _send_mine_ore_request(ore: Ore) -> void:
 	if WS.send(packet) == OK:
 		if GameManager.client_id in _actors:
 			var player := _actors[GameManager.client_id]
-			# TODO: Play direction
-			player.play_harvest_animation(Vector2i.UP)
+			player.play_harvest_animation(player.position.direction_to(ore.position))
 		GameManager.loop_sound(GameManager.LoopedSound.MINING)
 	
 func _talk_to_nearby_actor() -> void:
@@ -584,7 +583,8 @@ func _get_actor_id(actor: Actor) -> int:
 	return -1
 
 func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
-	GameManager.stop_looped_sound()
+	_stop_harvesting()
+	
 	var response := chop_shrub_response.get_response()
 	if not response.get_success():
 		_maybe_show_response_error(response)
@@ -593,11 +593,10 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 	_remove_shrub(shrub_id)
 	_log.success("You manage to fell the shrub")
 	GameManager.play_sound(GameManager.SingleSound.TREE_FALL)
-	if GameManager.client_id in _actors:
-		_actors[GameManager.client_id].stop_harvesting_animation()
 	
 func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> void:
-	GameManager.stop_looped_sound()
+	_stop_harvesting()
+	
 	var response := mine_ore_response.get_response()
 	if not response.get_success():
 		_maybe_show_response_error(response)
@@ -606,8 +605,6 @@ func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> vo
 	_remove_ore(ore_id)
 	_log.success("You manage to mine some ore")
 	GameManager.play_sound(GameManager.SingleSound.ORE_CRUMBLE)
-	if GameManager.client_id in _actors:
-		_actors[GameManager.client_id].stop_harvesting_animation()
 
 func _handle_interact_with_npc_response(interact_with_npc_response: Packets.InteractWithNpcResponse) -> void:
 	var response := interact_with_npc_response.get_response()
@@ -713,7 +710,7 @@ func _process(delta: float) -> void:
 				[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
 			)
 			
-			GameManager.stop_looped_sound()
+			_stop_harvesting()
 			player.move_and_send(strongest_dir)
 			
 func _pickup_nearby_ground_item() -> void:
@@ -783,3 +780,8 @@ func _maybe_show_response_error(response: Packets.Response) -> void:
 		var err_msg := response.get_msg()
 		_log.error(err_msg)
 		_show_dialogue("???", [err_msg])
+
+func _stop_harvesting() -> void:
+	if GameManager.client_id in _actors:
+		_actors[GameManager.client_id].stop_harvesting_animation()
+	GameManager.stop_looped_sound()
