@@ -543,13 +543,22 @@ func _send_chop_shrub_request(shrub: Shrub) -> void:
 	var harvest_request_msg := packet.new_chop_shrub_request()
 	harvest_request_msg.set_shrub_id(shrub.shrub_id)
 	if WS.send(packet) == OK:
+		if GameManager.client_id in _actors:
+			var player := _actors[GameManager.client_id]
+			#var harvest_direction := player.position.direction_to()
+			player.play_harvest_animation(Vector2i.UP)
 		GameManager.loop_sound(GameManager.LoopedSound.CHOPPING)
+		
 	
 func _send_mine_ore_request(ore: Ore) -> void:
 	var packet := Packets.Packet.new()
 	var harvest_request_msg := packet.new_mine_ore_request()
 	harvest_request_msg.set_ore_id(ore.ore_id)
 	if WS.send(packet) == OK:
+		if GameManager.client_id in _actors:
+			var player := _actors[GameManager.client_id]
+			# TODO: Play direction
+			player.play_harvest_animation(Vector2i.UP)
 		GameManager.loop_sound(GameManager.LoopedSound.MINING)
 	
 func _talk_to_nearby_actor() -> void:
@@ -584,6 +593,8 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 	_remove_shrub(shrub_id)
 	_log.success("You manage to fell the shrub")
 	GameManager.play_sound(GameManager.SingleSound.TREE_FALL)
+	if GameManager.client_id in _actors:
+		_actors[GameManager.client_id].stop_harvesting_animation()
 	
 func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> void:
 	GameManager.stop_looped_sound()
@@ -595,6 +606,8 @@ func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> vo
 	_remove_ore(ore_id)
 	_log.success("You manage to mine some ore")
 	GameManager.play_sound(GameManager.SingleSound.ORE_CRUMBLE)
+	if GameManager.client_id in _actors:
+		_actors[GameManager.client_id].stop_harvesting_animation()
 
 func _handle_interact_with_npc_response(interact_with_npc_response: Packets.InteractWithNpcResponse) -> void:
 	var response := interact_with_npc_response.get_response()

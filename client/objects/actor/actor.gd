@@ -36,7 +36,7 @@ var _world_tile_size := Vector2i(1, 1)
 @onready var _chat_label_position: Marker2D = $ChatLabelPosition
 @onready var _chat_label: RichTextLabel = $CanvasLayer/ChatLabel
 @onready var _chat_timer: Timer = $CanvasLayer/ChatLabel/Timer
-
+@onready var _animation_player: AnimationPlayer = $AnimationPlayer
 
 static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> Actor:
 	var actor := Scene.instantiate() as Actor
@@ -58,6 +58,9 @@ func _ready() -> void:
 	target_pos = position
 	_name_plate.text = actor_name
 	_chat_timer.timeout.connect(_chat_label.hide)
+	
+	_animation_player.stop()
+	
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_player:
 		return
@@ -144,3 +147,15 @@ func chat(message: String) -> void:
 	_chat_label.show()
 	_chat_timer.start()
 	
+func play_harvest_animation(direction: Vector2i) -> void:
+	if direction == Vector2i.RIGHT:
+		_animation_player.play(&"harvest_right")
+	if direction == Vector2i.DOWN:
+		_animation_player.play(&"harvest_down")
+	if direction == Vector2i.LEFT:
+		_animation_player.play(&"harvest_left")
+	if direction == Vector2i.UP:
+		_animation_player.play(&"harvest_up")
+	
+func stop_harvesting_animation() -> void:
+	_animation_player.stop()

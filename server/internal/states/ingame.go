@@ -368,7 +368,11 @@ func (g *InGame) strongestToolFor(harvestableType *props.Harvestable) *objs.Item
 }
 
 func (g *InGame) canHarvest(harvestableStrength int32, harvestableType *props.Harvestable) bool {
-	return g.strongestToolFor(harvestableType).ToolProps.Strength > harvestableStrength
+	strongestTool := g.strongestToolFor(harvestableType)
+	if strongestTool == nil || strongestTool.ToolProps == nil {
+		return false
+	}
+	return strongestTool.ToolProps.Strength > harvestableStrength
 }
 
 // Let $l$ be the player's woodcutting level, and $s_a$ the strength of their axe. The time required in seconds to chop
