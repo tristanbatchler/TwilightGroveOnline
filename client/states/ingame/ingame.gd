@@ -56,18 +56,24 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_released("ui_accept"):
 			_line_edit.grab_focus()
 		elif event.is_action_released("pickup_item"):
+			GameManager.stop_looped_sound()
 			_pickup_nearby_ground_item()
 		elif event.is_action_released("drop_item"):
+			GameManager.stop_looped_sound()
 			_drop_selected_item()
 		elif event.is_action_released("harvest"):
+			GameManager.stop_looped_sound()
 			_harvest_nearby_resource()
 		elif event.is_action_released("talk"):
+			GameManager.stop_looped_sound()
 			_talk_to_nearby_actor()
 		
 		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
 		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
 		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
 		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
+		if input_dir != Vector2i.ZERO:
+			GameManager.stop_looped_sound()
 		
 		if player.at_target():
 			player.move_and_send(input_dir)
@@ -202,6 +208,8 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 		_shrubs.clear()
 		_ores.clear()
 		# Clear more stuff here as needed
+		
+		GameManager.play_sound(GameManager.SingleSound.DOOR)
 	
 	var data := level_download.get_data()
 	var file := FileAccess.open(download_destination_scene_path, FileAccess.WRITE)
@@ -525,13 +533,15 @@ func _send_chop_shrub_request(shrub: Shrub) -> void:
 	var packet := Packets.Packet.new()
 	var harvest_request_msg := packet.new_chop_shrub_request()
 	harvest_request_msg.set_shrub_id(shrub.shrub_id)
-	WS.send(packet)
+	if WS.send(packet) == OK:
+		GameManager.loop_sound(GameManager.LoopedSound.CHOPPING)
 	
 func _send_mine_ore_request(ore: Ore) -> void:
 	var packet := Packets.Packet.new()
 	var harvest_request_msg := packet.new_mine_ore_request()
 	harvest_request_msg.set_ore_id(ore.ore_id)
-	WS.send(packet)
+	if WS.send(packet) == OK:
+		GameManager.loop_sound(GameManager.LoopedSound.MINING)
 	
 func _talk_to_nearby_actor() -> void:
 	if GameManager.client_id in _actors:
@@ -556,6 +566,7 @@ func _get_actor_id(actor: Actor) -> int:
 	return -1
 
 func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse) -> void:
+	GameManager.stop_looped_sound()
 	var response := chop_shrub_response.get_response()
 	if not response.get_success():
 		_maybe_show_response_error(response)
@@ -563,8 +574,10 @@ func _handle_chop_shrub_response(chop_shrub_response: Packets.ChopShrubResponse)
 	var shrub_id := chop_shrub_response.get_shrub_id()
 	_remove_shrub(shrub_id)
 	_log.success("You manage to fell the shrub")
+	GameManager.play_sound(GameManager.SingleSound.TREE_FALL)
 	
 func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> void:
+	GameManager.stop_looped_sound()
 	var response := mine_ore_response.get_response()
 	if not response.get_success():
 		_maybe_show_response_error(response)
@@ -572,6 +585,7 @@ func _handle_mine_ore_response(mine_ore_response: Packets.MineOreResponse) -> vo
 	var ore_id := mine_ore_response.get_ore_id()
 	_remove_ore(ore_id)
 	_log.success("You manage to mine some ore")
+	GameManager.play_sound(GameManager.SingleSound.ORE_CRUMBLE)
 
 func _handle_interact_with_npc_response(interact_with_npc_response: Packets.InteractWithNpcResponse) -> void:
 	var response := interact_with_npc_response.get_response()
@@ -673,6 +687,7 @@ func _process(delta: float) -> void:
 				[maxf(pos_diff.x, 0), maxf(pos_diff.y, 0), maxf(-pos_diff.x, 0), maxf(-pos_diff.y, 0)]
 			)
 			
+			GameManager.stop_looped_sound()
 			player.move_and_send(strongest_dir)
 			
 func _pickup_nearby_ground_item() -> void:
