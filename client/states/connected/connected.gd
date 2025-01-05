@@ -20,29 +20,34 @@ func _ready() -> void:
 	WS.connection_closed.connect(_on_ws_connection_closed)
 
 func _on_settings_button_pressed() -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_login_form.hide()
 	_register_prompt.hide()
 	_settings_button.hide()
 	_settings_form.show()
 	
 func _on_settings_form_closed() -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_settings_form.hide()
 	_settings_button.show()
 	_register_prompt.show()
 	_login_form.show()
 
 func _on_register_form_canceled() -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_register_form.hide()
 	_register_prompt.show()
 	_login_form.show()
 
 func _on_register_prompt_meta_clicked(meta) -> void:
 	if meta is String and meta == "register":
+		GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 		_login_form.hide()
 		_register_prompt.hide()
 		_register_form.show()
 
 func _on_login_form_submitted(username: String, password: String) -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_login_form.disable_form()
 	_log.info("Sending login...")
 	var packet := Packets.Packet.new()
@@ -52,6 +57,7 @@ func _on_login_form_submitted(username: String, password: String) -> void:
 	WS.send(packet)
 	
 func _on_register_form_submitted(username: String, password: String, confirm_password: String) -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_register_form.disable_form()
 	if password != confirm_password:
 		_log.error("Passwords do not match")

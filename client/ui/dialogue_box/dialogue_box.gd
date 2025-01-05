@@ -30,6 +30,7 @@ func set_dialogue_lines(lines: Array) -> void:
 
 func _on_continue_clicked(meta):
 	if meta is String and meta == "next":
+		GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 		_current_line_idx += 1
 		if _current_line_idx >= _dialogue_lines.size():
 			set_dialogue_lines([""])

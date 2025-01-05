@@ -65,6 +65,11 @@ enum SingleSound {
 	DOOR,
 	TREE_FALL,
 	ORE_CRUMBLE,
+	PICKUP,
+	COINS,
+	ENTER_SHOP,
+	DROP,
+	BUTTON_PRESSED,
 }
 
 var _skills_names: Dictionary[Skill, String] = {
@@ -95,6 +100,11 @@ var _single_sounds_resources: Dictionary[SingleSound, AudioStream] = {
 	SingleSound.DOOR: preload("res://resources/sfx/door.wav"),
 	SingleSound.TREE_FALL: preload("res://resources/sfx/tree_fall.wav"),
 	SingleSound.ORE_CRUMBLE: preload("res://resources/sfx/ore_crumble.wav"),
+	SingleSound.PICKUP: preload("res://resources/sfx/pickup.wav"),
+	SingleSound.COINS: preload("res://resources/sfx/coins.wav"),
+	SingleSound.ENTER_SHOP: preload("res://resources/sfx/enter_shop.wav"),
+	SingleSound.DROP: preload("res://resources/sfx/drop.wav"),
+	SingleSound.BUTTON_PRESSED: preload("res://resources/sfx/button_pressed.wav"),
 }
 
 var _looped_sounds_resources: Dictionary[LoopedSound, AudioStreamOggVorbis] = {
@@ -156,5 +166,7 @@ func loop_sound(sound: LoopedSound) -> void:
 	_audio_stream_player.play()
 
 func stop_looped_sound() -> void:
+	if _audio_stream_player.stream is not AudioStreamOggVorbis:
+		return
 	if _audio_stream_player.stream in _looped_sounds_resources.values():
 		_audio_stream_player.stop()

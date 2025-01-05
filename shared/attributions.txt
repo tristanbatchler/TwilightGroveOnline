@@ -1,4 +1,7 @@
-Wood_Chop_01.wav by dheming -- https://freesound.org/s/240980/ -- License: Attribution 4.0
-Pickaxe Mining Clank OWI by WolfOWI -- https://freesound.org/s/588306/ -- License: Attribution NonCommercial 3.0
-Breaking Wood.WAV by DasDeer -- https://freesound.org/s/161601/ -- License: Attribution 4.0
-Pushing Large Stones Down Shoreline on Stony Beach 2.wav by F.M.Audio -- https://freesound.org/s/574449/ -- License: Attribution 4.0
+Woodcutting sound loop: Wood_Chop_01.wav by dheming -- https://freesound.org/s/240980/ -- License: Attribution 4.0
+Mining sound loop: Pickaxe Mining Clank OWI by WolfOWI -- https://freesound.org/s/588306/ -- License: Attribution NonCommercial 3.0
+Tree felling sound: Breaking Wood.WAV by DasDeer -- https://freesound.org/s/161601/ -- License: Attribution 4.0
+Ore crumbling sound: Pushing Large Stones Down Shoreline on Stony Beach 2.wav by F.M.Audio -- https://freesound.org/s/574449/ -- License: Attribution 4.0
+Buy/sell item sound: Coins 14.wav by StormwaveAudio -- https://freesound.org/s/614069/ -- License: Attribution NonCommercial 4.0
+Drop item sound: Book Closing by dersuperanton -- https://freesound.org/s/435558/ -- License: Attribution 4.0
+UI button click sound: Button press by leoanderson67 -- https://freesound.org/s/710463/ -- License: Attribution 4.0

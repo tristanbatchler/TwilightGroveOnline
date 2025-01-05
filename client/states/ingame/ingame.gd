@@ -154,6 +154,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_buy_response(sender_id, packet.get_buy_response())
 
 func _on_logout_button_pressed() -> void:
+	GameManager.stop_looped_sound()
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	var packet := Packets.Packet.new()
 	packet.new_logout()
 	WS.send(packet)
@@ -189,10 +191,12 @@ func _on_send_button_pressed() -> void:
 				player.chat(entered_text)
 
 	_line_edit.clear()
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	#_line_edit.release_focus()
 	#_line_edit.grab_focus.call_deferred() # Don't actually want this any more
 
 func _on_ws_connection_closed() -> void:
+	GameManager.stop_looped_sound()
 	_log.error("Connection to the server lost")
 	GameManager.set_state(GameManager.State.ENTERED)
 
@@ -290,6 +294,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
+		GameManager.play_sound(GameManager.SingleSound.PICKUP)
 
 func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) -> void:
 	var response := drop_item_response.get_response()
@@ -299,6 +304,8 @@ func _handle_drop_item_response(drop_item_response: Packets.DropItemResponse) ->
 	var dropped_item_msg := drop_item_response.get_item()
 	
 	_inventory.remove(dropped_item_msg.get_name(), drop_item_response.get_quantity())
+	
+	GameManager.play_sound(GameManager.SingleSound.DROP)
 
 # This gets forwareded to us from the server only when the other player *successfully* picks up the item
 func _handle_pickup_ground_item_request(sender_id: int, pickup_ground_item_request: Packets.PickupGroundItemRequest) -> void:
@@ -376,6 +383,8 @@ func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorI
 		var tab_before_shop := _tab_container.get_current_tab_control()
 		
 		_shop.show()
+		GameManager.play_sound(GameManager.SingleSound.ENTER_SHOP)
+		
 		if _tab_container.get_tab_title(tab_idx_before_shop).to_lower() != "inventory": # TODO: This is yuck, there should be a better way
 			tab_before_shop.hide()
 		_inventory.show()
@@ -618,6 +627,8 @@ func _handle_sell_response(shop_owner_actor_id: int, sell_response_msg: Packets.
 			var item := _get_item_obj_from_msg(item_msg)
 			_shop.add(item, quantity)
 		
+		GameManager.play_sound(GameManager.SingleSound.COINS)
+		
 func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.BuyResponse) -> void:
 	var response := buy_response_msg.get_response()
 	
@@ -637,6 +648,8 @@ func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.Bu
 		_inventory.add(item, quantity)
 		# TODO: Bad bad bad harcoding
 		_inventory.remove("Golden bars", quantity * item.value)
+		
+		GameManager.play_sound(GameManager.SingleSound.COINS)
 		
 
 func _process(delta: float) -> void:
