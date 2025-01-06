@@ -80,7 +80,8 @@ func (n *NpcWithDialogue) handleChat(senderId uint32, message *packets.Packet_Ch
 	fromActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
 	if exists {
 		go func() {
-			time.Sleep(500 * time.Millisecond)
+			randMs := time.Duration(rand.Int64N(2000)) * time.Millisecond
+			time.Sleep(randMs)
 			n.client.Broadcast(packets.NewChat(fmt.Sprintf("Hello, %s", fromActor.Name)), n.othersInLevel)
 		}()
 	}

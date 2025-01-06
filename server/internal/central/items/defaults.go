@@ -13,6 +13,7 @@ const faerieDustKey = "FaerieDust"
 const bronzePickaxeKey = "BronzePickaxe"
 
 var bronzeHatchetToolProps = props.NewToolProps(1, 1, props.ShrubHarvestable, 0)
+var bronzePickaxeToolProps = props.NewToolProps(1, 1, props.OreHarvestable, 0)
 
 var Defaults = map[string]*objs.Item{
 	// DbId of 0 will be checked for to signal the actual ID needs to be looked up
@@ -21,7 +22,7 @@ var Defaults = map[string]*objs.Item{
 	goldBarsKey:      objs.NewItem("Golden bars", "Pure gold formed into perfect ingots and stamped with the royal seal. Offical currency of the realm.", 1, 64, 80, nil, 0),
 	bronzeHatchetKey: objs.NewItem("Bronze hatchet", "A rusty bronze hatchet. Looks like it's seen much better days.", 10, 128, 32, bronzeHatchetToolProps, 0),
 	faerieDustKey:    objs.NewItem("Faerie dust", "A pinch of faerie dust. It sparkles and glows with a magical light. Some say it has healing properties.", 10_000, 72, 80, nil, 0),
-	bronzePickaxeKey: objs.NewItem("Bronze pickaxe", "A dirty old pick", 10, 128, 56, nil, 0),
+	bronzePickaxeKey: objs.NewItem("Bronze pickaxe", "A dirty old pick", 10, 128, 56, bronzePickaxeToolProps, 0),
 }
 
 var Logs = Defaults[logsKey]

@@ -84,8 +84,8 @@
 - [x] Speed up level uploading?
 - [ ] Translate to Japanese
 - [x] Use StringNames for inventory script?
-- [ ] Allow customizing the player's appearance
-- [ ] Allow support for multiple items in LevelPointMap stacked on top of each other
+- [x] Allow customizing the player's appearance
+- [x] Allow support for multiple items in LevelPointMap stacked on top of each other
 - [x] Smooth camera zooming
 - [ ] Pinch to zoom on mobile
 - [ ] Rearrange DB schema so that the tool_properties table has a foreign key to the items table instead of the other way around

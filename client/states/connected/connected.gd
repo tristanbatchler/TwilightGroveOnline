@@ -56,8 +56,7 @@ func _on_login_form_submitted(username: String, password: String) -> void:
 	login_request.set_password(password)
 	WS.send(packet)
 	
-func _on_register_form_submitted(username: String, password: String, confirm_password: String) -> void:
-	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+func _on_register_form_submitted(username: String, password: String, confirm_password: String, sprite_region_x: int, sprite_region_y: int) -> void:
 	_register_form.disable_form()
 	if password != confirm_password:
 		_log.error("Passwords do not match")
@@ -68,8 +67,8 @@ func _on_register_form_submitted(username: String, password: String, confirm_pas
 	var register_request := packet.new_register_request()
 	register_request.set_username(username)
 	register_request.set_password(password)
-	register_request.set_sprite_region_x(40)
-	register_request.set_sprite_region_y(0)
+	register_request.set_sprite_region_x(sprite_region_x)
+	register_request.set_sprite_region_y(sprite_region_y)
 	WS.send(packet)
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:

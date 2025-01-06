@@ -130,7 +130,7 @@ func main() {
 	mudShop := ds.NewInventory()
 	mudShop.AddItem(*items.Logs, 100)
 	mudShop.AddItem(*items.BronzeHatchet, 10)
-	addNpcMerchant(hub, 1, 25, -1, "Mud", 112, 0, mudShop)
+	addNpcMerchant(hub, 1, 25, -1, "Mud", 96, 0, mudShop)
 
 	// Add another merchant
 	dezzickShop := ds.NewInventory()
