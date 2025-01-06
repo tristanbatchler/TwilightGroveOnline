@@ -35,8 +35,6 @@ func _ready() -> void:
 	_quantity_label.text = str(item_quantity)
 	
 	if item != null:
-		_item.texture = load("res://resources/art/colored_tilemap_packed.png")
-		_item.region_enabled = true
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
 		
 		tooltip_text = item.description + "\n%sG" % Util.pretty_int(item.value)

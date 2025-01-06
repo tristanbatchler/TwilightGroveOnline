@@ -33,25 +33,31 @@ func _on_logout_button_pressed():
 	packet.new_logout()
 	WS.send(packet)
 	GameManager.set_state(GameManager.State.CONNECTED)
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	
 func _on_join_game_button_pressed():
 	var packet := Packets.Packet.new()
 	packet.new_admin_join_game_request()
-	WS.send(packet)
-	_log.info("Requesting to join game...")
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+	if WS.send(packet) == OK:
+		_log.info("Requesting to join game...")
 	
 func _on_sql_console_closed():
 	_sql_console.hide()
 	_nav.show()
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	
 func _on_show_sql_button_pressed():
 	_sql_console.show()
 	_nav.hide()	
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	
 func _on_upload_level_button_pressed():
 	_level_browser.show()
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	
 func _on_level_browser_file_selected(path: String) -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	var packet := Packets.Packet.new()
 	var level_upload := packet.new_level_upload()
 	
@@ -158,6 +164,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 
 
 func _on_sql_run_requested(query: String) -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	var packet := Packets.Packet.new()
 	var sql_query := packet.new_sql_query()
 	sql_query.set_query(query)

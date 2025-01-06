@@ -108,8 +108,8 @@ var _single_sounds_resources: Dictionary[SingleSound, AudioStream] = {
 }
 
 var _looped_sounds_resources: Dictionary[LoopedSound, AudioStreamOggVorbis] = {
-	LoopedSound.CHOPPING: AudioStreamOggVorbis.load_from_file("res://resources/sfx/chopping.ogg"),
-	LoopedSound.MINING: AudioStreamOggVorbis.load_from_file("res://resources/sfx/mining.ogg"),
+	LoopedSound.CHOPPING: preload("res://resources/sfx/chopping.ogg"),
+	LoopedSound.MINING: preload("res://resources/sfx/mining.ogg"),
 }
 
 func get_harvestable_enum_from_int(id: int) -> Harvestable:

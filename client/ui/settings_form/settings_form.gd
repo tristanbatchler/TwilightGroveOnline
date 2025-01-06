@@ -27,6 +27,7 @@ func _on_ui_scale_option_selected(index: int) -> void:
 	var option_text := _ui_scale_option_button.get_item_text(index)
 	_ui_scale = float(option_text.trim_suffix("%")) / 100.0
 	_apply_ui_scale(_ui_scale)
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 
 func _apply_ui_scale(scale_) -> void:
 	get_window().content_scale_factor = scale_
