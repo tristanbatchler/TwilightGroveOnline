@@ -14,9 +14,9 @@ RETURNING *;
 
 -- name: CreateActor :one
 INSERT INTO actors (
-    user_id, name, level_id, x, y
+    user_id, name, level_id, x, y, sprite_region_x, sprite_region_y
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING *;
 
@@ -56,9 +56,9 @@ RETURNING *;
 
 -- name: CreateActorIfNotExists :one
 INSERT INTO actors (
-    user_id, name, x, y
+    user_id, name, x, y, sprite_region_x, sprite_region_y
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5, $6
 )
 ON CONFLICT (user_id) DO NOTHING
 RETURNING *;

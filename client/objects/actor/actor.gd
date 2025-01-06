@@ -24,6 +24,10 @@ var y: int:
 			target_pos.y = _world_tile_size.y * y
 
 var actor_name: String
+
+var sprite_region_x: int
+var sprite_region_y: int
+
 var is_player: bool
 
 var _world_tile_size := Vector2i(1, 1)
@@ -37,12 +41,16 @@ var _world_tile_size := Vector2i(1, 1)
 @onready var _chat_label: RichTextLabel = $CanvasLayer/ChatLabel
 @onready var _chat_timer: Timer = $CanvasLayer/ChatLabel/Timer
 @onready var _animation_player: AnimationPlayer = $AnimationPlayer
+@onready var _sprite: Sprite2D = $Sprite2D
 
-static func instantiate(x: int, y: int, actor_name: String, is_player: bool) -> Actor:
+
+static func instantiate(x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_player: bool) -> Actor:
 	var actor := Scene.instantiate() as Actor
 	actor.x = x
 	actor.y = y
 	actor.actor_name = actor_name
+	actor.sprite_region_x = sprite_region_x
+	actor.sprite_region_y = sprite_region_y
 	actor.is_player = is_player
 	return actor
 	
@@ -52,6 +60,7 @@ func place(world: TileMapLayer) -> void:
 	z_index = 1
 
 func _ready() -> void:
+	_sprite.region_rect = Rect2(sprite_region_x, sprite_region_y, 8, 8)
 	if not is_player:
 		_camera.queue_free()
 	position = Vector2(x * _world_tile_size.x, y * _world_tile_size.y)

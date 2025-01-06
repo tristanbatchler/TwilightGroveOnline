@@ -76,7 +76,7 @@
 - [x] Add item values to the database and use them to calculate how much gold the player gets for selling items, or whether the player can afford to buy items
 - [x] Add an NPC that buys wood
 - [x] Make trees require a bit of time to cut down, proportional to their strength, the type of axe, and the player's woodcutting level
-- [ ] Add an NPC that sells faerie dust
+- [x] Add an NPC that sells faerie dust
 - [ ] Add a quest to heal a wounded soldier with faerie dust to get a key
 - [ ] Add a locked door that requires a key to open, with a reward inside
 - [ ] Add a special status symbol for players who have completed the quest

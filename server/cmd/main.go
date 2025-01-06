@@ -119,7 +119,7 @@ func main() {
 	log.Printf("Starting server on %s", addr)
 
 	// Add an NPC to the game
-	addNpcWithDialogue(hub, 1, 18, 5, "Rickert", []string{
+	addNpcWithDialogue(hub, 1, 18, 5, "Rickert", 48, 0, []string{
 		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
 		"I'm Rickert. What's your name?",
 		"Well met! If you see any of my friends, please tell them I'm looking for them.",
@@ -130,16 +130,21 @@ func main() {
 	mudShop := ds.NewInventory()
 	mudShop.AddItem(*items.Logs, 100)
 	mudShop.AddItem(*items.BronzeHatchet, 10)
-	addNpcMerchant(hub, 1, 25, -1, "Mud", mudShop)
+	addNpcMerchant(hub, 1, 25, -1, "Mud", 112, 0, mudShop)
 
 	// Add another merchant
 	dezzickShop := ds.NewInventory()
 	dezzickShop.AddItem(*items.Rocks, 100)
 	dezzickShop.AddItem(*items.BronzePickaxe, 10)
-	addNpcMerchant(hub, 2, 2, 4, "Dezzick", dezzickShop)
+	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop)
 
 	// Add a dog
-	addNpcWithDialogue(hub, 1, 22, 10, "Gus", []string{"Woof!"})
+	addNpcWithDialogue(hub, 1, 22, 10, "Gus", 40, 8, []string{"Woof!"})
+
+	// Merchant selling faerie dust
+	oldManShop := ds.NewInventory()
+	oldManShop.AddItem(*items.FaerieDust, 100)
+	addNpcMerchant(hub, 3, -6, 1, "Old man", 72, 0, oldManShop)
 
 	// Actually start the server
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)
@@ -164,10 +169,10 @@ func addHeaders(next http.Handler) http.Handler {
 }
 
 // Add an NPC merchant to the game
-func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, shop *ds.Inventory) {
+func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, shop *ds.Inventory) {
 	dummyClient, err := conn.NewDummyClient(hub, &states.NpcMerchant{
 		LevelId: levelId,
-		Actor:   objs.NewActor(levelId, x, y, name, 0),
+		Actor:   objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
 		Shop:    shop,
 	})
 	if err != nil {
@@ -178,10 +183,10 @@ func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, shop *ds
 }
 
 // Add an NPC with lines to the game
-func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, dialogue []string) {
+func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dialogue []string) {
 	dummyClient, err := conn.NewDummyClient(hub, &states.NpcWithDialogue{
 		LevelId:  levelId,
-		Actor:    objs.NewActor(levelId, x, y, name, 0),
+		Actor:    objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
 		Dialogue: dialogue,
 	})
 	if err != nil {

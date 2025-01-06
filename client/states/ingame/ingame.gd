@@ -253,11 +253,13 @@ func _handle_actor(sender_id: int, actor: Packets.Actor) -> void:
 	var x := actor.get_x()
 	var y := actor.get_y()
 	var actor_name := actor.get_name()
+	var sprite_region_x := actor.get_sprite_region_x()
+	var sprite_region_y := actor.get_sprite_region_y()
 	
 	if sender_id in _actors:
 		_update_actor(sender_id, x, y)
 	else:
-		_add_new_actor(sender_id, x, y, actor_name)
+		_add_new_actor(sender_id, x, y, actor_name, sprite_region_x, sprite_region_y)
 	
 func _update_actor(actor_id: int, x: int, y: int) -> void:
 	var actor := _actors[actor_id]
@@ -265,8 +267,9 @@ func _update_actor(actor_id: int, x: int, y: int) -> void:
 	var dy := y - actor.y
 	actor.move(dx, dy)
 	
-func _add_new_actor(actor_id: int, x: int, y: int, actor_name) -> void:
-	var actor := Actor.instantiate(x, y, actor_name, actor_id == GameManager.client_id)
+func _add_new_actor(actor_id: int, x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int) -> void:
+	var is_player := actor_id == GameManager.client_id
+	var actor := Actor.instantiate(x, y, actor_name, sprite_region_x, sprite_region_y, is_player)
 	if _world_tilemap_layer != null:
 		_actors[actor_id] = actor
 		actor.place(_world_tilemap_layer)

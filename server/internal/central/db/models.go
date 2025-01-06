@@ -9,12 +9,14 @@ import (
 )
 
 type Actor struct {
-	ID      int32
-	UserID  int32
-	Name    string
-	LevelID pgtype.Int4
-	X       int32
-	Y       int32
+	ID            int32
+	UserID        int32
+	Name          string
+	LevelID       pgtype.Int4
+	X             int32
+	Y             int32
+	SpriteRegionX int32
+	SpriteRegionY int32
 }
 
 type ActorsInventory struct {

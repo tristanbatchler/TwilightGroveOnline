@@ -304,7 +304,7 @@ func (a *Admin) handleAdminJoinGameRequest(senderId uint32, _ *packets.Packet_Ad
 
 	a.client.SetState(&InGame{
 		levelId: actor.LevelID.Int32,
-		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.ID),
+		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.SpriteRegionX, actor.SpriteRegionY, actor.ID),
 	})
 }
 

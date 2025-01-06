@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS actors (
     name TEXT NOT NULL,
     level_id INTEGER REFERENCES levels(id),
     x INTEGER NOT NULL,
-    y INTEGER NOT NULL
+    y INTEGER NOT NULL,
+    sprite_region_x INTEGER NOT NULL,
+    sprite_region_y INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS levels_tscn_data (

@@ -129,7 +129,7 @@ func (c *Connected) handleLoginRequest(_ uint32, message *packets.Packet_LoginRe
 
 	c.client.SetState(&InGame{
 		levelId: actor.LevelID.Int32,
-		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.ID),
+		player:  objs.NewActor(actor.LevelID.Int32, actor.X, actor.Y, actor.Name, actor.SpriteRegionX, actor.SpriteRegionY, actor.ID),
 	})
 }
 
@@ -183,11 +183,13 @@ func (c *Connected) handleRegisterRequest(_ uint32, message *packets.Packet_Regi
 		return
 	}
 	_, err = c.queries.CreateActor(ctx, db.CreateActorParams{
-		LevelID: pgtype.Int4{Int32: level.ID, Valid: true},
-		X:       -1,
-		Y:       -1,
-		Name:    message.RegisterRequest.Username,
-		UserID:  user.ID,
+		LevelID:       pgtype.Int4{Int32: level.ID, Valid: true},
+		X:             -1,
+		Y:             -1,
+		Name:          message.RegisterRequest.Username,
+		SpriteRegionX: message.RegisterRequest.SpriteRegionX,
+		SpriteRegionY: message.RegisterRequest.SpriteRegionY,
+		UserID:        user.ID,
 	})
 
 	if err != nil {

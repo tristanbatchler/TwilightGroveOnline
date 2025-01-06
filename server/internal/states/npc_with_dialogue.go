@@ -35,6 +35,11 @@ func (n *NpcWithDialogue) SetClient(client central.ClientInterfacer) {
 }
 
 func (n *NpcWithDialogue) OnEnter() {
+	if n.Actor == nil {
+		n.logger.Println("NPC is entering, but it doesn't have an actor. Setting default values")
+		n.Actor = objs.NewActor(n.LevelId, 0, 0, "DefaultWithDialogue", 0, 0, 0)
+	}
+
 	n.Actor.IsNpc = true
 
 	n.client.SharedGameObjects().Actors.Add(n.Actor, n.client.Id())

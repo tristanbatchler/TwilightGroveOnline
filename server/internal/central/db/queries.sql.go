@@ -54,19 +54,21 @@ func (q *Queries) AddActorXp(ctx context.Context, arg AddActorXpParams) error {
 
 const createActor = `-- name: CreateActor :one
 INSERT INTO actors (
-    user_id, name, level_id, x, y
+    user_id, name, level_id, x, y, sprite_region_x, sprite_region_y
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, user_id, name, level_id, x, y
+RETURNING id, user_id, name, level_id, x, y, sprite_region_x, sprite_region_y
 `
 
 type CreateActorParams struct {
-	UserID  int32
-	Name    string
-	LevelID pgtype.Int4
-	X       int32
-	Y       int32
+	UserID        int32
+	Name          string
+	LevelID       pgtype.Int4
+	X             int32
+	Y             int32
+	SpriteRegionX int32
+	SpriteRegionY int32
 }
 
 func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor, error) {
@@ -76,6 +78,8 @@ func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor
 		arg.LevelID,
 		arg.X,
 		arg.Y,
+		arg.SpriteRegionX,
+		arg.SpriteRegionY,
 	)
 	var i Actor
 	err := row.Scan(
@@ -85,25 +89,29 @@ func (q *Queries) CreateActor(ctx context.Context, arg CreateActorParams) (Actor
 		&i.LevelID,
 		&i.X,
 		&i.Y,
+		&i.SpriteRegionX,
+		&i.SpriteRegionY,
 	)
 	return i, err
 }
 
 const createActorIfNotExists = `-- name: CreateActorIfNotExists :one
 INSERT INTO actors (
-    user_id, name, x, y
+    user_id, name, x, y, sprite_region_x, sprite_region_y
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5, $6
 )
 ON CONFLICT (user_id) DO NOTHING
-RETURNING id, user_id, name, level_id, x, y
+RETURNING id, user_id, name, level_id, x, y, sprite_region_x, sprite_region_y
 `
 
 type CreateActorIfNotExistsParams struct {
-	UserID int32
-	Name   string
-	X      int32
-	Y      int32
+	UserID        int32
+	Name          string
+	X             int32
+	Y             int32
+	SpriteRegionX int32
+	SpriteRegionY int32
 }
 
 func (q *Queries) CreateActorIfNotExists(ctx context.Context, arg CreateActorIfNotExistsParams) (Actor, error) {
@@ -112,6 +120,8 @@ func (q *Queries) CreateActorIfNotExists(ctx context.Context, arg CreateActorIfN
 		arg.Name,
 		arg.X,
 		arg.Y,
+		arg.SpriteRegionX,
+		arg.SpriteRegionY,
 	)
 	var i Actor
 	err := row.Scan(
@@ -121,6 +131,8 @@ func (q *Queries) CreateActorIfNotExists(ctx context.Context, arg CreateActorIfN
 		&i.LevelID,
 		&i.X,
 		&i.Y,
+		&i.SpriteRegionX,
+		&i.SpriteRegionY,
 	)
 	return i, err
 }
@@ -589,7 +601,7 @@ func (q *Queries) DeleteLevelTscnDataByLevelId(ctx context.Context, levelID int3
 }
 
 const getActorByUserId = `-- name: GetActorByUserId :one
-SELECT id, user_id, name, level_id, x, y FROM actors
+SELECT id, user_id, name, level_id, x, y, sprite_region_x, sprite_region_y FROM actors
 WHERE user_id = $1
 ORDER BY id DESC
 LIMIT 1
@@ -605,6 +617,8 @@ func (q *Queries) GetActorByUserId(ctx context.Context, userID int32) (Actor, er
 		&i.LevelID,
 		&i.X,
 		&i.Y,
+		&i.SpriteRegionX,
+		&i.SpriteRegionY,
 	)
 	return i, err
 }

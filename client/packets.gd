@@ -872,6 +872,16 @@ class RegisterRequest:
 		service.field = _password
 		data[_password.tag] = service
 		
+		_sprite_region_x = PBField.new("sprite_region_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_x
+		data[_sprite_region_x.tag] = service
+		
+		_sprite_region_y = PBField.new("sprite_region_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_y
+		data[_sprite_region_y.tag] = service
+		
 	var data = {}
 	
 	var _username: PBField
@@ -891,6 +901,24 @@ class RegisterRequest:
 		_password.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_password(value : String) -> void:
 		_password.value = value
+	
+	var _sprite_region_x: PBField
+	func get_sprite_region_x() -> int:
+		return _sprite_region_x.value
+	func clear_sprite_region_x() -> void:
+		data[3].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_x(value : int) -> void:
+		_sprite_region_x.value = value
+	
+	var _sprite_region_y: PBField
+	func get_sprite_region_y() -> int:
+		return _sprite_region_y.value
+	func clear_sprite_region_y() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_y(value : int) -> void:
+		_sprite_region_y.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -1103,6 +1131,16 @@ class Actor:
 		service.field = _name
 		data[_name.tag] = service
 		
+		_sprite_region_x = PBField.new("sprite_region_x", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 6, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_x
+		data[_sprite_region_x.tag] = service
+		
+		_sprite_region_y = PBField.new("sprite_region_y", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _sprite_region_y
+		data[_sprite_region_y.tag] = service
+		
 	var data = {}
 	
 	var _id: PBField
@@ -1140,6 +1178,24 @@ class Actor:
 		_name.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_name(value : String) -> void:
 		_name.value = value
+	
+	var _sprite_region_x: PBField
+	func get_sprite_region_x() -> int:
+		return _sprite_region_x.value
+	func clear_sprite_region_x() -> void:
+		data[6].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_x.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_x(value : int) -> void:
+		_sprite_region_x.value = value
+	
+	var _sprite_region_y: PBField
+	func get_sprite_region_y() -> int:
+		return _sprite_region_y.value
+	func clear_sprite_region_y() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_sprite_region_y(value : int) -> void:
+		_sprite_region_y.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

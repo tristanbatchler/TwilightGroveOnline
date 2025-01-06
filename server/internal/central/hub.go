@@ -465,10 +465,12 @@ func (h *Hub) addAdmin(defaultPassword string) {
 
 	// Give the admin a default actor so they can play the game as well
 	_, err = h.NewDbTx().Queries.CreateActorIfNotExists(ctx, db.CreateActorIfNotExistsParams{
-		UserID: user.ID,
-		Name:   adminUsername,
-		X:      0,
-		Y:      0,
+		UserID:        user.ID,
+		Name:          adminUsername,
+		SpriteRegionX: 64,
+		SpriteRegionY: 8,
+		X:             0,
+		Y:             0,
 	})
 	if err == nil {
 		log.Printf("Admin actor created")

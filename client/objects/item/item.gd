@@ -22,6 +22,4 @@ static func instantiate(item_name: String, description: String, value: int, spri
 	return item
 	
 func _ready() -> void:
-	texture = load("res://resources/art/colored_tilemap_packed.png")
-	region_enabled = true
 	region_rect = Rect2(sprite_region_x, sprite_region_y, 8, 8)

@@ -6,20 +6,23 @@ import (
 )
 
 type Actor struct {
-	LevelId  int32
-	X, Y     int32
-	Name     string
-	SkillsXp map[skills.Skill]uint32
-	DbId     int32
-	IsNpc    bool
+	LevelId                      int32
+	X, Y                         int32
+	Name                         string
+	SpriteRegionX, SpriteRegionY int32
+	SkillsXp                     map[skills.Skill]uint32
+	DbId                         int32
+	IsNpc                        bool
 }
 
-func NewActor(levelId int32, x, y int32, name string, dbId int32) *Actor {
+func NewActor(levelId int32, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dbId int32) *Actor {
 	return &Actor{
-		LevelId: levelId,
-		X:       x,
-		Y:       y,
-		Name:    name,
+		LevelId:       levelId,
+		X:             x,
+		Y:             y,
+		Name:          name,
+		SpriteRegionX: spriteRegionX,
+		SpriteRegionY: spriteRegionY,
 		SkillsXp: map[skills.Skill]uint32{
 			skills.Woodcutting: 0,
 			skills.Mining:      0,

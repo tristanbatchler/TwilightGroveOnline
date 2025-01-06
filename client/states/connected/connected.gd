@@ -68,6 +68,8 @@ func _on_register_form_submitted(username: String, password: String, confirm_pas
 	var register_request := packet.new_register_request()
 	register_request.set_username(username)
 	register_request.set_password(password)
+	register_request.set_sprite_region_x(40)
+	register_request.set_sprite_region_y(0)
 	WS.send(packet)
 
 func _on_ws_packet_received(packet: Packets.Packet) -> void:

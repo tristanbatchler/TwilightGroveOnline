@@ -60,9 +60,11 @@ func NewAdminJoinGameResponse(success bool, err error) Msg {
 func NewActor(actor *objs.Actor) Msg {
 	return &Packet_Actor{
 		Actor: &Actor{
-			X:    actor.X,
-			Y:    actor.Y,
-			Name: actor.Name,
+			X:             actor.X,
+			Y:             actor.Y,
+			Name:          actor.Name,
+			SpriteRegionX: actor.SpriteRegionX,
+			SpriteRegionY: actor.SpriteRegionY,
 		},
 	}
 }

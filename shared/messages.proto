@@ -25,6 +25,8 @@ message LoginResponse {
 message RegisterRequest {
     string username = 1;
     string password = 2;
+    int32 sprite_region_x = 3;
+    int32 sprite_region_y = 4;
 }
 
 message RegisterResponse {
@@ -47,6 +49,8 @@ message Actor {
     int32 x = 3;
     int32 y = 4;
     string name = 5;
+    int32 sprite_region_x = 6;
+    int32 sprite_region_y = 7;
 }
 
 message ActorMove {
