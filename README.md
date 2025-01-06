@@ -3,7 +3,7 @@
 
 ## Setup
 1. Install Go and ensure `~/go/bin` is in your PATH.
-1. [Download Godot Engine 4.4 dev 3](https://godotengine.org/download/archive/4.4-dev3) and copy the console binary to the `/server/` directory of this project, renaming it to `godot`.
+1. [Download Godot Engine 4.4 dev 3](https://godotengine.org/download/archive/4.4-dev3) and copy the console binary to the `/client/` directory of this project, renaming it to `godot`.
 1. [Download protoc](https://github.com/protocolbuffers/protobuf/releases/latest) and copy the binary to `~/go/bin`.
 1. Run `go install google.golang.org/protobuf/cmd/protoc-gen-go@latest` to install the Go protobuf plugin.
 1. Run `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest` to install `sqlc`.
