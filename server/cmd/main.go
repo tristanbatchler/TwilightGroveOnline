@@ -10,8 +10,11 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/conn"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
 
 var (
@@ -116,21 +119,29 @@ func main() {
 	log.Printf("Starting server on %s", addr)
 
 	// Add an NPC to the game
-	dummyClient, err := conn.NewDummyClient(hub, &states.NpcRickert{})
-	if err != nil {
-		log.Fatalf("Error creating dummy client: %v", err)
-	}
-	hub.RegisterChan <- dummyClient
-	log.Printf("Added Rickert to the game")
+	addNpcWithDialogue(hub, 1, 18, 5, "Rickert", []string{
+		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
+		"I'm Rickert. What's your name?",
+		"Well met! If you see any of my friends, please tell them I'm looking for them.",
+	})
 
-	// Add another NPC to the game
-	dummyClient2, err := conn.NewDummyClient(hub, &states.NpcMud{})
-	if err != nil {
-		log.Fatalf("Error creating dummy client: %v", err)
-	}
-	hub.RegisterChan <- dummyClient2
-	log.Printf("Added Mud to the game")
+	// Add an NPC merchant to the game
+	// Don't really need to store the shop inventory in the DB. If the server is restarted, stocks will replenish, that's OK
+	mudShop := ds.NewInventory()
+	mudShop.AddItem(*items.Logs, 100)
+	mudShop.AddItem(*items.BronzeHatchet, 10)
+	addNpcMerchant(hub, 1, 25, -1, "Mud", mudShop)
 
+	// Add another merchant
+	dezzickShop := ds.NewInventory()
+	dezzickShop.AddItem(*items.Rocks, 100)
+	dezzickShop.AddItem(*items.BronzePickaxe, 10)
+	addNpcMerchant(hub, 2, 2, 4, "Dezzick", dezzickShop)
+
+	// Add a dog
+	addNpcWithDialogue(hub, 1, 22, 10, "Gus", []string{"Woof!"})
+
+	// Actually start the server
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)
 	err = http.ListenAndServeTLS(addr, cfg.CertPath, cfg.KeyPath, nil)
 
@@ -150,4 +161,32 @@ func addHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 		next.ServeHTTP(w, r)
 	})
+}
+
+// Add an NPC merchant to the game
+func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, shop *ds.Inventory) {
+	dummyClient, err := conn.NewDummyClient(hub, &states.NpcMerchant{
+		LevelId: levelId,
+		Actor:   objs.NewActor(levelId, x, y, name, 0),
+		Shop:    shop,
+	})
+	if err != nil {
+		log.Fatalf("Error creating dummy client: %v", err)
+	}
+	hub.RegisterChan <- dummyClient
+	log.Printf("Added %s to the game", name)
+}
+
+// Add an NPC with lines to the game
+func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, dialogue []string) {
+	dummyClient, err := conn.NewDummyClient(hub, &states.NpcWithDialogue{
+		LevelId:  levelId,
+		Actor:    objs.NewActor(levelId, x, y, name, 0),
+		Dialogue: dialogue,
+	})
+	if err != nil {
+		log.Fatalf("Error creating dummy client: %v", err)
+	}
+	hub.RegisterChan <- dummyClient
+	log.Printf("Added %s to the game", name)
 }

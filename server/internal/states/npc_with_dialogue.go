@@ -14,36 +14,35 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
-type NpcRickert struct {
+type NpcWithDialogue struct {
 	client         central.ClientInterfacer
-	actor          *objs.Actor
-	levelId        int32
+	Actor          *objs.Actor
+	LevelId        int32
+	Dialogue       []string
 	othersInLevel  []uint32
 	logger         *log.Logger
 	cancelMoveLoop context.CancelFunc
 }
 
-func (n *NpcRickert) Name() string {
-	return "NpcRickert"
+func (n *NpcWithDialogue) Name() string {
+	return fmt.Sprintf("NpcWithDialogue[%s]", n.Actor.Name)
 }
 
-func (n *NpcRickert) SetClient(client central.ClientInterfacer) {
+func (n *NpcWithDialogue) SetClient(client central.ClientInterfacer) {
 	n.client = client
 	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), n.Name())
 	n.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
 }
 
-func (n *NpcRickert) OnEnter() {
-	n.levelId = 1
-	n.actor = objs.NewActor(n.levelId, 18, 5, "Rickert", 0)
-	n.actor.IsNpc = true
+func (n *NpcWithDialogue) OnEnter() {
+	n.Actor.IsNpc = true
 
-	n.client.SharedGameObjects().Actors.Add(n.actor, n.client.Id())
+	n.client.SharedGameObjects().Actors.Add(n.Actor, n.client.Id())
 
 	// Collect info about all the other actors in the level
-	ourActorInfo := packets.NewActor(n.actor)
+	ourActorInfo := packets.NewActor(n.Actor)
 	n.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
-		if actor.LevelId == n.levelId && !actor.IsNpc {
+		if actor.LevelId == n.LevelId && !actor.IsNpc {
 			n.othersInLevel = append(n.othersInLevel, owner_client_id)
 		}
 	})
@@ -52,7 +51,7 @@ func (n *NpcRickert) OnEnter() {
 	n.client.Broadcast(ourActorInfo, n.othersInLevel)
 }
 
-func (n *NpcRickert) HandleMessage(senderId uint32, message packets.Msg) {
+func (n *NpcWithDialogue) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
 	case *packets.Packet_Chat:
 		n.handleChat(senderId, message)
@@ -67,7 +66,7 @@ func (n *NpcRickert) HandleMessage(senderId uint32, message packets.Msg) {
 	}
 }
 
-func (n *NpcRickert) handleChat(senderId uint32, message *packets.Packet_Chat) {
+func (n *NpcWithDialogue) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	if !strings.Contains(strings.ToLower(message.Chat.Msg), "rickert") {
 		return
 	}
@@ -82,7 +81,7 @@ func (n *NpcRickert) handleChat(senderId uint32, message *packets.Packet_Chat) {
 	}
 }
 
-func (n *NpcRickert) OnExit() {
+func (n *NpcWithDialogue) OnExit() {
 	n.logger.Println("NPC is exiting")
 	n.client.Broadcast(packets.NewLogout(), n.othersInLevel)
 	n.client.SharedGameObjects().Actors.Remove(n.client.Id())
@@ -91,7 +90,7 @@ func (n *NpcRickert) OnExit() {
 	}
 }
 
-func (n *NpcRickert) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
+func (n *NpcWithDialogue) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 	if senderId == n.client.Id() {
 		n.logger.Printf("Received a actor info message from ourselves, ignoring")
 		return
@@ -99,7 +98,7 @@ func (n *NpcRickert) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 
 	if !n.isOtherKnown(senderId) {
 		n.othersInLevel = append(n.othersInLevel, senderId)
-		n.client.PassToPeer(packets.NewActor(n.actor), senderId)
+		n.client.PassToPeer(packets.NewActor(n.Actor), senderId)
 	}
 
 	// Start the move loop if it hasn't been started yet
@@ -110,7 +109,7 @@ func (n *NpcRickert) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) {
 	}
 }
 
-func (n *NpcRickert) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
+func (n *NpcWithDialogue) handleInteractWithNpcRequest(senderId uint32, message *packets.Packet_InteractWithNpcRequest) {
 	if senderId == n.client.Id() {
 		n.logger.Printf("Received an interact with NPC request from itself, ignoring, and I should never see this message")
 		return
@@ -128,21 +127,21 @@ func (n *NpcRickert) handleInteractWithNpcRequest(senderId uint32, message *pack
 		return
 	}
 
-	senderActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
-	if !exists {
-		n.logger.Printf("Client %d is not in the actors map", senderId)
-		return
-	}
+	// senderActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
+	// if !exists {
+	// 	n.logger.Printf("Client %d is not in the actors map", senderId)
+	// 	return
+	// }
 
-	dialogue := []string{
-		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
-		"I'm Rickert. What's your name?",
-		fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
-	}
-	n.client.PassToPeer(packets.NewNpcDialogue(dialogue), senderId)
+	// dialogue := []string{
+	// 	"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
+	// 	"I'm Rickert. What's your name?",
+	// 	fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
+	// }
+	n.client.PassToPeer(packets.NewNpcDialogue(n.Dialogue), senderId)
 }
 
-func (n *NpcRickert) removeFromOtherInLevel(clientId uint32) {
+func (n *NpcWithDialogue) removeFromOtherInLevel(clientId uint32) {
 	for i, id := range n.othersInLevel {
 		if id == clientId {
 			n.othersInLevel = append(n.othersInLevel[:i], n.othersInLevel[i+1:]...)
@@ -151,7 +150,7 @@ func (n *NpcRickert) removeFromOtherInLevel(clientId uint32) {
 	}
 }
 
-func (n *NpcRickert) isOtherKnown(otherId uint32) bool {
+func (n *NpcWithDialogue) isOtherKnown(otherId uint32) bool {
 	for _, id := range n.othersInLevel {
 		if id == otherId {
 			return true
@@ -160,7 +159,7 @@ func (n *NpcRickert) isOtherKnown(otherId uint32) bool {
 	return false
 }
 
-func (n *NpcRickert) moveLoop(ctx context.Context) {
+func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -191,21 +190,21 @@ func (n *NpcRickert) moveLoop(ctx context.Context) {
 	}
 }
 
-func (n *NpcRickert) move(dx, dy int32) {
-	targetX := n.actor.X + dx
-	targetY := n.actor.Y + dy
+func (n *NpcWithDialogue) move(dx, dy int32) {
+	targetX := n.Actor.X + dx
+	targetY := n.Actor.Y + dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
-	if n.client.LevelPointMaps().Collisions.Contains(n.levelId, collisionPoint) {
+	if n.client.LevelPointMaps().Collisions.Contains(n.LevelId, collisionPoint) {
 		n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
 		return
 	}
 
-	n.actor.X = targetX
-	n.actor.Y = targetY
+	n.Actor.X = targetX
+	n.Actor.Y = targetY
 
-	n.logger.Printf("Actor moved to (%d, %d)", n.actor.X, n.actor.Y)
+	n.logger.Printf("Actor moved to (%d, %d)", n.Actor.X, n.Actor.Y)
 
-	n.client.Broadcast(packets.NewActor(n.actor), n.othersInLevel)
+	n.client.Broadcast(packets.NewActor(n.Actor), n.othersInLevel)
 }

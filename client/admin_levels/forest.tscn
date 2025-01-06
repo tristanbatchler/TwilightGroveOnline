@@ -346,7 +346,7 @@ metadata/_edit_group_ = true
 region_rect = Rect2(128, 56, 8, 8)
 item_name = "Bronze pickaxe"
 description = "A dirty old pick"
-value = 5
+value = 10
 tool_properties = SubResource("Resource_81vyb")
 
 [node name="GroundItem7" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
