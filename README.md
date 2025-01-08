@@ -96,5 +96,5 @@
 - [ ] Sort inventory items by name alphabetically
 - [ ] Rate limit client actions
 - [ ] Figure out how to long tap to hover over an item on mobile to get the tooltips
-- [ ] Add a placeholder sprite over top of depleted resources to show they can't be walked on
+- [x] Add a placeholder sprite over top of depleted resources to show they can't be walked on
 - [ ] Make player drops despawn after a while

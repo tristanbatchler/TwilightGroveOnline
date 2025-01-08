@@ -435,13 +435,21 @@ func _remove_actor(actor_id: int) -> void:
 		
 func _remove_shrub(shrub_id: int) -> void:
 	if shrub_id in _shrubs:
-		_shrubs[shrub_id].queue_free()
+		var shrub := _shrubs[shrub_id]
+
+		_world_tilemap_layer.remove_child(shrub)
+		_world_tilemap_layer.set_cell(Vector2i(shrub.x, shrub.y), 0, Vector2i(12, 11), 0)
 		_shrubs.erase(shrub_id)
+		shrub.queue_free()
 		
 func _remove_ore(ore_id: int) -> void:
 	if ore_id in _ores:
-		_ores[ore_id].queue_free()
+		var ore := _ores[ore_id]
+		
+		_world_tilemap_layer.remove_child(ore)
+		_world_tilemap_layer.set_cell(Vector2i(ore.x, ore.y), 0, Vector2i(13, 11), 0)
 		_ores.erase(ore_id)
+		ore.queue_free()
 	
 func _handle_logout(sender_id: int) -> void:
 	if sender_id in _actors:

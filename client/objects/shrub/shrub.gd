@@ -38,6 +38,7 @@ static func instantiate(shrub_id: int, x: int, y: int, strength: int) -> Shrub:
 func place(world: TileMapLayer) -> void:
 	_world_tile_size = world.tile_set.tile_size
 	world.add_child(self)
+	
 
 func _ready() -> void:
 	_initial_sprite_region_x = _sprite.region_rect.position.x
