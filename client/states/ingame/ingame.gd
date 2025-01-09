@@ -692,7 +692,8 @@ func _process(delta: float) -> void:
 			if ore == null:
 				var actor := player.get_actor_standing_on()
 				if actor == null:
-					_ground_hint_label.text = ""
+					# TODO: Remove debug
+					_ground_hint_label.text = "(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y] #""
 				else:
 					_ground_hint_label.text = actor.actor_name
 			else:

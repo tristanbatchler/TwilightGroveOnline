@@ -95,13 +95,14 @@ func _process(delta: float) -> void:
 		_camera.zoom.y = _camera.zoom.x
 		
 func at_target() -> bool:
-	return position.distance_squared_to(target_pos) <= 0.1
+	var dist_sq_to_target := position.distance_squared_to(target_pos)
+	return dist_sq_to_target <= 0.1
 		
 func _physics_process(delta: float) -> void:
 	velocity = (target_pos - position) * 15
 	move_and_slide()
 	var speed_sq := velocity.length_squared()
-	if 0 > speed_sq and speed_sq < 0.1:
+	if (0 > speed_sq and speed_sq < 0.1):
 		velocity = Vector2.ZERO
 		position = target_pos
 

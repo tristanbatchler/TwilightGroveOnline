@@ -98,3 +98,4 @@
 - [ ] Figure out how to long tap to hover over an item on mobile to get the tooltips
 - [x] Add a placeholder sprite over top of depleted resources to show they can't be walked on
 - [ ] Make player drops despawn after a while
+- [ ] Add collision points to areas beyond doorways to stop players from getting stuck inside a room

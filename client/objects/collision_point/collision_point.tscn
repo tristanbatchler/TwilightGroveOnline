@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://dt8dl204jvwpc"]
+
+[node name="CollisionPoint" type="Area2D"]
