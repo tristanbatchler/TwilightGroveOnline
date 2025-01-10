@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand/v2"
 	"strconv"
 	"strings"
 	"time"
@@ -50,8 +49,8 @@ func (g *InGame) OnEnter() {
 	// Initialize the player object
 	g.player.LevelId = g.levelId
 	if g.player.X == -1 && g.player.Y == -1 {
-		g.player.X = -rand.Int32N(7)
-		g.player.Y = rand.Int32N(5)
+		g.player.X = 19
+		g.player.Y = 12
 	}
 
 	g.logger.Println("Sending level data to client")

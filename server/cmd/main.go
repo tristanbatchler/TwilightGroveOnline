@@ -119,10 +119,11 @@ func main() {
 	log.Printf("Starting server on %s", addr)
 
 	// Add an NPC to the game
-	addNpcWithDialogue(hub, 1, 18, 5, "Rickert", 48, 0, []string{
-		"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
-		"I'm Rickert. What's your name?",
-		"Well met! If you see any of my friends, please tell them I'm looking for them.",
+	addNpcWithDialogue(hub, 1, 21, 6, "Rickert", 48, 0, []string{
+		"Wuh? Oh, hello there. I'm Rickert, I'm... Well, I'm waiting for something.",
+		"Actually, do you have a moment? I could use your help. The soldier upstairs is in pretty bad shape and I already used the last of my medicine to help an old friend.",
+		"If you happen to come across something that could help, I'd be very grateful. I don't have much to offer except for this key I found. It's a bit rusty, but you look like an adventurer who could use it.",
+		"Oh, and if you see my friends... tell them I've been looking for them.",
 	})
 
 	// Add an NPC merchant to the game
@@ -130,7 +131,7 @@ func main() {
 	mudShop := ds.NewInventory()
 	mudShop.AddItem(*items.Logs, 100)
 	mudShop.AddItem(*items.BronzeHatchet, 10)
-	addNpcMerchant(hub, 1, 25, -1, "Mud", 96, 0, mudShop)
+	addNpcMerchant(hub, 1, 3, 13, "Mud", 96, 0, mudShop)
 
 	// Add another merchant
 	dezzickShop := ds.NewInventory()
@@ -139,12 +140,17 @@ func main() {
 	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop)
 
 	// Add a dog
-	addNpcWithDialogue(hub, 1, 22, 10, "Gus", 40, 8, []string{"Woof!"})
+	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, []string{"Woof!"})
+
+	// Wounded soldier
+	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 72, 0, []string{
+		"It's looking grim for me, friend. I was ambushed by bandits and left for dead.",
+	})
 
 	// Merchant selling faerie dust
 	oldManShop := ds.NewInventory()
 	oldManShop.AddItem(*items.FaerieDust, 100)
-	addNpcMerchant(hub, 3, -6, 1, "Old man", 72, 0, oldManShop)
+	addNpcMerchant(hub, 1, 34, 10, "Old man", 72, 0, oldManShop)
 
 	// Actually start the server
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)

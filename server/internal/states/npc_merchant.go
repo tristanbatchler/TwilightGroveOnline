@@ -20,6 +20,8 @@ type NpcMerchant struct {
 	Shop           *ds.Inventory
 	LevelId        int32
 	othersInLevel  []uint32
+	initialX       int32
+	initialY       int32
 	logger         *log.Logger
 	cancelMoveLoop context.CancelFunc
 }
@@ -49,6 +51,9 @@ func (n *NpcMerchant) OnEnter() {
 		n.logger.Println("NPC is entering, but it doesn't have a shop. Creating a new one")
 		n.Shop = ds.NewInventory()
 	}
+
+	n.initialX = n.Actor.X
+	n.initialY = n.Actor.Y
 
 	n.Actor.IsNpc = true
 
@@ -246,11 +251,19 @@ func (n *NpcMerchant) isOtherKnown(otherId uint32) bool {
 }
 
 func (n *NpcMerchant) moveLoop(ctx context.Context) {
+	sleepTime := 2 * time.Second
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(2 * time.Second):
+		case <-time.After(sleepTime):
+			if rand.IntN(5) == 0 {
+				sleepTime = 0 // 20% chance to keep moving
+			} else if rand.IntN(5) == 1 {
+				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
+			} else {
+				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
+			}
 			dx := rand.Int32N(3) - 1
 			dy := rand.Int32N(3) - 1
 			if dx != 0 && dy != 0 {
@@ -261,13 +274,23 @@ func (n *NpcMerchant) moveLoop(ctx context.Context) {
 					dy = 0
 				}
 			}
+
+			// Don't move if it's going to cause them to stray too far from their initial position
+			if n.Actor.X+dx < n.initialX-10 || n.Actor.X+dx > n.initialX+10 {
+				dx = 0
+			}
+			if n.Actor.Y+dy < n.initialY-10 || n.Actor.Y+dy > n.initialY+10 {
+				dy = 0
+			}
+
 			if dx == 0 && dy == 0 {
 				continue
 			}
+
 			n.move(dx, dy)
 
 			// Check if we are all alone. If so, we can stop the move loop (it will start again if someone joins the level)
-			if len(n.othersInLevel) <= 1 {
+			if len(n.othersInLevel) <= 0 {
 				n.cancelMoveLoop()
 				n.cancelMoveLoop = nil
 				return

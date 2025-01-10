@@ -223,7 +223,7 @@ destination_level_res_path = "res://admin_levels/room.tscn"
 destination_pos = Vector2i(0, -1)
 
 [node name="GroundItem" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
-position = Vector2(-24, 80)
+position = Vector2(-32, 80)
 item = NodePath("Item")
 metadata/_edit_group_ = true
 
@@ -250,7 +250,7 @@ item = NodePath("Item")
 metadata/_edit_group_ = true
 
 [node name="Item" parent="GroundItem3" instance=ExtResource("6_df7dt")]
-region_rect = Rect2(56, 64, 8, 8)
+region_rect = Rect2(80, 80, 8, 8)
 item_name = "Half-finished beer"
 description = "Some say there was a tavern here long ago. But now this is the only artefact that remains."
 value = 100
