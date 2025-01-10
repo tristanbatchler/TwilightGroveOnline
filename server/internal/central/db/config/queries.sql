@@ -194,8 +194,9 @@ ON CONFLICT (strength, level_required, harvests) DO NOTHING
 RETURNING *;
 
 -- name: GetToolProperties :one
-SELECT * FROM tool_properties
-WHERE strength = $1 AND level_required = $2 AND harvests = $3 AND key_id = $4
+SELECT * FROM tool_properties 
+WHERE strength = $1 AND level_required = $2 AND harvests = $3
+AND (key_id = $4 OR (key_id IS NULL AND $4 IS NULL)) -- key_id is nullable
 LIMIT 1;
 
 -- name: GetToolPropertiesById :one

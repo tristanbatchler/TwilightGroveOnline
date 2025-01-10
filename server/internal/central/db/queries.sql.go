@@ -1103,8 +1103,9 @@ func (q *Queries) GetLevels(ctx context.Context) ([]Level, error) {
 }
 
 const getToolProperties = `-- name: GetToolProperties :one
-SELECT id, strength, level_required, harvests, key_id FROM tool_properties
-WHERE strength = $1 AND level_required = $2 AND harvests = $3 AND key_id = $4
+SELECT id, strength, level_required, harvests, key_id FROM tool_properties 
+WHERE strength = $1 AND level_required = $2 AND harvests = $3
+AND (key_id = $4 OR (key_id IS NULL AND $4 IS NULL)) -- key_id is nullable
 LIMIT 1
 `
 
