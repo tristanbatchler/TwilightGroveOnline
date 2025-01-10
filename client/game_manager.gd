@@ -24,6 +24,7 @@ enum ConfigKey {
 	SAVED_USERNAME,
 	SAVED_PASSWORD,
 	UI_SCALE,
+	SFX_VOLUME,
 }
 
 var _config_key_names: Dictionary[ConfigKey, String] = {
@@ -31,6 +32,7 @@ var _config_key_names: Dictionary[ConfigKey, String] = {
 	ConfigKey.SAVED_USERNAME: "SAVED_USERNAME",
 	ConfigKey.SAVED_PASSWORD: "SAVED_PASSWORD",
 	ConfigKey.UI_SCALE: "UI_SCALE",
+	ConfigKey.SFX_VOLUME: "SFX_VOLUME",
 }
 
 enum Harvestable {
@@ -131,10 +133,14 @@ var _config_path := "user://user.cfg"
 var _config: ConfigFile
 
 func _ready() -> void:
-	_audio_stream_player = AudioStreamPlayer.new()
-	add_child(_audio_stream_player)
 	_config = ConfigFile.new()
 	_config.load(_config_path)
+	_audio_stream_player = AudioStreamPlayer.new()
+	set_sound_volume(get_config(ConfigKey.SFX_VOLUME, 100.0) / 100.0)
+	add_child(_audio_stream_player)
+
+func set_sound_volume(volume: float) -> void:
+	_audio_stream_player.volume_db = linear_to_db(volume)
 
 func set_state(state: State) -> void:
 	if _current_scene_root != null:
