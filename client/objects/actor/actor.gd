@@ -100,28 +100,33 @@ func at_target() -> bool:
 		
 func _physics_process(delta: float) -> void:
 	velocity = (target_pos - position) * 15
-	move_and_slide()
+	move_and_slide()	
 	var speed_sq := velocity.length_squared()
 	if (0 > speed_sq and speed_sq < 0.1):
 		velocity = Vector2.ZERO
 		position = target_pos
 
-func move(dx: int, dy: int) -> void:
+func move(dx: int, dy: int) -> KinematicCollision2D:
+	var hit := move_and_collide(Vector2(dx, dy) * _world_tile_size.x, true)
+	if hit != null:
+		return hit
+	
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
 	y += dy
+	return null
 	
 func move_and_send(input_dir: Vector2i) -> void:
 	if input_dir == Vector2i.ZERO:
 		return
 	var dx := input_dir.x
 	var dy := input_dir.y
-	move(dx, dy)
-	var packet := Packets.Packet.new()
-	var player_move := packet.new_actor_move()
-	player_move.set_dx(dx)
-	player_move.set_dy(dy)
-	WS.send(packet)
+	if move(dx, dy) == null:
+		var packet := Packets.Packet.new()
+		var player_move := packet.new_actor_move()
+		player_move.set_dx(dx)
+		player_move.set_dy(dy)
+		WS.send(packet)
 
 func get_ground_item_standing_on() -> GroundItem:
 	for area in _area.get_overlapping_areas():
