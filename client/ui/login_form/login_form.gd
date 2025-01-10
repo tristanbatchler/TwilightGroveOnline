@@ -19,12 +19,6 @@ func _ready() -> void:
 	else:
 		_username_field.text = saved_username
 		
-	var saved_password = GameManager.get_config(GameManager.ConfigKey.SAVED_PASSWORD, false)
-	if saved_password == null or not saved_password is String:
-		printerr("Saved password from config is not expected: %s" % saved_password)
-	else:
-		_password_field.text = saved_password
-		
 	var remember_me_checked = GameManager.get_config(GameManager.ConfigKey.REMEMBER_ME_CHECKED, false)
 	if remember_me_checked == null or not remember_me_checked is bool:
 		printerr("Saved remember me checked from config is not expected: %s" % remember_me_checked)
@@ -35,10 +29,8 @@ func _submit_form() -> void:
 	GameManager.set_config(GameManager.ConfigKey.REMEMBER_ME_CHECKED, _remember_checkbox.button_pressed)
 	if _remember_checkbox.button_pressed:
 		GameManager.set_config(GameManager.ConfigKey.SAVED_USERNAME, _username_field.text)
-		GameManager.set_config(GameManager.ConfigKey.SAVED_PASSWORD, _password_field.text)
 	else:
 		GameManager.clear_config(GameManager.ConfigKey.SAVED_USERNAME)
-		GameManager.clear_config(GameManager.ConfigKey.SAVED_PASSWORD)
 	
 	form_submitted.emit(_username_field.text, _password_field.text)
 	

@@ -22,7 +22,6 @@ var _states_scenes: Dictionary[State, String] = {
 enum ConfigKey {
 	REMEMBER_ME_CHECKED,
 	SAVED_USERNAME,
-	SAVED_PASSWORD,
 	UI_SCALE,
 	SFX_VOLUME,
 }
@@ -30,7 +29,6 @@ enum ConfigKey {
 var _config_key_names: Dictionary[ConfigKey, String] = {
 	ConfigKey.REMEMBER_ME_CHECKED: "REMEMBER_ME_CHECKED",
 	ConfigKey.SAVED_USERNAME: "SAVED_USERNAME",
-	ConfigKey.SAVED_PASSWORD: "SAVED_PASSWORD",
 	ConfigKey.UI_SCALE: "UI_SCALE",
 	ConfigKey.SFX_VOLUME: "SFX_VOLUME",
 }
