@@ -449,6 +449,7 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 		tool_properties.strength = tool_props_msg.get_strength()
 		tool_properties.level_required = tool_props_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
+		tool_properties.key_id = tool_props_msg.get_key_id()
 	var item := Item.instantiate(item_name, item_description, item_value, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 	
 	if from_shop:
@@ -525,6 +526,7 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 		tool_props_msg.set_strength(tool_properties.strength)
 		tool_props_msg.set_level_required(tool_properties.level_required)
 		tool_props_msg.set_harvests(int(tool_properties.harvests))
+		tool_props_msg.set_key_id(tool_properties.key_id)
 		
 	return item_msg
 
@@ -542,6 +544,7 @@ func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
 		tool_properties.strength = tool_properties_msg.get_strength()
 		tool_properties.level_required = tool_properties_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
+		tool_properties.key_id = tool_properties_msg.get_key_id()
 	
 	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties)
 

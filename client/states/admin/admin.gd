@@ -142,6 +142,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 				tool_props_msg.set_level_required(node.item.tool_properties.level_required)
 				var harvests := int(node.item.tool_properties.harvests)
 				tool_props_msg.set_harvests(harvests)
+				tool_props_msg.set_key_id(node.item.tool_properties.key_id)
 				
 				
 			ground_item_msg.set_respawn_seconds(node.respawn_seconds)

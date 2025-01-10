@@ -401,28 +401,35 @@ func (q *Queries) CreateLevelShrub(ctx context.Context, arg CreateLevelShrubPara
 
 const createToolPropertiesIfNotExists = `-- name: CreateToolPropertiesIfNotExists :one
 INSERT INTO tool_properties (
-    strength, level_required, harvests
+    strength, level_required, harvests, key_id
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
 ON CONFLICT (strength, level_required, harvests) DO NOTHING
-RETURNING id, strength, level_required, harvests
+RETURNING id, strength, level_required, harvests, key_id
 `
 
 type CreateToolPropertiesIfNotExistsParams struct {
 	Strength      int32
 	LevelRequired int32
 	Harvests      int32
+	KeyID         pgtype.Int4
 }
 
 func (q *Queries) CreateToolPropertiesIfNotExists(ctx context.Context, arg CreateToolPropertiesIfNotExistsParams) (ToolProperty, error) {
-	row := q.db.QueryRow(ctx, createToolPropertiesIfNotExists, arg.Strength, arg.LevelRequired, arg.Harvests)
+	row := q.db.QueryRow(ctx, createToolPropertiesIfNotExists,
+		arg.Strength,
+		arg.LevelRequired,
+		arg.Harvests,
+		arg.KeyID,
+	)
 	var i ToolProperty
 	err := row.Scan(
 		&i.ID,
 		&i.Strength,
 		&i.LevelRequired,
 		&i.Harvests,
+		&i.KeyID,
 	)
 	return i, err
 }
@@ -1096,8 +1103,8 @@ func (q *Queries) GetLevels(ctx context.Context) ([]Level, error) {
 }
 
 const getToolProperties = `-- name: GetToolProperties :one
-SELECT id, strength, level_required, harvests FROM tool_properties
-WHERE strength = $1 AND level_required = $2 AND harvests = $3
+SELECT id, strength, level_required, harvests, key_id FROM tool_properties
+WHERE strength = $1 AND level_required = $2 AND harvests = $3 AND key_id = $4
 LIMIT 1
 `
 
@@ -1105,22 +1112,29 @@ type GetToolPropertiesParams struct {
 	Strength      int32
 	LevelRequired int32
 	Harvests      int32
+	KeyID         pgtype.Int4
 }
 
 func (q *Queries) GetToolProperties(ctx context.Context, arg GetToolPropertiesParams) (ToolProperty, error) {
-	row := q.db.QueryRow(ctx, getToolProperties, arg.Strength, arg.LevelRequired, arg.Harvests)
+	row := q.db.QueryRow(ctx, getToolProperties,
+		arg.Strength,
+		arg.LevelRequired,
+		arg.Harvests,
+		arg.KeyID,
+	)
 	var i ToolProperty
 	err := row.Scan(
 		&i.ID,
 		&i.Strength,
 		&i.LevelRequired,
 		&i.Harvests,
+		&i.KeyID,
 	)
 	return i, err
 }
 
 const getToolPropertiesById = `-- name: GetToolPropertiesById :one
-SELECT id, strength, level_required, harvests FROM tool_properties
+SELECT id, strength, level_required, harvests, key_id FROM tool_properties
 WHERE id = $1 LIMIT 1
 `
 
@@ -1132,6 +1146,7 @@ func (q *Queries) GetToolPropertiesById(ctx context.Context, id int32) (ToolProp
 		&i.Strength,
 		&i.LevelRequired,
 		&i.Harvests,
+		&i.KeyID,
 	)
 	return i, err
 }

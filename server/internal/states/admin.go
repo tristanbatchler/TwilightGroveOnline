@@ -246,7 +246,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 
 		var toolProps *props.ToolProps = nil
 		if toolPropsMsg != nil {
-			toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, 0)
+			toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, toolPropsMsg.KeyId, 0)
 			switch toolPropsMsg.Harvests {
 			case packets.Harvestable_NONE:
 				toolProps.Harvests = props.NoneHarvestable
@@ -388,10 +388,16 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 	toolPropsId := pgtype.Int4{}
 
 	if toolPropsMsg != nil {
+		keyId := pgtype.Int4{}
+		if toolPropsMsg.KeyId >= 0 {
+			keyId = pgtype.Int4{Int32: toolPropsMsg.KeyId, Valid: true}
+		}
+
 		toolPropsModel, err := a.queries.CreateToolPropertiesIfNotExists(ctx, db.CreateToolPropertiesIfNotExistsParams{
 			Strength:      toolPropsMsg.Strength,
 			LevelRequired: toolPropsMsg.LevelRequired,
 			Harvests:      int32(toolPropsMsg.Harvests),
+			KeyID:         keyId,
 		})
 		if err != nil {
 			if err == pgx.ErrNoRows { // Tool property already exists
@@ -399,6 +405,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 					Strength:      toolPropsMsg.Strength,
 					LevelRequired: toolPropsMsg.LevelRequired,
 					Harvests:      int32(toolPropsMsg.Harvests),
+					KeyID:         keyId,
 				})
 				if err != nil {
 					a.logger.Printf("Error getting tool property %v from DB: %v, going to use nil toolPropsId", toolPropsMsg, err)

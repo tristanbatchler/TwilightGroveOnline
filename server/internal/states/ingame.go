@@ -619,7 +619,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 	toolPropsMsg := itemMsg.ToolProps
 	var toolProps *props.ToolProps
 	if toolPropsMsg != nil {
-		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, itemModel.ToolPropertiesID.Int32)
+		toolProps = props.NewToolProps(toolPropsMsg.Strength, toolPropsMsg.LevelRequired, props.NoneHarvestable, toolPropsMsg.KeyId, itemModel.ToolPropertiesID.Int32)
 		switch toolPropsMsg.Harvests {
 		case packets.Harvestable_NONE:
 			toolProps.Harvests = props.NoneHarvestable

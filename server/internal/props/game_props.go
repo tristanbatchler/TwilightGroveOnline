@@ -19,14 +19,16 @@ type ToolProps struct {
 	Strength      int32
 	LevelRequired int32
 	Harvests      *Harvestable
+	KeyId         int32
 	DbId          int32
 }
 
-func NewToolProps(strength int32, levelRequired int32, harvests *Harvestable, dbId int32) *ToolProps {
+func NewToolProps(strength int32, levelRequired int32, harvests *Harvestable, keyId int32, dbId int32) *ToolProps {
 	return &ToolProps{
 		Strength:      strength,
 		LevelRequired: levelRequired,
 		Harvests:      harvests,
+		KeyId:         keyId,
 		DbId:          dbId,
 	}
 }

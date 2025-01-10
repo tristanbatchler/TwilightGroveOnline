@@ -82,6 +82,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_admin_login_granted()
 	elif packet.has_level_metadata():
 		_handle_level_metadata(packet.get_level_metadata())
+	elif packet.has_server_message():
+		_log.warning(packet.get_server_message().get_msg())
 
 func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 	_login_form.enable_form()

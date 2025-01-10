@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS levels_doors (
     destination_y INTEGER NOT NULL,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
-    key_id INTEGER -- NULL if no key required i.e. unlocked. Does not reference another table, just a basic identifier
+    key_id INTEGER -- NULL or < 0 if no key required i.e. unlocked. Does not reference another table, just a basic identifier
 );
 
 CREATE TABLE IF NOT EXISTS tool_properties (
@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS tool_properties (
     strength INTEGER NOT NULL,
     level_required INTEGER NOT NULL,
     harvests INTEGER NOT NULL, -- 0 = NONE, 1 = SHRUB, 2 = ORE
+    key_id INTEGER, -- NULL or < 0 if the tool is not a key. Else, this tool can be used to unlock doors with a matching key_id
     CONSTRAINT unique_tool_properties_combination UNIQUE (strength, level_required, harvests)
 );
 

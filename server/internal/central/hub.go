@@ -281,7 +281,11 @@ func (h *Hub) Run(adminPassword string) {
 			}
 			var toolProps *props.ToolProps = nil
 			if toolPropsModel != nil {
-				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
+				keyId := int32(-1)
+				if toolPropsModel.KeyID.Valid {
+					keyId = toolPropsModel.KeyID.Int32
+				}
+				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, keyId, toolPropsModel.ID)
 			}
 			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, model.RespawnSeconds), nil
@@ -320,10 +324,16 @@ func (h *Hub) Run(adminPassword string) {
 				harvestableId = int32(packets.Harvestable_ORE)
 			}
 
+			keyId := pgtype.Int4{}
+			if item.ToolProps.KeyId >= 0 {
+				keyId = pgtype.Int4{Int32: item.ToolProps.KeyId, Valid: true}
+			}
+
 			toolPropsModel, err := h.NewDbTx().Queries.CreateToolPropertiesIfNotExists(context.Background(), db.CreateToolPropertiesIfNotExistsParams{
 				Strength:      item.ToolProps.Strength,
 				LevelRequired: item.ToolProps.LevelRequired,
 				Harvests:      harvestableId,
+				KeyID:         keyId,
 			})
 			if err != nil && err != pgx.ErrNoRows {
 				log.Fatalf("Error creating default tool properties for item %s: %v", item.Name, err)
@@ -339,6 +349,7 @@ func (h *Hub) Run(adminPassword string) {
 					Strength:      item.ToolProps.Strength,
 					LevelRequired: item.ToolProps.LevelRequired,
 					Harvests:      harvestableId,
+					KeyID:         keyId,
 				})
 				if err != nil {
 					log.Fatalf("Error getting default tool properties for item %s: %v", item.Name, err)
@@ -504,7 +515,11 @@ func getToolPropsFromInt4Id(queries *db.Queries, toolPropertiesID pgtype.Int4) *
 		if err != nil {
 			log.Printf("Failed to get tool properties: %v", err)
 		} else {
-			toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, toolPropsModel.ID)
+			keyId := int32(-1)
+			if toolPropsModel.KeyID.Valid {
+				keyId = toolPropsModel.KeyID.Int32
+			}
+			toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, keyId, toolPropsModel.ID)
 			switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub, 2 = Ore - corrsponds directly to packets Harvestable enum
 			case int32(packets.Harvestable_NONE):
 				toolProps.Harvests = props.NoneHarvestable

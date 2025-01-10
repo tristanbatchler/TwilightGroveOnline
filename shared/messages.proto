@@ -119,6 +119,7 @@ message ToolProps {
     int32 strength = 1;
     int32 level_required = 2;
     Harvestable harvests = 3;
+    int32 key_id = 4;
 }
 
 message Item {

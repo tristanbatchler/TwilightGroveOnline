@@ -131,12 +131,18 @@ func main() {
 	mudShop := ds.NewInventory()
 	mudShop.AddItem(*items.Logs, 100)
 	mudShop.AddItem(*items.BronzeHatchet, 10)
+	mudShop.AddItem(*items.IronHatchet, 10)
+	mudShop.AddItem(*items.GoldHatchet, 10)
+	mudShop.AddItem(*items.TwiliumHatchet, 10)
 	addNpcMerchant(hub, 1, 3, 13, "Mud", 96, 0, mudShop)
 
 	// Add another merchant
 	dezzickShop := ds.NewInventory()
 	dezzickShop.AddItem(*items.Rocks, 100)
 	dezzickShop.AddItem(*items.BronzePickaxe, 10)
+	dezzickShop.AddItem(*items.IronPickaxe, 10)
+	dezzickShop.AddItem(*items.GoldPickaxe, 10)
+	dezzickShop.AddItem(*items.TwiliumPickaxe, 10)
 	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop)
 
 	// Add a dog
@@ -150,6 +156,7 @@ func main() {
 	// Merchant selling faerie dust
 	oldManShop := ds.NewInventory()
 	oldManShop.AddItem(*items.FaerieDust, 100)
+	oldManShop.AddItem(*items.RustyKey, 100)
 	addNpcMerchant(hub, 1, 34, 10, "Old man", 72, 0, oldManShop)
 
 	// Actually start the server

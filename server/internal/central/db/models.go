@@ -109,6 +109,7 @@ type ToolProperty struct {
 	Strength      int32
 	LevelRequired int32
 	Harvests      int32
+	KeyID         pgtype.Int4
 }
 
 type User struct {

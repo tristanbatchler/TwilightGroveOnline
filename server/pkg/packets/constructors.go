@@ -112,6 +112,7 @@ func NewToolProps(toolProps *props.ToolProps) *ToolProps {
 		Strength:      toolProps.Strength,
 		LevelRequired: toolProps.LevelRequired,
 		Harvests:      newHarvestable(toolProps.Harvests),
+		KeyId:         toolProps.KeyId,
 	}
 }
 

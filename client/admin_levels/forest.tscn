@@ -205,12 +205,14 @@ script = ExtResource("6_e0sd5")
 strength = 1
 level_required = 1
 harvests = 1
+key_id = -1
 
 [sub_resource type="Resource" id="Resource_81vyb"]
 script = ExtResource("6_e0sd5")
 strength = 1
 level_required = 1
 harvests = 2
+key_id = -1
 
 [node name="Forest" type="Node2D"]
 

@@ -186,16 +186,16 @@ WHERE level_id = $1;
 
 -- name: CreateToolPropertiesIfNotExists :one
 INSERT INTO tool_properties (
-    strength, level_required, harvests
+    strength, level_required, harvests, key_id
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
 ON CONFLICT (strength, level_required, harvests) DO NOTHING
 RETURNING *;
 
 -- name: GetToolProperties :one
 SELECT * FROM tool_properties
-WHERE strength = $1 AND level_required = $2 AND harvests = $3
+WHERE strength = $1 AND level_required = $2 AND harvests = $3 AND key_id = $4
 LIMIT 1;
 
 -- name: GetToolPropertiesById :one

@@ -1895,6 +1895,11 @@ class ToolProps:
 		service.field = _harvests
 		data[_harvests.tag] = service
 		
+		_key_id = PBField.new("key_id", PB_DATA_TYPE.INT32, PB_RULE.OPTIONAL, 4, true, DEFAULT_VALUES_3[PB_DATA_TYPE.INT32])
+		service = PBServiceField.new()
+		service.field = _key_id
+		data[_key_id.tag] = service
+		
 	var data = {}
 	
 	var _strength: PBField
@@ -1923,6 +1928,15 @@ class ToolProps:
 		_harvests.value = DEFAULT_VALUES_3[PB_DATA_TYPE.ENUM]
 	func set_harvests(value) -> void:
 		_harvests.value = value
+	
+	var _key_id: PBField
+	func get_key_id() -> int:
+		return _key_id.value
+	func clear_key_id() -> void:
+		data[4].state = PB_SERVICE_STATE.UNFILLED
+		_key_id.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
+	func set_key_id(value : int) -> void:
+		_key_id.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
