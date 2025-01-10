@@ -143,7 +143,7 @@ func main() {
 	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, []string{"Woof!"})
 
 	// Wounded soldier
-	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 72, 0, []string{
+	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 40, 0, []string{
 		"It's looking grim for me, friend. I was ambushed by bandits and left for dead.",
 	})
 
