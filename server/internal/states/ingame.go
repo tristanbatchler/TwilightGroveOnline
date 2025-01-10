@@ -203,7 +203,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 	if door, exists := g.client.LevelPointMaps().Doors.Get(g.levelId, collisionPoint); exists {
 		g.logger.Printf("Player moved to a door (%d, %d)", targetX, targetY)
 
-		if door.KeyId < 0 {
+		if door.KeyId < 0 || g.hasKey(door.KeyId) {
 			g.enterDoor(door)
 		}
 
@@ -1002,6 +1002,19 @@ func (g *InGame) enterDoor(door *objs.Door) {
 		player:    g.player,
 		inventory: g.inventory,
 	})
+}
+
+func (g *InGame) hasKey(keyId int32) bool {
+	keyInInv := false
+	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+		if keyInInv {
+			return
+		}
+		if item.ToolProps != nil && item.ToolProps.KeyId == keyId {
+			keyInInv = true
+		}
+	})
+	return keyInInv
 }
 
 func (g *InGame) isAdmin() bool {

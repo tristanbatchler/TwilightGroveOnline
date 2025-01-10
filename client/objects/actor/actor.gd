@@ -7,6 +7,7 @@ const Scene: PackedScene = preload("res://objects/actor/actor.tscn")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
 const Ore := preload("res://objects/ore/ore.gd")
+const Door := preload("res://objects/door/door.gd")
 
 var target_pos: Vector2
 var _target_zoom := 3.0
@@ -121,7 +122,13 @@ func move_and_send(input_dir: Vector2i) -> void:
 		return
 	var dx := input_dir.x
 	var dy := input_dir.y
-	if move(dx, dy) == null:
+	var hit := move(dx, dy)
+	
+	# Still send a move request if we try moving into a locked door, the server will figure it out
+	var collider: Object = null
+	if hit != null:
+		collider = hit.get_collider()
+	if hit == null or (collider != null and collider is Door): 
 		var packet := Packets.Packet.new()
 		var player_move := packet.new_actor_move()
 		player_move.set_dx(dx)
