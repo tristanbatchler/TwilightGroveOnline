@@ -106,6 +106,7 @@ message Door {
     int32 destination_y = 4;
     int32 x = 5;
     int32 y = 6;
+    int32 key_id = 7;
 }
 
 enum Harvestable {
@@ -260,6 +261,11 @@ message SellResponse {
     Response response = 3;
 }
 
+message LevelMetadata {
+    string gd_res_path = 1;
+    int32 db_level_id = 2;
+}
+
 message Packet {
     uint32 sender_id = 1;
     oneof msg {
@@ -308,5 +314,6 @@ message Packet {
         BuyResponse buy_response = 44;
         SellRequest sell_request = 45;
         SellResponse sell_response = 46;
+        LevelMetadata level_metadata = 47;
     }
 }

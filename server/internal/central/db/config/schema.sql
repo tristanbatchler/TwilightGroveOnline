@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS levels_doors (
     destination_x INTEGER NOT NULL,
     destination_y INTEGER NOT NULL,
     x INTEGER NOT NULL,
-    y INTEGER NOT NULL
+    y INTEGER NOT NULL,
+    key_id INTEGER -- NULL if no key required i.e. unlocked. Does not reference another table, just a basic identifier
 );
 
 CREATE TABLE IF NOT EXISTS tool_properties (

@@ -76,9 +76,10 @@ type Door struct {
 	DestinationX       int32
 	DestinationY       int32
 	X, Y               int32
+	KeyId              int32
 }
 
-func NewDoor(id uint32, levelId int32, destinationLevelId int32, destinationX, destinationY, x, y int32) *Door {
+func NewDoor(id uint32, levelId int32, destinationLevelId int32, destinationX, destinationY, x, y int32, keyId int32) *Door {
 	return &Door{
 		Id:                 id,
 		LevelId:            levelId,
@@ -87,6 +88,7 @@ func NewDoor(id uint32, levelId int32, destinationLevelId int32, destinationX, d
 		DestinationY:       destinationY,
 		X:                  x,
 		Y:                  y,
+		KeyId:              keyId,
 	}
 }
 

@@ -2,13 +2,15 @@
 
 [ext_resource type="Script" path="res://objects/door/door.gd" id="1_fq00x"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_kn6mv"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7tgtn"]
 resource_local_to_scene = true
 
-[node name="Door" type="Area2D"]
+[node name="Door" type="StaticBody2D"]
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("1_fq00x")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(4, 4)
 scale = Vector2(0.4, 0.4)
-shape = SubResource("RectangleShape2D_kn6mv")
+shape = SubResource("RectangleShape2D_7tgtn")

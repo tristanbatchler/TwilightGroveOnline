@@ -117,6 +117,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 			door.set_destination_level_gd_res_path(node.destination_level_res_path)
 			door.set_destination_x(node.destination_pos.x)
 			door.set_destination_y(node.destination_pos.y)
+			door.set_key_id(node.key_id)
 			
 			var node_x := int(node.position.x / node._world_tile_size.x)
 			var node_y := int(node.position.y / node._world_tile_size.y)

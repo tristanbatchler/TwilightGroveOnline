@@ -92,6 +92,9 @@ INSERT INTO levels_collision_points (
 )
 RETURNING *;
 
+-- name: GetLevels :many
+SELECT * FROM levels;
+
 -- name: GetLevelById :one
 SELECT * FROM levels
 WHERE id = $1 LIMIT 1;
@@ -167,9 +170,9 @@ WHERE level_id = $1;
 
 -- name: CreateLevelDoor :one
 INSERT INTO levels_doors (
-    level_id, destination_level_id, destination_x, destination_y, x, y
+    level_id, destination_level_id, destination_x, destination_y, x, y, key_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING *;
 

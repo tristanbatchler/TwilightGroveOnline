@@ -202,7 +202,11 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 	// Check if the target position is in a door
 	if door, exists := g.client.LevelPointMaps().Doors.Get(g.levelId, collisionPoint); exists {
 		g.logger.Printf("Player moved to a door (%d, %d)", targetX, targetY)
-		g.enterDoor(door)
+
+		if door.KeyId < 0 {
+			g.enterDoor(door)
+		}
+
 		return
 	}
 

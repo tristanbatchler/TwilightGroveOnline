@@ -80,6 +80,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_log.info(packet.get_motd().get_msg())
 	elif packet.has_admin_login_granted():
 		_handle_admin_login_granted()
+	elif packet.has_level_metadata():
+		_handle_level_metadata(packet.get_level_metadata())
 
 func _handle_login_response(login_response: Packets.LoginResponse) -> void:
 	_login_form.enable_form()
@@ -102,6 +104,9 @@ func _handle_register_response(register_response: Packets.RegisterResponse) -> v
 func _handle_admin_login_granted() -> void:
 	_log.success("Admin login granted")
 	GameManager.set_state(GameManager.State.ADMIN)
+	
+func _handle_level_metadata(level_metadata: Packets.LevelMetadata) -> void:
+	GameManager.levels[level_metadata.get_db_level_id()] = level_metadata.get_gd_res_path()
 
 func _on_ws_connection_closed() -> void:
 	_log.error("Connection to the server lost")

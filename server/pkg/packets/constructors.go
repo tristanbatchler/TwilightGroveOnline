@@ -149,6 +149,16 @@ func NewDoor(id uint32, door *objs.Door, destinationLevelResPath string) Msg {
 			DestinationX:              door.DestinationX,
 			DestinationY:              door.DestinationY,
 			DestinationLevelGdResPath: destinationLevelResPath,
+			KeyId:                     door.KeyId,
+		},
+	}
+}
+
+func NewLevelMetadata(gdResPath string, dbId int32) Msg {
+	return &Packet_LevelMetadata{
+		LevelMetadata: &LevelMetadata{
+			GdResPath: gdResPath,
+			DbLevelId: dbId,
 		},
 	}
 }

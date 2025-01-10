@@ -253,11 +253,11 @@ func (q *Queries) CreateLevelCollisionPoint(ctx context.Context, arg CreateLevel
 
 const createLevelDoor = `-- name: CreateLevelDoor :one
 INSERT INTO levels_doors (
-    level_id, destination_level_id, destination_x, destination_y, x, y
+    level_id, destination_level_id, destination_x, destination_y, x, y, key_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, level_id, destination_level_id, destination_x, destination_y, x, y
+RETURNING id, level_id, destination_level_id, destination_x, destination_y, x, y, key_id
 `
 
 type CreateLevelDoorParams struct {
@@ -267,6 +267,7 @@ type CreateLevelDoorParams struct {
 	DestinationY       int32
 	X                  int32
 	Y                  int32
+	KeyID              pgtype.Int4
 }
 
 func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams) (LevelsDoor, error) {
@@ -277,6 +278,7 @@ func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams
 		arg.DestinationY,
 		arg.X,
 		arg.Y,
+		arg.KeyID,
 	)
 	var i LevelsDoor
 	err := row.Scan(
@@ -287,6 +289,7 @@ func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams
 		&i.DestinationY,
 		&i.X,
 		&i.Y,
+		&i.KeyID,
 	)
 	return i, err
 }
@@ -862,7 +865,7 @@ func (q *Queries) GetLevelCollisionPointsByLevelId(ctx context.Context, levelID 
 }
 
 const getLevelDoorsByLevelId = `-- name: GetLevelDoorsByLevelId :many
-SELECT id, level_id, destination_level_id, destination_x, destination_y, x, y FROM levels_doors
+SELECT id, level_id, destination_level_id, destination_x, destination_y, x, y, key_id FROM levels_doors
 WHERE level_id = $1
 `
 
@@ -883,6 +886,7 @@ func (q *Queries) GetLevelDoorsByLevelId(ctx context.Context, levelID int32) ([]
 			&i.DestinationY,
 			&i.X,
 			&i.Y,
+			&i.KeyID,
 		); err != nil {
 			return nil, err
 		}
@@ -1058,6 +1062,37 @@ func (q *Queries) GetLevelTscnDataByLevelId(ctx context.Context, levelID int32) 
 	var i LevelsTscnDatum
 	err := row.Scan(&i.LevelID, &i.TscnData)
 	return i, err
+}
+
+const getLevels = `-- name: GetLevels :many
+SELECT id, gd_res_path, added_by_user_id, added, last_updated_by_user_id, last_updated FROM levels
+`
+
+func (q *Queries) GetLevels(ctx context.Context) ([]Level, error) {
+	rows, err := q.db.Query(ctx, getLevels)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Level
+	for rows.Next() {
+		var i Level
+		if err := rows.Scan(
+			&i.ID,
+			&i.GdResPath,
+			&i.AddedByUserID,
+			&i.Added,
+			&i.LastUpdatedByUserID,
+			&i.LastUpdated,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getToolProperties = `-- name: GetToolProperties :one

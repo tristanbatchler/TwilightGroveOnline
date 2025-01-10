@@ -238,7 +238,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 		if err != nil {
 			return nil, err
 		}
-		return objs.NewDoor(0, level.ID, destinationLevelId, d.DestinationX, d.DestinationY, d.X, d.Y), nil
+		return objs.NewDoor(0, level.ID, destinationLevelId, d.DestinationX, d.DestinationY, d.X, d.Y, d.KeyId), nil
 	}
 	a.levelDataImporters.GroundItemsImporter.MakeGameObject = func(g *packets.GroundItem) (*objs.GroundItem, error) {
 		itemMsg := g.Item
@@ -363,6 +363,11 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int32, message *packets
 		return err
 	}
 
+	keyId := pgtype.Int4{}
+	if message.KeyId >= 0 {
+		keyId = pgtype.Int4{Int32: message.KeyId, Valid: true}
+	}
+
 	_, err = a.queries.CreateLevelDoor(ctx, db.CreateLevelDoorParams{
 		LevelID:            levelId,
 		DestinationLevelID: destinationLevelId,
@@ -370,6 +375,7 @@ func (a *Admin) addDoorToDb(ctx context.Context, levelId int32, message *packets
 		DestinationY:       message.DestinationY,
 		X:                  message.X,
 		Y:                  message.Y,
+		KeyID:              keyId,
 	})
 	return err
 }

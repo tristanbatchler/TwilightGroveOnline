@@ -124,6 +124,12 @@ func get_skill_name(skill: Skill) -> String:
 # DB Level IDs - Godot scene resource paths
 var levels: Dictionary[int, String] = {}
 
+func get_level_id_from_gd_res_path(gd_res_path: String) -> int:
+	for level_id in levels:
+		if levels[level_id] == gd_res_path:
+			return level_id
+	return -1
+
 var client_id: int
 var _current_scene_root: Node
 

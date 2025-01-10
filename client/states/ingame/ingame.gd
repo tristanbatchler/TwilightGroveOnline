@@ -4,6 +4,7 @@ const Packets := preload("res://packets.gd")
 const Actor := preload("res://objects/actor/actor.gd")
 const Shrub := preload("res://objects/shrub/shrub.gd")
 const Ore := preload("res://objects/ore/ore.gd")
+const Door := preload("res://objects/door/door.gd")
 const Item := preload("res://objects/item/item.gd")
 const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
@@ -31,6 +32,7 @@ var _actors: Dictionary[int, Actor]
 var _ground_items: Dictionary[int, GroundItem]
 var _shrubs: Dictionary[int, Shrub]
 var _ores: Dictionary[int, Ore]
+var _doors: Dictionary[int, Door]
 
 var _left_click_held: bool = false
 
@@ -126,6 +128,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_shrub(packet.get_shrub())
 	elif packet.has_ore():
 		_handle_ore(packet.get_ore())
+	elif packet.has_door():
+		_handle_door(packet.get_door())
 	elif packet.has_actor_inventory():
 		_handle_actor_inventory(sender_id, packet.get_actor_inventory())
 	elif packet.has_drop_item_response():
@@ -211,6 +215,7 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 		_ground_items.clear()
 		_shrubs.clear()
 		_ores.clear()
+		_doors.clear()
 		# Clear more stuff here as needed
 		
 		GameManager.play_sound(GameManager.SingleSound.DOOR)
@@ -377,6 +382,26 @@ func _handle_ore(ore_msg: Packets.Ore) -> void:
 	var ore_obj := Ore.instantiate(oid, x, y, strength)
 	_ores[oid] = ore_obj
 	ore_obj.place(_world_tilemap_layer)
+
+func _handle_door(door_msg: Packets.Door) -> void:
+	var door_id := door_msg.get_id()
+	if door_id in _doors:
+		return
+	var x := door_msg.get_x()
+	var y := door_msg.get_y()
+	var dest_x := door_msg.get_destination_x()
+	var dest_y := door_msg.get_destination_y()
+	var dest_lvl_gd_res_path := door_msg.get_destination_level_gd_res_path()
+	var key_id := door_msg.get_key_id()
+	
+	var dest_lvl_id := GameManager.get_level_id_from_gd_res_path(dest_lvl_gd_res_path)
+	if dest_lvl_id == -1:
+		printerr("Unable to load door destination level DB ID from res path: %s" % dest_lvl_gd_res_path)
+		return
+		
+	var door_obj := Door.instantiate(dest_lvl_id, dest_x, dest_y, x, y, key_id)
+	_doors[door_id] = door_obj
+	door_obj.place(_world_tilemap_layer)
 
 func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorInventory) -> void:
 	# If this is our inventory, set it appropriately

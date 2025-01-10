@@ -39,6 +39,18 @@ func (c *Connected) OnEnter() {
 	// A newly connected client will want to know its own ID first
 	c.client.SocketSend(packets.NewClientId(c.client.Id()))
 
+	// Send the levels metadata from the database, i.e. GD res paths to DB Ids
+	levels_metadata, err := c.queries.GetLevels(context.Background())
+	if err != nil {
+		c.logger.Printf("Failed to get levels metadata: %v", err)
+		c.client.SocketSend(packets.NewServerMessage("Failed to get levels metadata, please report this to a developer"))
+		return
+	}
+	for _, level := range levels_metadata {
+		c.client.SocketSend(packets.NewLevelMetadata(level.GdResPath, level.ID))
+	}
+	c.logger.Printf("Sent %d levels metadata", len(levels_metadata))
+
 	// Load the MOTD
 	motdPath := c.client.GameData().MotdPath
 	motd, err := os.ReadFile(motdPath)

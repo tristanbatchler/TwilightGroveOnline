@@ -71,6 +71,7 @@ type LevelsDoor struct {
 	DestinationY       int32
 	X                  int32
 	Y                  int32
+	KeyID              pgtype.Int4
 }
 
 type LevelsGroundItem struct {

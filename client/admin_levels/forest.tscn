@@ -432,3 +432,4 @@ strength = 3
 position = Vector2(272, -56)
 destination_level_res_path = "res://admin_levels/temple.tscn"
 destination_pos = Vector2i(-3, 5)
+key_id = 0

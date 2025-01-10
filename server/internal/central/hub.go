@@ -250,7 +250,11 @@ func (h *Hub) Run(adminPassword string) {
 		queries.GetLevelDoorsByLevelId,
 		func(door *objs.Door, id uint32) { door.Id = id },
 		func(model *db.LevelsDoor) (*objs.Door, error) {
-			return objs.NewDoor(0, model.LevelID, model.DestinationLevelID, model.DestinationX, model.DestinationY, model.X, model.Y), nil
+			keyId := int32(-1)
+			if model.KeyID.Valid {
+				keyId = model.KeyID.Int32
+			}
+			return objs.NewDoor(0, model.LevelID, model.DestinationLevelID, model.DestinationX, model.DestinationY, model.X, model.Y, keyId), nil
 		},
 	)
 	h.LevelDataImporters.GroundItemsImporter = levels.NewDbDataImporter(
