@@ -225,6 +225,14 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 	for node: Node in _world.get_children():
 		if node is TileMapLayer:
 			_world_tilemap_layer = node
+			
+			# Hide cells that are just invisible collision points
+			for cell_pos in node.get_used_cells():
+				var tile_data: TileData = node.get_cell_tile_data(cell_pos)
+				const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
+				if tile_data and tile_data.get_collision_polygons_count(physics_layer):
+					if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
+						node.erase_cell(cell_pos)
 		else:
 			# Remove everything except the tilemap because these will be sent to us from the server's dynamic data structure
 			node.queue_free()

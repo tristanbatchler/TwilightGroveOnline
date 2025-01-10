@@ -1,3 +1,13 @@
-[gd_scene format=3 uid="uid://dt8dl204jvwpc"]
+[gd_scene load_steps=2 format=3 uid="uid://w36powwwokbp"]
 
-[node name="CollisionPoint" type="Area2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qc4xd"]
+resource_local_to_scene = true
+
+[node name="CollisionPoint" type="StaticBody2D"]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, 4)
+scale = Vector2(0.4, 0.4)
+shape = SubResource("RectangleShape2D_qc4xd")
