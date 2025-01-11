@@ -32,6 +32,26 @@ func (q *Queries) AddActorInventoryItem(ctx context.Context, arg AddActorInvento
 	return err
 }
 
+const addActorQuest = `-- name: AddActorQuest :exec
+INSERT INTO actors_quests (
+    actor_id, quest_id, completed
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT(actor_id, quest_id) DO UPDATE SET completed = excluded.completed
+`
+
+type AddActorQuestParams struct {
+	ActorID   int32
+	QuestID   int32
+	Completed bool
+}
+
+func (q *Queries) AddActorQuest(ctx context.Context, arg AddActorQuestParams) error {
+	_, err := q.db.Exec(ctx, addActorQuest, arg.ActorID, arg.QuestID, arg.Completed)
+	return err
+}
+
 const addActorXp = `-- name: AddActorXp :exec
 INSERT INTO actors_skills (
     actor_id, skill, xp
@@ -399,6 +419,44 @@ func (q *Queries) CreateLevelShrub(ctx context.Context, arg CreateLevelShrubPara
 	return i, err
 }
 
+const createQuestIfNotExists = `-- name: CreateQuestIfNotExists :one
+INSERT INTO quests (
+    name, start_dialogue, required_item_id, completed_dialogue, reward_item_id
+) VALUES (
+    $1, $2, $3, $4, $5
+)
+ON CONFLICT (name, start_dialogue, required_item_id, completed_dialogue, reward_item_id) DO NOTHING
+RETURNING id, name, start_dialogue, required_item_id, completed_dialogue, reward_item_id
+`
+
+type CreateQuestIfNotExistsParams struct {
+	Name              string
+	StartDialogue     string
+	RequiredItemID    int32
+	CompletedDialogue string
+	RewardItemID      int32
+}
+
+func (q *Queries) CreateQuestIfNotExists(ctx context.Context, arg CreateQuestIfNotExistsParams) (Quest, error) {
+	row := q.db.QueryRow(ctx, createQuestIfNotExists,
+		arg.Name,
+		arg.StartDialogue,
+		arg.RequiredItemID,
+		arg.CompletedDialogue,
+		arg.RewardItemID,
+	)
+	var i Quest
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartDialogue,
+		&i.RequiredItemID,
+		&i.CompletedDialogue,
+		&i.RewardItemID,
+	)
+	return i, err
+}
+
 const createToolPropertiesIfNotExists = `-- name: CreateToolPropertiesIfNotExists :one
 INSERT INTO tool_properties (
     strength, level_required, harvests, key_id
@@ -677,6 +735,76 @@ func (q *Queries) GetActorInventoryItems(ctx context.Context, actorID int32) ([]
 			&i.SpriteRegionY,
 			&i.ToolPropertiesID,
 			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActorQuest = `-- name: GetActorQuest :one
+SELECT completed FROM actors_quests
+WHERE actor_id = $1
+AND quest_id = $2
+`
+
+type GetActorQuestParams struct {
+	ActorID int32
+	QuestID int32
+}
+
+func (q *Queries) GetActorQuest(ctx context.Context, arg GetActorQuestParams) (bool, error) {
+	row := q.db.QueryRow(ctx, getActorQuest, arg.ActorID, arg.QuestID)
+	var completed bool
+	err := row.Scan(&completed)
+	return completed, err
+}
+
+const getActorQuests = `-- name: GetActorQuests :many
+SELECT 
+    q.id as quest_id,
+    q.name,
+    q.start_dialogue,
+    q.required_item_id,
+    q.completed_dialogue,
+    q.reward_item_id,
+    aq.completed
+FROM quests q
+JOIN actors_quests aq ON q.id = aq.quest_id
+WHERE aq.actor_id = $1
+`
+
+type GetActorQuestsRow struct {
+	QuestID           int32
+	Name              string
+	StartDialogue     string
+	RequiredItemID    int32
+	CompletedDialogue string
+	RewardItemID      int32
+	Completed         bool
+}
+
+func (q *Queries) GetActorQuests(ctx context.Context, actorID int32) ([]GetActorQuestsRow, error) {
+	rows, err := q.db.Query(ctx, getActorQuests, actorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetActorQuestsRow
+	for rows.Next() {
+		var i GetActorQuestsRow
+		if err := rows.Scan(
+			&i.QuestID,
+			&i.Name,
+			&i.StartDialogue,
+			&i.RequiredItemID,
+			&i.CompletedDialogue,
+			&i.RewardItemID,
+			&i.Completed,
 		); err != nil {
 			return nil, err
 		}
@@ -1102,6 +1230,59 @@ func (q *Queries) GetLevels(ctx context.Context) ([]Level, error) {
 	return items, nil
 }
 
+const getQuest = `-- name: GetQuest :one
+SELECT id, name, start_dialogue, required_item_id, completed_dialogue, reward_item_id FROM quests
+WHERE name = $1 AND start_dialogue = $2 AND required_item_id = $3 AND completed_dialogue = $4 AND reward_item_id = $5
+LIMIT 1
+`
+
+type GetQuestParams struct {
+	Name              string
+	StartDialogue     string
+	RequiredItemID    int32
+	CompletedDialogue string
+	RewardItemID      int32
+}
+
+func (q *Queries) GetQuest(ctx context.Context, arg GetQuestParams) (Quest, error) {
+	row := q.db.QueryRow(ctx, getQuest,
+		arg.Name,
+		arg.StartDialogue,
+		arg.RequiredItemID,
+		arg.CompletedDialogue,
+		arg.RewardItemID,
+	)
+	var i Quest
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartDialogue,
+		&i.RequiredItemID,
+		&i.CompletedDialogue,
+		&i.RewardItemID,
+	)
+	return i, err
+}
+
+const getQuestById = `-- name: GetQuestById :one
+SELECT id, name, start_dialogue, required_item_id, completed_dialogue, reward_item_id FROM quests
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetQuestById(ctx context.Context, id int32) (Quest, error) {
+	row := q.db.QueryRow(ctx, getQuestById, id)
+	var i Quest
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartDialogue,
+		&i.RequiredItemID,
+		&i.CompletedDialogue,
+		&i.RewardItemID,
+	)
+	return i, err
+}
+
 const getToolProperties = `-- name: GetToolProperties :one
 SELECT id, strength, level_required, harvests, key_id FROM tool_properties 
 WHERE strength = $1 AND level_required = $2 AND harvests = $3
@@ -1281,6 +1462,26 @@ type UpsertActorInventoryItemParams struct {
 
 func (q *Queries) UpsertActorInventoryItem(ctx context.Context, arg UpsertActorInventoryItemParams) error {
 	_, err := q.db.Exec(ctx, upsertActorInventoryItem, arg.ActorID, arg.ItemID, arg.Quantity)
+	return err
+}
+
+const upsertActorQuest = `-- name: UpsertActorQuest :exec
+INSERT INTO actors_quests (
+    actor_id, quest_id, completed
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT(actor_id, quest_id) DO UPDATE SET completed = excluded.completed
+`
+
+type UpsertActorQuestParams struct {
+	ActorID   int32
+	QuestID   int32
+	Completed bool
+}
+
+func (q *Queries) UpsertActorQuest(ctx context.Context, arg UpsertActorQuestParams) error {
+	_, err := q.db.Exec(ctx, upsertActorQuest, arg.ActorID, arg.QuestID, arg.Completed)
 	return err
 }
 

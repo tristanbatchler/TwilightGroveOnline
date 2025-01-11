@@ -1,16 +1,22 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/conn"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
@@ -114,17 +120,33 @@ func main() {
 
 	// Start the server
 	go hub.Run(cfg.AdminPassword)
+
+	time.Sleep(5 * time.Second) // TODO: Awful, awful hack. Need to figure out how to get all this stuff to happen somewhere else, after the hub has imported the default items.
+	// TODO: Really, diabolical. I am ashamed
+
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
 	log.Printf("Starting server on %s", addr)
 
 	// Add an NPC to the game
-	addNpcWithDialogue(hub, 1, 21, 6, "Rickert", 48, 0, []string{
-		"Wuh? Oh, hello there. I'm Rickert, I'm... Well, I'm waiting for something.",
-		"Actually, do you have a moment? I could use your help. The soldier upstairs is in pretty bad shape and I already used the last of my medicine to help an old friend.",
-		"If you happen to come across something that could help, I'd be very grateful. I don't have much to offer except for this key I found. It's a bit rusty, but you look like an adventurer who could use it.",
-		"Oh, and if you see my friends... tell them I've been looking for them.",
-	}, true)
+	rickertQuest := quests.NewQuest(
+		"A Flickering Flame",
+		[]string{
+			"Wuh? Oh, hello there. I'm Rickert, I'm... Well, I'm waiting for something.",
+			"Actually, do you have a moment? I could use your help. The soldier upstairs is in pretty bad shape and I already used the last of my medicine to help an old friend.",
+			"If you happen to come across something that could help, I'd be very grateful. I don't have much to offer except for this key I found. It's a bit rusty, but you look like an adventurer who could use it.",
+			"Oh, and if you see my friends... tell them I've been looking for them.",
+		},
+		items.FaerieDust,
+		[]string{
+			"Wait, is that...? Oh, thank you! This is a very rare item, you know. I can't believe you found it.",
+			"Here, take this key. I found it in the outer Grove, but I don't know what it opens. Maybe you'll have better luck.",
+		},
+		items.RustyKey,
+		0,
+	)
+	addQuestToDb(hub, rickertQuest)
+	addNpcWithDialogue(hub, 1, 21, 6, "Rickert", 48, 0, rickertQuest, true)
 
 	// Add an NPC merchant to the game
 	// Don't really need to store the shop inventory in the DB. If the server is restarted, stocks will replenish, that's OK
@@ -146,12 +168,30 @@ func main() {
 	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop, true)
 
 	// Add a dog
-	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, []string{"Woof!"}, true)
+	gusFakeQuest := quests.NewQuest(
+		"Talk to Gus",
+		[]string{"Woof!"},
+		items.ImpossibleItem,
+		[]string{},
+		items.ImpossibleItem,
+		0,
+	)
+	addQuestToDb(hub, gusFakeQuest)
+	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, gusFakeQuest, true)
 
 	// Wounded soldier
-	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 40, 0, []string{
-		"It's looking grim for me, friend. I was ambushed by bandits and left for dead.",
-	}, false)
+	oscarFakeQuest := quests.NewQuest(
+		"Talk to Oscar",
+		[]string{
+			"It's looking grim for me, friend. I was ambushed by bandits and left for dead.",
+		},
+		items.ImpossibleItem,
+		[]string{},
+		items.ImpossibleItem,
+		0,
+	)
+	addQuestToDb(hub, oscarFakeQuest)
+	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 40, 0, oscarFakeQuest, false)
 
 	// Merchant selling faerie dust
 	oldManShop := ds.NewInventory()
@@ -197,16 +237,46 @@ func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, spriteRe
 }
 
 // Add an NPC with lines to the game
-func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dialogue []string, moves bool) {
+func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, quest *quests.Quest, moves bool) {
 	dummyClient, err := conn.NewDummyClient(hub, &states.NpcWithDialogue{
-		LevelId:  levelId,
-		Actor:    objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
-		Dialogue: dialogue,
-		Moves:    moves,
+		LevelId: levelId,
+		Actor:   objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
+		Quest:   quest,
+		Moves:   moves,
 	})
 	if err != nil {
 		log.Fatalf("Error creating dummy client: %v", err)
 	}
 	hub.RegisterChan <- dummyClient
 	log.Printf("Added %s to the game", name)
+}
+
+func addQuestToDb(hub *central.Hub, quest *quests.Quest) {
+	questModel, err := hub.NewDbTx().Queries.CreateQuestIfNotExists(context.Background(), db.CreateQuestIfNotExistsParams{
+		Name:              quest.Name,
+		StartDialogue:     strings.Join(quest.StartDialogue, "|"),
+		RequiredItemID:    quest.RequiredItem.DbId,
+		CompletedDialogue: strings.Join(quest.CompleteDialogue, "|"),
+		RewardItemID:      quest.RewardItem.DbId,
+	})
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			log.Fatalf("Error creating quest %s in DB: %v", quest.Name, err)
+		}
+
+		// If the quest already existed, the result of the previous query will be empty
+		// so we need to get the quest from the DB
+		questModel, err = hub.NewDbTx().Queries.GetQuest(context.Background(), db.GetQuestParams{
+			Name:              quest.Name,
+			StartDialogue:     strings.Join(quest.StartDialogue, "|"),
+			RequiredItemID:    quest.RequiredItem.DbId,
+			CompletedDialogue: strings.Join(quest.CompleteDialogue, "|"),
+			RewardItemID:      quest.RewardItem.DbId,
+		})
+		if err != nil {
+			log.Fatalf("Error getting quest %s from DB: %v", quest.Name, err)
+		}
+		// Inject the DB ID into the quest
+		quest.DbId = questModel.ID
+	}
 }

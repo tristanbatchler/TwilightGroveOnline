@@ -267,6 +267,14 @@ message LevelMetadata {
     int32 db_level_id = 2;
 }
 
+message QuestInfo {
+    string name = 1;
+    NpcDialogue start_dialogue = 2;
+    Item required_item = 3;
+    NpcDialogue completed_dialogue = 4;
+    Item reward_item = 5;
+}
+
 message Packet {
     uint32 sender_id = 1;
     oneof msg {
@@ -316,5 +324,6 @@ message Packet {
         SellRequest sell_request = 45;
         SellResponse sell_response = 46;
         LevelMetadata level_metadata = 47;
+        QuestInfo quest_info = 48;
     }
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
@@ -129,6 +130,8 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.handleSellRequest(senderId, message)
 	case *packets.Packet_SellResponse:
 		g.handleSellResponse(senderId, message)
+	case *packets.Packet_QuestInfo:
+		g.handleQuestInfo(senderId, message)
 	}
 }
 
@@ -636,6 +639,33 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
 }
 
+func (g *InGame) questFromMessage(questInfoMsg *packets.QuestInfo) (*quests.Quest, error) {
+	requiredItem, err := g.itemObjFromMessage(questInfoMsg.RequiredItem)
+	if err != nil {
+		return nil, err
+	}
+
+	rewardItem, err := g.itemObjFromMessage(questInfoMsg.RewardItem)
+	if err != nil {
+		return nil, err
+	}
+
+	questModel, err := g.queries.GetQuest(context.Background(), db.GetQuestParams{
+		Name:              questInfoMsg.Name,
+		StartDialogue:     strings.Join(questInfoMsg.StartDialogue.Dialogue, "|"),
+		CompletedDialogue: strings.Join(questInfoMsg.CompletedDialogue.Dialogue, "|"),
+		RequiredItemID:    requiredItem.DbId,
+		RewardItemID:      rewardItem.DbId,
+	})
+
+	if err != nil {
+		g.logger.Printf("Failed to get quest from the database: %v", err)
+		return nil, err
+	}
+
+	return quests.NewQuest(questInfoMsg.Name, questInfoMsg.StartDialogue.Dialogue, requiredItem, questInfoMsg.CompletedDialogue.Dialogue, rewardItem, questModel.ID), nil
+}
+
 func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_DropItemRequest) {
 	if senderId != g.client.Id() {
 		g.logger.Println("Received a drop item request from a client that isn't us, ignoring")
@@ -834,6 +864,87 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, uint32(itemObj.Value)))
 
 	g.client.SocketSendAs(message, senderId)
+}
+
+func (g *InGame) handleQuestInfo(senderId uint32, message *packets.Packet_QuestInfo) {
+	if senderId == g.client.Id() {
+		g.logger.Println("Received a quest info message from ourselves, ignoring")
+		return
+	}
+
+	npc, exists := g.client.SharedGameObjects().Actors.Get(senderId)
+	if !exists {
+		g.logger.Printf("Received a quest info message from client %d, but they don't exist in the shared game object collection", senderId)
+		return
+	}
+
+	if !npc.IsNpc {
+		g.logger.Printf("Received a quest info message from client %d, but they're not an NPC", senderId)
+		return
+	}
+
+	requiredItemMsg := message.QuestInfo.RequiredItem
+	requiredItem, err := g.itemObjFromMessage(requiredItemMsg)
+	if err != nil {
+		g.logger.Printf("Failed to get required item from message: %v", err)
+		return
+	}
+
+	rewardItemMsg := message.QuestInfo.RewardItem
+	rewardItem, err := g.itemObjFromMessage(rewardItemMsg)
+	if err != nil {
+		g.logger.Printf("Failed to get reward item from message: %v", err)
+		return
+	}
+
+	questInfo, err := g.questFromMessage(message.QuestInfo)
+	if err != nil {
+		g.logger.Printf("Failed to get quest from message: %v", err)
+		return
+	}
+
+	// Check if we have completed the quest
+	actorQuests, err := g.queries.GetActorQuests(context.Background(), g.player.DbId)
+	if err != nil {
+		g.logger.Printf("Failed to get actor quests: %v", err)
+		return
+	}
+
+	completedQuest := false
+	if actorQuests != nil {
+		for _, actorQuest := range actorQuests {
+			if actorQuest.QuestID == questInfo.DbId && actorQuest.Completed {
+				completedQuest = true
+				break
+			}
+		}
+	}
+
+	if !completedQuest {
+		startDialogueMsg := message.QuestInfo.StartDialogue
+		if startDialogueMsg != nil {
+			g.client.SocketSendAs(packets.NewNpcDialogue(message.QuestInfo.StartDialogue.Dialogue), senderId)
+		}
+
+		// We might not have completed the quest prior to this, but we might have now, so we check again
+		if g.inventory.GetItemQuantity(*requiredItem) > 0 {
+			// Complete the quest
+			g.removeInventoryItem(*requiredItem, 1)
+			g.addInventoryItem(*rewardItem, 1)
+
+			go g.queries.UpsertActorQuest(context.Background(), db.UpsertActorQuestParams{
+				ActorID:   g.player.DbId,
+				QuestID:   questInfo.DbId,
+				Completed: true,
+			})
+
+			go g.client.SocketSendAs(packets.NewNpcDialogue(message.QuestInfo.CompletedDialogue.Dialogue), senderId)
+			go g.client.SocketSendAs(packets.NewItemQuantity(rewardItem, 1), senderId)
+		}
+	} else {
+		g.client.SocketSendAs(packets.NewNpcDialogue([]string{"Thanks again for all your help!"}), senderId)
+	}
+
 }
 
 func (g *InGame) OnExit() {

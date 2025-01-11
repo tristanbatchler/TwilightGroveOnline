@@ -1,6 +1,7 @@
 package packets
 
 import (
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
@@ -392,6 +393,18 @@ func NewSellResponse(success bool, shopOwnerActorId uint32, itemQuantity *ItemQu
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),
 			},
+		},
+	}
+}
+
+func NewQuestInfo(quest *quests.Quest) Msg {
+	return &Packet_QuestInfo{
+		QuestInfo: &QuestInfo{
+			Name:              quest.Name,
+			StartDialogue:     &NpcDialogue{Dialogue: quest.StartDialogue},
+			RequiredItem:      NewItem(quest.RequiredItem).(*Packet_Item).Item,
+			CompletedDialogue: &NpcDialogue{Dialogue: quest.CompleteDialogue},
+			RewardItem:        NewItem(quest.RewardItem).(*Packet_Item).Item,
 		},
 	}
 }

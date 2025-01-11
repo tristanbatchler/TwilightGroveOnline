@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
@@ -17,12 +18,12 @@ type NpcWithDialogue struct {
 	client         central.ClientInterfacer
 	Actor          *objs.Actor
 	LevelId        int32
-	Dialogue       []string
+	Moves          bool
+	Quest          *quests.Quest
 	othersInLevel  []uint32
 	initialX       int32
 	initialY       int32
 	logger         *log.Logger
-	Moves          bool
 	cancelMoveLoop context.CancelFunc
 }
 
@@ -125,7 +126,7 @@ func (n *NpcWithDialogue) handleInteractWithNpcRequest(senderId uint32, message 
 		return
 	}
 
-	n.client.PassToPeer(packets.NewNpcDialogue(n.Dialogue), senderId)
+	n.client.PassToPeer(packets.NewQuestInfo(n.Quest), senderId)
 }
 
 func (n *NpcWithDialogue) removeFromOtherInLevel(clientId uint32) {

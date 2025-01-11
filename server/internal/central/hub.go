@@ -381,6 +381,7 @@ func (h *Hub) Run(adminPassword string) {
 				log.Fatalf("Error getting default item %s: %v", item.Name, err)
 			}
 		}
+		// Inject the ID back into the items
 		item.DbId = itemModel.ID
 	}
 

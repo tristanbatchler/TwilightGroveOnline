@@ -221,6 +221,24 @@ LIMIT 1;
 SELECT * FROM items
 WHERE id = $1 LIMIT 1;
 
+-- name: CreateQuestIfNotExists :one
+INSERT INTO quests (
+    name, start_dialogue, required_item_id, completed_dialogue, reward_item_id
+) VALUES (
+    $1, $2, $3, $4, $5
+)
+ON CONFLICT (name, start_dialogue, required_item_id, completed_dialogue, reward_item_id) DO NOTHING
+RETURNING *;
+
+-- name: GetQuest :one
+SELECT * FROM quests
+WHERE name = $1 AND start_dialogue = $2 AND required_item_id = $3 AND completed_dialogue = $4 AND reward_item_id = $5
+LIMIT 1;
+
+-- name: GetQuestById :one
+SELECT * FROM quests
+WHERE id = $1 LIMIT 1;
+
 -- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
     level_id, item_id, x, y, respawn_seconds
@@ -293,6 +311,40 @@ INSERT INTO actors_inventory (
     $1, $2, $3
 )
 ON CONFLICT (actor_id, item_id) DO UPDATE SET quantity = EXCLUDED.quantity;
+
+-- name: GetActorQuests :many
+SELECT 
+    q.id as quest_id,
+    q.name,
+    q.start_dialogue,
+    q.required_item_id,
+    q.completed_dialogue,
+    q.reward_item_id,
+    aq.completed
+FROM quests q
+JOIN actors_quests aq ON q.id = aq.quest_id
+WHERE aq.actor_id = $1;
+
+-- name: AddActorQuest :exec
+INSERT INTO actors_quests (
+    actor_id, quest_id, completed
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT(actor_id, quest_id) DO UPDATE SET completed = excluded.completed;
+
+-- name: GetActorQuest :one
+SELECT completed FROM actors_quests
+WHERE actor_id = $1
+AND quest_id = $2;
+
+-- name: UpsertActorQuest :exec
+INSERT INTO actors_quests (
+    actor_id, quest_id, completed
+) VALUES (
+    $1, $2, $3
+)
+ON CONFLICT(actor_id, quest_id) DO UPDATE SET completed = excluded.completed;
 
 -- name: DeleteLevelShrub :exec
 DELETE FROM levels_shrubs

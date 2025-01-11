@@ -111,3 +111,20 @@ CREATE TABLE IF NOT EXISTS actors_skills (
     xp INTEGER NOT NULL DEFAULT 0,
     CONSTRAINT unique_actor_skill UNIQUE (actor_id, skill)
 );
+
+CREATE TABLE IF NOT EXISTS quests (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    start_dialogue TEXT NOT NULL,
+    required_item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    completed_dialogue TEXT NOT NULL,
+    reward_item_id INTEGER  NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    CONSTRAINT unique_quest_combination UNIQUE (name, start_dialogue, required_item_id, completed_dialogue, reward_item_id)
+);
+
+CREATE TABLE IF NOT EXISTS actors_quests (
+    actor_id INTEGER NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+    quest_id INTEGER NOT NULL REFERENCES quests(id) ON DELETE CASCADE,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (actor_id, quest_id)
+);

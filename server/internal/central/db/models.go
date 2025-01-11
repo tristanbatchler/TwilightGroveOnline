@@ -25,6 +25,12 @@ type ActorsInventory struct {
 	Quantity int32
 }
 
+type ActorsQuest struct {
+	ActorID   int32
+	QuestID   int32
+	Completed bool
+}
+
 type ActorsSkill struct {
 	ID      int32
 	ActorID int32
@@ -102,6 +108,15 @@ type LevelsShrub struct {
 type LevelsTscnDatum struct {
 	LevelID  int32
 	TscnData []byte
+}
+
+type Quest struct {
+	ID                int32
+	Name              string
+	StartDialogue     string
+	RequiredItemID    int32
+	CompletedDialogue string
+	RewardItemID      int32
 }
 
 type ToolProperty struct {

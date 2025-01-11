@@ -21,6 +21,8 @@ const goldPickaxeKey = "GoldPickaxe"
 const twiliumHatchetKey = "twiliumHatchet"
 const twiliumPickaxeKey = "TwiliumPickaxe"
 
+const impossibleItemKey = "ImpossibleItem"
+
 var bronzeHatchetToolProps = props.NewToolProps(1, 1, props.ShrubHarvestable, -1, 0)
 var bronzePickaxeToolProps = props.NewToolProps(1, 1, props.OreHarvestable, -1, 0)
 var ironHatchetToolProps = props.NewToolProps(2, 5, props.ShrubHarvestable, -1, 0)
@@ -48,6 +50,8 @@ var Defaults = map[string]*objs.Item{
 	goldPickaxeKey:    objs.NewItem("Gold pickaxe", "A most fine pick, perfect for mining most ores.", 10, 128, 72, goldPickaxeToolProps, 0),
 	twiliumHatchetKey: objs.NewItem("Twilium hatchet", "A masterwork hatchet, crafted from the Grove's namesake. Its edge is sharp, eager to split anything in its path.", 10, 128, 88, twiliumHatchetToolProps, 0),
 	twiliumPickaxeKey: objs.NewItem("Twilium pickaxe", "A masterwork pick, crafted from the Grove's namesake. Its point is bleeding with power, eager to crush anything in its path.", 10, 120, 88, twiliumPickaxeToolProps, 0),
+
+	impossibleItemKey: objs.NewItem("Impossible item", "This item should never be in the game. If you see it, please report to the developer.", 0, 0, 0, nil, 0),
 }
 
 var Logs = Defaults[logsKey]
@@ -64,3 +68,5 @@ var GoldHatchet = Defaults[goldHatchetKey]
 var GoldPickaxe = Defaults[goldPickaxeKey]
 var TwiliumHatchet = Defaults[twiliumHatchetKey]
 var TwiliumPickaxe = Defaults[twiliumPickaxeKey]
+
+var ImpossibleItem = Defaults[impossibleItemKey]
