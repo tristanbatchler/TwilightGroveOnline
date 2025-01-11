@@ -14,11 +14,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/items"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/npcs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/password"
@@ -142,6 +143,9 @@ type Hub struct {
 	// Database connection pool
 	dbPool *pgxpool.Pool
 
+	// Map from NPCs to their respective dummy clients
+	npcClients map[int]ClientInterfacer
+
 	// Common functions that rely on the database
 	UtilFunctions *UtilFunctions
 
@@ -172,6 +176,7 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 		RegisterChan:   make(chan ClientInterfacer),
 		UnregisterChan: make(chan ClientInterfacer),
 		dbPool:         dbPool,
+		npcClients:     make(map[int]ClientInterfacer),
 		UtilFunctions:  &UtilFunctions{},
 		SharedGameObjects: &SharedGameObjects{
 			Actors:      ds.NewSharedCollection[*objs.Actor](),
@@ -314,78 +319,11 @@ func (h *Hub) Run(adminPassword string) {
 	}
 
 	// Add default items like logs, etc., that might not necessarily have been part of the level data
-	for _, item := range items.Defaults {
-		toolPropertiesId := pgtype.Int4{}
+	h.addDefaultItems()
 
-		if item.ToolProps != nil {
-			harvestableId := int32(packets.Harvestable_NONE)
-			switch item.ToolProps.Harvests {
-			case props.ShrubHarvestable:
-				harvestableId = int32(packets.Harvestable_SHRUB)
-			case props.OreHarvestable:
-				harvestableId = int32(packets.Harvestable_ORE)
-			}
-
-			keyId := pgtype.Int4{}
-			if item.ToolProps.KeyId >= 0 {
-				keyId = pgtype.Int4{Int32: item.ToolProps.KeyId, Valid: true}
-			}
-
-			toolPropsModel, err := h.NewDbTx().Queries.CreateToolPropertiesIfNotExists(context.Background(), db.CreateToolPropertiesIfNotExistsParams{
-				Strength:      item.ToolProps.Strength,
-				LevelRequired: item.ToolProps.LevelRequired,
-				Harvests:      harvestableId,
-				KeyID:         keyId,
-			})
-			if err != nil && err != pgx.ErrNoRows {
-				log.Fatalf("Error creating default tool properties for item %s: %v", item.Name, err)
-			}
-
-			// Inject the ID back into the tool properties
-			if err == nil {
-				item.ToolProps.DbId = toolPropsModel.ID
-				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
-			} else {
-				// The tool properties already exist, so we need to look them up
-				toolPropsModel, err = h.NewDbTx().Queries.GetToolProperties(context.Background(), db.GetToolPropertiesParams{
-					Strength:      item.ToolProps.Strength,
-					LevelRequired: item.ToolProps.LevelRequired,
-					Harvests:      harvestableId,
-					KeyID:         keyId,
-				})
-				if err != nil {
-					log.Fatalf("Error getting default tool properties for item %s: %v", item.Name, err)
-				}
-				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
-			}
-		}
-
-		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
-			Name:             item.Name,
-			Description:      item.Description,
-			Value:            item.Value,
-			SpriteRegionX:    item.SpriteRegionX,
-			SpriteRegionY:    item.SpriteRegionY,
-			ToolPropertiesID: toolPropertiesId,
-		})
-		if err != nil && err != pgx.ErrNoRows {
-			log.Fatalf("Error creating default item %s: %v", item.Name, err)
-		}
-		if item.DbId == 0 {
-			itemModel, err = h.NewDbTx().Queries.GetItem(context.Background(), db.GetItemParams{
-				Name:          item.Name,
-				Description:   item.Description,
-				Value:         item.Value,
-				SpriteRegionX: item.SpriteRegionX,
-				SpriteRegionY: item.SpriteRegionY,
-			})
-			if err != nil {
-				log.Fatalf("Error getting default item %s: %v", item.Name, err)
-			}
-		}
-		// Inject the ID back into the items
-		item.DbId = itemModel.ID
-	}
+	// Add the default NPCs quests to the database, and register their clients with the hub
+	// This needs to happen AFTER the default items are added to the database because the quests reference the items DB IDs
+	h.addDefaultNpcs()
 
 	defer h.dbPool.Close()
 
@@ -393,7 +331,7 @@ func (h *Hub) Run(adminPassword string) {
 	for {
 		select {
 		case client := <-h.RegisterChan:
-			client.Initialize(h.Clients.Add(client))
+			h.registerClient(client)
 		case client := <-h.UnregisterChan:
 			h.Clients.Remove(client.Id())
 		case packet := <-h.BroadcastChan:
@@ -404,6 +342,10 @@ func (h *Hub) Run(adminPassword string) {
 			})
 		}
 	}
+}
+
+func (h *Hub) SetNpcClients(npcClients map[int]ClientInterfacer) {
+	h.npcClients = npcClients
 }
 
 // Broadcasts a message to all connected clients except the sender
@@ -587,5 +529,96 @@ func (h *Hub) addQuestToDb(quest *quests.Quest) {
 		}
 		// Inject the DB ID into the quest
 		quest.DbId = questModel.ID
+	}
+}
+
+func (h *Hub) registerClient(client ClientInterfacer) {
+	client.Initialize(h.Clients.Add(client))
+}
+
+func (h *Hub) addDefaultItems() {
+	for _, item := range items.Defaults {
+		toolPropertiesId := pgtype.Int4{}
+
+		if item.ToolProps != nil {
+			harvestableId := int32(packets.Harvestable_NONE)
+			switch item.ToolProps.Harvests {
+			case props.ShrubHarvestable:
+				harvestableId = int32(packets.Harvestable_SHRUB)
+			case props.OreHarvestable:
+				harvestableId = int32(packets.Harvestable_ORE)
+			}
+
+			keyId := pgtype.Int4{}
+			if item.ToolProps.KeyId >= 0 {
+				keyId = pgtype.Int4{Int32: item.ToolProps.KeyId, Valid: true}
+			}
+
+			toolPropsModel, err := h.NewDbTx().Queries.CreateToolPropertiesIfNotExists(context.Background(), db.CreateToolPropertiesIfNotExistsParams{
+				Strength:      item.ToolProps.Strength,
+				LevelRequired: item.ToolProps.LevelRequired,
+				Harvests:      harvestableId,
+				KeyID:         keyId,
+			})
+			if err != nil && err != pgx.ErrNoRows {
+				log.Fatalf("Error creating default tool properties for item %s: %v", item.Name, err)
+			}
+
+			// Inject the ID back into the tool properties
+			if err == nil {
+				item.ToolProps.DbId = toolPropsModel.ID
+				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
+			} else {
+				// The tool properties already exist, so we need to look them up
+				toolPropsModel, err = h.NewDbTx().Queries.GetToolProperties(context.Background(), db.GetToolPropertiesParams{
+					Strength:      item.ToolProps.Strength,
+					LevelRequired: item.ToolProps.LevelRequired,
+					Harvests:      harvestableId,
+					KeyID:         keyId,
+				})
+				if err != nil {
+					log.Fatalf("Error getting default tool properties for item %s: %v", item.Name, err)
+				}
+				toolPropertiesId = pgtype.Int4{Int32: toolPropsModel.ID, Valid: true}
+			}
+		}
+
+		itemModel, err := h.NewDbTx().Queries.CreateItemIfNotExists(context.Background(), db.CreateItemIfNotExistsParams{
+			Name:             item.Name,
+			Description:      item.Description,
+			Value:            item.Value,
+			SpriteRegionX:    item.SpriteRegionX,
+			SpriteRegionY:    item.SpriteRegionY,
+			ToolPropertiesID: toolPropertiesId,
+		})
+		if err != nil && err != pgx.ErrNoRows {
+			log.Fatalf("Error creating default item %s: %v", item.Name, err)
+		}
+		if item.DbId == 0 {
+			itemModel, err = h.NewDbTx().Queries.GetItem(context.Background(), db.GetItemParams{
+				Name:          item.Name,
+				Description:   item.Description,
+				Value:         item.Value,
+				SpriteRegionX: item.SpriteRegionX,
+				SpriteRegionY: item.SpriteRegionY,
+			})
+			if err != nil {
+				log.Fatalf("Error getting default item %s: %v", item.Name, err)
+			}
+		}
+		// Inject the ID back into the items
+		item.DbId = itemModel.ID
+	}
+}
+
+func (h *Hub) addDefaultNpcs() {
+	for id, npc := range npcs.Defaults {
+		// If it's a quest giver, add the quest to the database
+		if npc.Quest != nil {
+			h.addQuestToDb(npc.Quest)
+		}
+
+		// Register the client
+		h.registerClient(h.npcClients[id])
 	}
 }

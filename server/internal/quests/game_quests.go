@@ -1,7 +1,7 @@
 package quests
 
 import (
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 )
 

@@ -8,18 +8,17 @@ import (
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/npcs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
 )
 
 type NpcWithDialogue struct {
 	client         central.ClientInterfacer
-	Actor          *objs.Actor
-	LevelId        int32
+	Npc            *npcs.Npc
 	Moves          bool
-	Quest          *quests.Quest
 	othersInLevel  []uint32
 	initialX       int32
 	initialY       int32
@@ -28,7 +27,7 @@ type NpcWithDialogue struct {
 }
 
 func (n *NpcWithDialogue) Name() string {
-	return fmt.Sprintf("NpcWithDialogue[%s]", n.Actor.Name)
+	return fmt.Sprintf("NpcWithDialogue[%s]", n.Npc.Actor.Name)
 }
 
 func (n *NpcWithDialogue) SetClient(client central.ClientInterfacer) {
@@ -38,27 +37,36 @@ func (n *NpcWithDialogue) SetClient(client central.ClientInterfacer) {
 }
 
 func (n *NpcWithDialogue) OnEnter() {
-	if n.LevelId == 0 {
+	if n.Npc == nil {
+		panic("NPC is entering, but it doesn't have an NPC")
+	}
+
+	if n.Npc.Quest == nil {
+		n.logger.Println("NPC is entering, but it doesn't have a quest. Setting default value")
+		n.Npc.Quest = quests.NewFakeQuest([]string{"Default quest dialogue"})
+	}
+
+	if n.Npc.LevelId == 0 {
 		n.logger.Println("NPC is entering, but it doesn't have a level ID. Setting default value")
-		n.LevelId = 1
+		n.Npc.LevelId = 1
 	}
 
-	if n.Actor == nil {
+	if n.Npc.Actor == nil {
 		n.logger.Println("NPC is entering, but it doesn't have an actor. Setting default values")
-		n.Actor = objs.NewActor(n.LevelId, 0, 0, "DefaultWithDialogue", 0, 0, 0)
+		n.Npc.Actor = objs.NewActor(n.Npc.LevelId, 0, 0, "DefaultWithDialogue", 0, 0, 0)
 	}
 
-	n.initialX = n.Actor.X
-	n.initialY = n.Actor.Y
+	n.initialX = n.Npc.Actor.X
+	n.initialY = n.Npc.Actor.Y
 
-	n.Actor.IsNpc = true
+	n.Npc.Actor.IsNpc = true
 
-	n.client.SharedGameObjects().Actors.Add(n.Actor, n.client.Id())
+	n.client.SharedGameObjects().Actors.Add(n.Npc.Actor, n.client.Id())
 
 	// Collect info about all the other actors in the level
-	ourActorInfo := packets.NewActor(n.Actor)
+	ourActorInfo := packets.NewActor(n.Npc.Actor)
 	n.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
-		if actor.LevelId == n.LevelId && !actor.IsNpc {
+		if actor.LevelId == n.Npc.LevelId && !actor.IsNpc {
 			n.othersInLevel = append(n.othersInLevel, owner_client_id)
 		}
 	})
@@ -97,7 +105,7 @@ func (n *NpcWithDialogue) handleActorInfo(senderId uint32, _ *packets.Packet_Act
 
 	if !n.isOtherKnown(senderId) {
 		n.othersInLevel = append(n.othersInLevel, senderId)
-		n.client.PassToPeer(packets.NewActor(n.Actor), senderId)
+		n.client.PassToPeer(packets.NewActor(n.Npc.Actor), senderId)
 	}
 
 	// Start the move loop if it hasn't been started yet
@@ -126,7 +134,7 @@ func (n *NpcWithDialogue) handleInteractWithNpcRequest(senderId uint32, message 
 		return
 	}
 
-	n.client.PassToPeer(packets.NewQuestInfo(n.Quest), senderId)
+	n.client.PassToPeer(packets.NewQuestInfo(n.Npc.Quest), senderId)
 }
 
 func (n *NpcWithDialogue) removeFromOtherInLevel(clientId uint32) {
@@ -185,10 +193,10 @@ func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 			}
 
 			// Don't move if it's going to cause them to stray too far from their initial position
-			if n.Actor.X+dx < n.initialX-10 || n.Actor.X+dx > n.initialX+10 {
+			if n.Npc.Actor.X+dx < n.initialX-10 || n.Npc.Actor.X+dx > n.initialX+10 {
 				dx = 0
 			}
-			if n.Actor.Y+dy < n.initialY-10 || n.Actor.Y+dy > n.initialY+10 {
+			if n.Npc.Actor.Y+dy < n.initialY-10 || n.Npc.Actor.Y+dy > n.initialY+10 {
 				dy = 0
 			}
 
@@ -211,20 +219,20 @@ func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 }
 
 func (n *NpcWithDialogue) move(dx, dy int32) {
-	targetX := n.Actor.X + dx
-	targetY := n.Actor.Y + dy
+	targetX := n.Npc.Actor.X + dx
+	targetY := n.Npc.Actor.Y + dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
-	if n.client.LevelPointMaps().Collisions.Contains(n.LevelId, collisionPoint) {
+	if n.client.LevelPointMaps().Collisions.Contains(n.Npc.LevelId, collisionPoint) {
 		n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
 		return
 	}
 
-	n.Actor.X = targetX
-	n.Actor.Y = targetY
+	n.Npc.Actor.X = targetX
+	n.Npc.Actor.Y = targetY
 
-	n.logger.Printf("Actor moved to (%d, %d)", n.Actor.X, n.Actor.Y)
+	n.logger.Printf("Actor moved to (%d, %d)", n.Npc.Actor.X, n.Npc.Actor.Y)
 
-	n.client.Broadcast(packets.NewActor(n.Actor), n.othersInLevel)
+	n.client.Broadcast(packets.NewActor(n.Npc.Actor), n.othersInLevel)
 }

@@ -1,18 +1,20 @@
 package npcs
 
 import (
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
 
-const rickertKey = "Rickert"
-const oscarKey = "Oscar"
-const gusKey = "Gus"
-const mudKey = "Mud"
-const dezzickKey = "Dezzick"
-const oldManKey = "OldMan"
+const (
+	rickertKey = iota
+	oscarKey
+	gusKey
+	mudKey
+	dezzickKey
+	oldManKey
+)
 
 var rickertQuest = quests.NewQuest(
 	"A Flickering Flame",
@@ -53,7 +55,7 @@ var oldManShop = ds.NewInventoryWithItems([]*ds.InventoryRow{
 	ds.NewInventoryRow(*items.RustyKey, 100),
 })
 
-var Defaults = map[string]Npc{
+var Defaults = map[int]Npc{
 	rickertKey: NewNpcQuestGiver(rickertKey, 1, objs.NewActor(1, 21, 6, "Rickert", 48, 0, 0), rickertQuest),
 	gusKey:     NewNpcQuestGiver(gusKey, 1, objs.NewActor(1, 21, 11, "Gus", 40, 8, 0), gusQuest),
 	oscarKey:   NewNpcQuestGiver(oscarKey, 3, objs.NewActor(3, -6, 1, "Oscar", 40, 0, 0), oscarQuest),

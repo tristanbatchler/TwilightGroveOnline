@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/npcs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/packets"
@@ -16,9 +17,7 @@ import (
 
 type NpcMerchant struct {
 	client         central.ClientInterfacer
-	Actor          *objs.Actor
-	Shop           *ds.Inventory
-	LevelId        int32
+	Npc            *npcs.Npc
 	othersInLevel  []uint32
 	initialX       int32
 	initialY       int32
@@ -28,7 +27,7 @@ type NpcMerchant struct {
 }
 
 func (n *NpcMerchant) Name() string {
-	return fmt.Sprintf("NpcMerchant[%s]", n.Actor.Name)
+	return fmt.Sprintf("NpcMerchant[%s]", n.Npc.Actor.Name)
 }
 
 func (n *NpcMerchant) SetClient(client central.ClientInterfacer) {
@@ -38,32 +37,41 @@ func (n *NpcMerchant) SetClient(client central.ClientInterfacer) {
 }
 
 func (n *NpcMerchant) OnEnter() {
-	if n.LevelId == 0 {
-		n.logger.Println("NPC is entering, but it doesn't have a level ID. Setting default value")
-		n.LevelId = 1
+	if n.Npc == nil {
+		panic("NPC is entering, but it doesn't have an NPC")
 	}
 
-	if n.Actor == nil {
-		n.logger.Println("NPC is entering, but it doesn't have an actor. Setting default values")
-		n.Actor = objs.NewActor(n.LevelId, 0, 0, "DefaultMerchant", 0, 0, 0)
-	}
-
-	if n.Shop == nil {
+	if n.Npc.Shop == nil {
 		n.logger.Println("NPC is entering, but it doesn't have a shop. Creating a new one")
-		n.Shop = ds.NewInventory()
+		n.Npc.Shop = ds.NewInventory()
 	}
 
-	n.initialX = n.Actor.X
-	n.initialY = n.Actor.Y
+	if n.Npc.LevelId == 0 {
+		n.logger.Println("NPC is entering, but it doesn't have a level ID. Setting default value")
+		n.Npc.LevelId = 1
+	}
 
-	n.Actor.IsNpc = true
+	if n.Npc.Actor == nil {
+		n.logger.Println("NPC is entering, but it doesn't have an actor. Setting default values")
+		n.Npc.Actor = objs.NewActor(n.Npc.LevelId, 0, 0, "DefaultMerchant", 0, 0, 0)
+	}
 
-	n.client.SharedGameObjects().Actors.Add(n.Actor, n.client.Id())
+	if n.Npc.Shop == nil {
+		n.logger.Println("NPC is entering, but it doesn't have a shop. Creating a new one")
+		n.Npc.Shop = ds.NewInventory()
+	}
+
+	n.initialX = n.Npc.Actor.X
+	n.initialY = n.Npc.Actor.Y
+
+	n.Npc.Actor.IsNpc = true
+
+	n.client.SharedGameObjects().Actors.Add(n.Npc.Actor, n.client.Id())
 
 	// Collect info about all the other actors in the level
-	ourActorInfo := packets.NewActor(n.Actor)
+	ourActorInfo := packets.NewActor(n.Npc.Actor)
 	n.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
-		if actor.LevelId == n.LevelId && !actor.IsNpc {
+		if actor.LevelId == n.Npc.LevelId && !actor.IsNpc {
 			n.othersInLevel = append(n.othersInLevel, owner_client_id)
 		}
 	})
@@ -106,7 +114,7 @@ func (n *NpcMerchant) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) 
 
 	if !n.isOtherKnown(senderId) {
 		n.othersInLevel = append(n.othersInLevel, senderId)
-		n.client.PassToPeer(packets.NewActor(n.Actor), senderId)
+		n.client.PassToPeer(packets.NewActor(n.Npc.Actor), senderId)
 	}
 
 	// Start the move loop if it hasn't been started yet
@@ -141,7 +149,7 @@ func (n *NpcMerchant) handleInteractWithNpcRequest(senderId uint32, message *pac
 		return
 	}
 
-	n.client.PassToPeer(packets.NewInventory(n.Shop), senderId)
+	n.client.PassToPeer(packets.NewInventory(n.Npc.Shop), senderId)
 }
 
 func (n *NpcMerchant) handleBuyRequest(senderId uint32, message *packets.Packet_BuyRequest) {
@@ -174,7 +182,7 @@ func (n *NpcMerchant) handleBuyRequest(senderId uint32, message *packets.Packet_
 		n.client.PassToPeer(packets.NewBuyResponse(false, n.client.Id(), nil, err), senderId)
 		return
 	}
-	itemQty := n.Shop.GetItemQuantity(*itemObj)
+	itemQty := n.Npc.Shop.GetItemQuantity(*itemObj)
 	if itemQty < uint32(message.BuyRequest.Quantity) {
 		n.client.PassToPeer(packets.NewBuyResponse(false, n.client.Id(), nil, errors.New("Not enough stock")), senderId)
 		return
@@ -189,7 +197,7 @@ func (n *NpcMerchant) handleBuyRequest(senderId uint32, message *packets.Packet_
 	n.client.PassToPeer(packets.NewChat(fmt.Sprintf("Pleasure doing business with you, %s!", senderActor.Name)), senderId)
 
 	// Remove the item from the shop
-	n.Shop.RemoveItem(*itemObj, uint32(message.BuyRequest.Quantity))
+	n.Npc.Shop.RemoveItem(*itemObj, uint32(message.BuyRequest.Quantity))
 }
 
 func (n *NpcMerchant) handleSellRequest(senderId uint32, message *packets.Packet_SellRequest) {
@@ -223,7 +231,7 @@ func (n *NpcMerchant) handleSellRequest(senderId uint32, message *packets.Packet
 		n.client.PassToPeer(packets.NewSellResponse(false, n.client.Id(), nil, errors.New("Can't sell that item right now")), senderId)
 		return
 	}
-	n.Shop.AddItem(*itemObj, uint32(message.SellRequest.Quantity))
+	n.Npc.Shop.AddItem(*itemObj, uint32(message.SellRequest.Quantity))
 
 	itemQtyMsg := &packets.ItemQuantity{
 		Item:     message.SellRequest.Item,
@@ -289,10 +297,10 @@ func (n *NpcMerchant) moveLoop(ctx context.Context) {
 			}
 
 			// Don't move if it's going to cause them to stray too far from their initial position
-			if n.Actor.X+dx < n.initialX-10 || n.Actor.X+dx > n.initialX+10 {
+			if n.Npc.Actor.X+dx < n.initialX-10 || n.Npc.Actor.X+dx > n.initialX+10 {
 				dx = 0
 			}
-			if n.Actor.Y+dy < n.initialY-10 || n.Actor.Y+dy > n.initialY+10 {
+			if n.Npc.Actor.Y+dy < n.initialY-10 || n.Npc.Actor.Y+dy > n.initialY+10 {
 				dy = 0
 			}
 
@@ -315,20 +323,20 @@ func (n *NpcMerchant) moveLoop(ctx context.Context) {
 }
 
 func (n *NpcMerchant) move(dx, dy int32) {
-	targetX := n.Actor.X + dx
-	targetY := n.Actor.Y + dy
+	targetX := n.Npc.Actor.X + dx
+	targetY := n.Npc.Actor.Y + dy
 	collisionPoint := ds.Point{X: targetX, Y: targetY}
 
 	// Check if the target position is in a collision point
-	if n.client.LevelPointMaps().Collisions.Contains(n.LevelId, collisionPoint) {
+	if n.client.LevelPointMaps().Collisions.Contains(n.Npc.LevelId, collisionPoint) {
 		n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
 		return
 	}
 
-	n.Actor.X = targetX
-	n.Actor.Y = targetY
+	n.Npc.Actor.X = targetX
+	n.Npc.Actor.Y = targetY
 
-	n.logger.Printf("Actor moved to (%d, %d)", n.Actor.X, n.Actor.Y)
+	n.logger.Printf("Actor moved to (%d, %d)", n.Npc.Actor.X, n.Npc.Actor.Y)
 
-	n.client.Broadcast(packets.NewActor(n.Actor), n.othersInLevel)
+	n.client.Broadcast(packets.NewActor(n.Npc.Actor), n.othersInLevel)
 }

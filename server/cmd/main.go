@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/conn"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/npcs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
 )
 
 var (
@@ -92,7 +93,33 @@ func main() {
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		cfg.PgHost, cfg.PgPort, cfg.PgUser, cfg.PgPassword, cfg.PgDatabase,
 	)
+
 	hub := central.NewHub(cfg.DataPath, pgConnString)
+
+	// Create dummy clients for NPCs
+	npcClients := make(map[int]central.ClientInterfacer)
+	for _, npc := range npcs.Defaults {
+		var initialState central.ClientStateHandler = nil
+		if npc.Quest != nil {
+			initialState = &states.NpcWithDialogue{
+				Npc: &npc,
+			}
+		} else if npc.Shop != nil {
+			initialState = &states.NpcMerchant{
+				Npc: &npc,
+			}
+		} else {
+			log.Fatalf("NPC %v has no quest or shop", npc)
+		}
+		dummyClient, err := conn.NewDummyClient(hub, initialState)
+		if err != nil {
+			log.Fatalf("Error creating dummy client for NPC %v: %v", npc, err)
+		}
+		npcClients[npc.Id] = dummyClient
+		log.Printf("Registered dummy client for NPC %v", npc)
+	}
+
+	hub.SetNpcClients(npcClients)
 
 	// Define handler for WebSocket connections
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
@@ -111,9 +138,6 @@ func main() {
 
 	// Start the server
 	go hub.Run(cfg.AdminPassword)
-
-	time.Sleep(5 * time.Second) // TODO: Awful, awful hack. Need to figure out how to get all this stuff to happen somewhere else, after the hub has imported the default items.
-	// TODO: Really, diabolical. I am ashamed
 
 	addr := fmt.Sprintf(":%d", cfg.Port)
 

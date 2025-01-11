@@ -1,9 +1,9 @@
 package packets
 
 import (
-	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/skills"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
 )
