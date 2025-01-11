@@ -97,6 +97,8 @@ func _process(delta: float) -> void:
 		
 func at_target() -> bool:
 	var dist_sq_to_target := position.distance_squared_to(target_pos)
+	if dist_sq_to_target <= 0.1:
+		print("AT TARGET!!!")
 	return dist_sq_to_target <= 0.1
 		
 func _physics_process(delta: float) -> void:
@@ -128,12 +130,16 @@ func move_and_send(input_dir: Vector2i) -> void:
 	var collider: Object = null
 	if hit != null:
 		collider = hit.get_collider()
-	if hit == null or (collider != null and collider is Door): 
+	if hit == null or (collider != null and collider is Door): 	
 		var packet := Packets.Packet.new()
 		var player_move := packet.new_actor_move()
 		player_move.set_dx(dx)
 		player_move.set_dy(dy)
 		WS.send(packet)
+		return
+		
+	# If we are trying to move somewhere we shouldn't dial back the target_pos
+	print("Target_pos: %s" % target_pos)
 
 func get_ground_item_standing_on() -> GroundItem:
 	for area in _area.get_overlapping_areas():

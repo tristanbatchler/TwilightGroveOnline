@@ -207,6 +207,9 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 			g.enterDoor(door)
 		}
 
+		g.logger.Printf("Tried to enter a door with key ID %d, but doesn't have the key", door.KeyId)
+		go g.client.SocketSend(packets.NewServerMessage("It's locked"))
+
 		return
 	}
 

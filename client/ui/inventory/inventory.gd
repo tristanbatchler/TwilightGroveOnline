@@ -79,3 +79,11 @@ func _set_selected_row_selected(selected: bool) -> void:
 	var selected_row := get_selected_row()
 	if selected_row != null:
 		selected_row.set_selected(selected)
+
+func get_items() -> Array[Item]:
+	var items: Array[Item] = []
+	for row_name in _rows:
+		var inv_row := _rows[row_name]
+		if inv_row.item != null and inv_row.item_quantity > 0:
+			items.append(inv_row.item)
+	return items

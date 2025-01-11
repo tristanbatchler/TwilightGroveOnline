@@ -758,7 +758,29 @@ func _process(delta: float) -> void:
 			)
 			
 			_stop_harvesting()
-			player.move_and_send(strongest_dir)
+			
+			var door_at_target: Door = null
+			for door_id in _doors:
+				var door := _doors[door_id]
+				if door.x == player.x + strongest_dir.x and door.y == player.y + strongest_dir.y:
+					door_at_target = door
+					break
+					
+			if door_at_target == null or not door_at_target.locked:
+				player.move_and_send(strongest_dir)
+			
+			else:
+				var key_id := door_at_target.key_id
+				var has_key := false
+				for item in _inventory.get_items():
+					if item.tool_properties != null and item.tool_properties.key_id == key_id:
+						has_key = true
+						break
+						
+				if has_key:
+					player.move_and_send(strongest_dir)
+				else:
+					_nag_message("This door is locked.")
 			
 func _pickup_nearby_ground_item() -> void:
 	if GameManager.client_id in _actors:
@@ -825,8 +847,12 @@ func _show_dialogue(actor_name: String, lines: Array):
 func _maybe_show_response_error(response: Packets.Response) -> void:
 	if response.has_msg():
 		var err_msg := response.get_msg()
-		_log.error(err_msg)
-		_show_dialogue("???", [err_msg])
+		_nag_message(err_msg)
+		
+func _nag_message(msg: String) -> void:
+	_log.error(msg)
+	_show_dialogue("???", [msg])
+	
 
 func _stop_harvesting() -> void:
 	if GameManager.client_id in _actors:
