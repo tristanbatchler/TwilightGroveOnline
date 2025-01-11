@@ -11,31 +11,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_8nq2r")
 
-[node name="ActorPreviewHBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="PanelContainer" type="PanelContainer" parent="ActorPreviewHBoxContainer"]
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-size_flags_horizontal = 6
-
-[node name="MarginContainer" type="MarginContainer" parent="ActorPreviewHBoxContainer/PanelContainer"]
+[node name="CharacterPreview" type="Control" parent="."]
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="ActorPreviewHBoxContainer/PanelContainer/MarginContainer"]
-layout_mode = 2
-
-[node name="SubViewport" type="SubViewport" parent="ActorPreviewHBoxContainer/PanelContainer/MarginContainer/SubViewportContainer"]
-handle_input_locally = false
-size = Vector2i(80, 80)
-render_target_update_mode = 4
-
-[node name="Sprite2D" parent="ActorPreviewHBoxContainer/PanelContainer/MarginContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_6ub8e")]
+[node name="Sprite2D" parent="CharacterPreview" instance=ExtResource("2_6ub8e")]
 texture_filter = 1
 scale = Vector2(10, 10)
 region_rect = Rect2(32, 0, 8, 8)
@@ -61,6 +42,7 @@ secret_character = "*"
 [node name="SpriteOptionButton" type="OptionButton" parent="."]
 layout_mode = 2
 selected = 0
+allow_reselect = true
 item_count = 10
 popup/item_0/text = "Peasant"
 popup/item_0/id = 0
