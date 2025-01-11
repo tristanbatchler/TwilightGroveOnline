@@ -1,7 +1,10 @@
 package ds
 
 import (
+	"hash/fnv"
+
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 )
 
 // A collection of hashes for inventory items, along with the item itself and the quantity of the item.
@@ -12,7 +15,33 @@ type InventoryRow struct {
 }
 
 func HashItem(item objs.Item) int {
-	return int(item.DbId) // For now...
+	h := fnv.New32a()
+	h.Write([]byte(item.Name))
+	h.Write([]byte(item.Description))
+
+	// The above should be sufficient, but to really drive the point home, we'll make the hash more unique by considering more fields.
+	// If we forget to update this function when we add new fields to the item, we could end up with duplicate hashes, but hopefully our description and name will be unique enough to determine the item.
+	// We are not using the DB ID because it could be zero for items that are not in the DB yet... Ideally though we'd use the DB ID.
+	// TODO: I guess this is a hack, and we should revisit this if we have time or experience a bug.
+	hash := int32(h.Sum32())
+	hash += 17 * item.SpriteRegionX
+	hash += 31 * item.SpriteRegionY
+	if item.ToolProps != nil {
+		hash += 37 * item.ToolProps.KeyId
+		hash += 41 * item.ToolProps.LevelRequired
+		hash += 43 * item.ToolProps.Strength
+		if item.ToolProps.Harvests != nil {
+			switch *item.ToolProps.Harvests {
+			case *props.ShrubHarvestable:
+				hash += 47
+			case *props.OreHarvestable:
+				hash += 53
+			case *props.NoneHarvestable:
+				hash += 59
+			}
+		}
+	}
+	return int(hash)
 }
 
 func NewInventoryRow(item objs.Item, quantity uint32) *InventoryRow {
@@ -84,8 +113,8 @@ func (i *Inventory) GetNumRows() int {
 	return len(i.rows)
 }
 
-func (i *Inventory) ForEach(f func(item objs.Item, quantity uint32)) {
+func (i *Inventory) ForEach(f func(item *objs.Item, quantity uint32)) {
 	for _, row := range i.rows {
-		f(row.item, row.quantity)
+		f(&row.item, row.quantity)
 	}
 }

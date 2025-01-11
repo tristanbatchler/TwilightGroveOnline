@@ -616,6 +616,23 @@ func (h *Hub) addDefaultNpcs() {
 		// If it's a quest giver, add the quest to the database
 		if npc.Quest != nil {
 			h.addQuestToDb(npc.Quest)
+		} else if npc.Shop != nil {
+			// If it's a merchant, inject their shop items' DB IDs
+			npc.Shop.ForEach(func(item *objs.Item, quantity uint32) {
+				itemModel, err := h.NewDbTx().Queries.GetItem(context.Background(), db.GetItemParams{
+					Name:          item.Name,
+					Description:   item.Description,
+					Value:         item.Value,
+					SpriteRegionX: item.SpriteRegionX,
+					SpriteRegionY: item.SpriteRegionY,
+				})
+				if err != nil {
+					log.Fatalf("Error getting item %d for NPC %d: %v", item.DbId, id, err)
+				}
+				item.DbId = itemModel.ID
+			})
+		} else {
+			log.Fatalf("NPC %d has no quest or shop", id)
 		}
 
 		// Register the client

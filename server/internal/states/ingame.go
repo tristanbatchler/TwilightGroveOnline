@@ -361,7 +361,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 func (g *InGame) strongestToolFor(harvestableType *props.Harvestable) *objs.Item {
 	var bestStrength int32 = -1
 	var bestTool *objs.Item
-	g.inventory.ForEach(func(item objs.Item, _ uint32) {
+	g.inventory.ForEach(func(item *objs.Item, _ uint32) {
 		if item.ToolProps == nil {
 			return
 		}
@@ -371,7 +371,7 @@ func (g *InGame) strongestToolFor(harvestableType *props.Harvestable) *objs.Item
 		}
 		if toolProps.Strength > int32(bestStrength) {
 			bestStrength = toolProps.Strength
-			bestTool = &item
+			bestTool = item
 		}
 	})
 	return bestTool
@@ -1124,7 +1124,7 @@ func (g *InGame) enterDoor(door *objs.Door) {
 
 func (g *InGame) hasKey(keyId int32) bool {
 	keyInInv := false
-	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+	g.inventory.ForEach(func(item *objs.Item, quantity uint32) {
 		if keyInInv {
 			return
 		}
@@ -1194,7 +1194,7 @@ func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
 }
 
 func (g *InGame) syncInventory() {
-	g.inventory.ForEach(func(item objs.Item, quantity uint32) {
+	g.inventory.ForEach(func(item *objs.Item, quantity uint32) {
 		g.queries.UpsertActorInventoryItem(context.Background(), db.UpsertActorInventoryItemParams{
 			ActorID:  g.player.DbId,
 			ItemID:   item.DbId,

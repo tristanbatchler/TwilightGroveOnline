@@ -275,8 +275,8 @@ func NewDropItemResponse(success bool, item *objs.Item, quantity uint32, err err
 
 func NewInventory(inventory *ds.Inventory) Msg {
 	itemQtys := make([]*ItemQuantity, 0)
-	inventory.ForEach(func(itemObj objs.Item, quantity uint32) {
-		item := NewItem(&itemObj).(*Packet_Item).Item
+	inventory.ForEach(func(itemObj *objs.Item, quantity uint32) {
+		item := NewItem(itemObj).(*Packet_Item).Item
 		itemQtys = append(itemQtys, &ItemQuantity{
 			Item:     item,
 			Quantity: int32(quantity),
