@@ -324,12 +324,13 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 
 	g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
 
-	go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
-		LevelID: g.levelId,
-		ItemID:  groundItem.Item.DbId,
-		X:       groundItem.X,
-		Y:       groundItem.Y,
-	})
+	// Don't remove the ground item from the DB. Means stuff will spawn again if the server is rebooted, with is expected behavior
+	// go g.queries.DeleteLevelGroundItem(context.Background(), db.DeleteLevelGroundItemParams{
+	// 	LevelID: g.levelId,
+	// 	ItemID:  groundItem.Item.DbId,
+	// 	X:       groundItem.X,
+	// 	Y:       groundItem.Y,
+	// })
 
 	// Add the item to the player's inventory
 	g.addInventoryItem(*groundItem.Item, 1)
@@ -699,13 +700,14 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 
 	groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 
-	go g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-		LevelID:        g.levelId,
-		ItemID:         itemObj.DbId,
-		X:              g.player.X,
-		Y:              g.player.Y,
-		RespawnSeconds: 0, // Player drops don't respawn
-	})
+	// Don't add dropped items to the database. Means player-dropped items will be wiped on server reboot, which is expected behavior
+	// go g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
+	// 	LevelID:        g.levelId,
+	// 	ItemID:         itemObj.DbId,
+	// 	X:              g.player.X,
+	// 	Y:              g.player.Y,
+	// 	RespawnSeconds: 0, // Player drops don't respawn
+	// })
 
 	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
 	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
@@ -861,7 +863,7 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 
 	// Award the player with some gold equal to the item's value
 	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value))
-	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, uint32(itemObj.Value)))
+	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, itemObj.Value))
 
 	g.client.SocketSendAs(message, senderId)
 }
@@ -929,16 +931,18 @@ func (g *InGame) handleQuestInfo(senderId uint32, message *packets.Packet_QuestI
 		// We might not have completed the quest prior to this, but we might have now, so we check again
 		if g.inventory.GetItemQuantity(*requiredItem) > 0 {
 			// Complete the quest
-			g.removeInventoryItem(*requiredItem, 1)
-			g.addInventoryItem(*rewardItem, 1)
-
 			go g.queries.UpsertActorQuest(context.Background(), db.UpsertActorQuestParams{
 				ActorID:   g.player.DbId,
 				QuestID:   questInfo.DbId,
 				Completed: true,
 			})
 
+			g.removeInventoryItem(*requiredItem, 1)
+			go g.client.SocketSendAs(packets.NewItemQuantity(requiredItem, -1), senderId)
+
 			go g.client.SocketSendAs(packets.NewNpcDialogue(message.QuestInfo.CompletedDialogue.Dialogue), senderId)
+
+			g.addInventoryItem(*rewardItem, 1)
 			go g.client.SocketSendAs(packets.NewItemQuantity(rewardItem, 1), senderId)
 		}
 	} else {

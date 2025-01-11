@@ -101,5 +101,4 @@
 - [x] Add collision points to areas beyond doorways to stop players from getting stuck inside a room
 - [x] Add settings for sound volume and balance default settings
 - [x] Persist completed quests in the database
-- [ ] Fix issue where required quest item won't be removed from the client's inventory after completing the quest (requires re-log to see the change).
-  - This should be done by adding a new message type to the server that tells the client to remove an item from the inventory.
+- [x] Fix issue where required quest item won't be removed from the client's inventory after completing the quest (requires re-log to see the change).

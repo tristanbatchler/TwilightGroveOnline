@@ -313,11 +313,11 @@ func NewMineOreResponse(success bool, oreId uint32, err error) Msg {
 	}
 }
 
-func NewItemQuantity(item *objs.Item, quantity uint32) Msg {
+func NewItemQuantity(item *objs.Item, quantity int32) Msg {
 	return &Packet_ItemQuantity{
 		ItemQuantity: &ItemQuantity{
 			Item:     NewItem(item).(*Packet_Item).Item,
-			Quantity: int32(quantity),
+			Quantity: quantity,
 		},
 	}
 }

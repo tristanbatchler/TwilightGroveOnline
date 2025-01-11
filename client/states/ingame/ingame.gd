@@ -453,13 +453,18 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 	var item := Item.instantiate(item_name, item_description, item_value, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
 	
 	if from_shop:
-		_shop.add(item,qty)
+		if qty > 0:
+			_shop.add(item, qty)
+		elif qty < 0:
+			_shop.remove(item.item_name, -qty)
 		return
 		
-	
-	_inventory.add(item, qty)
+	if qty > 0:
+		_inventory.add(item, qty)
+	elif qty < 0:
+		_inventory.remove(item.item_name, -qty)
 
-	if not from_inv:
+	if not from_inv and qty > 0:
 		_log.info("You found %s %s" % [qty, item_name])
 
 func _remove_actor(actor_id: int) -> void:
