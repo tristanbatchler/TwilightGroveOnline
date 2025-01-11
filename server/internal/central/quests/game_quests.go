@@ -1,6 +1,9 @@
 package quests
 
-import "github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+import (
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
+)
 
 type Quest struct {
 	Name             string
@@ -20,4 +23,15 @@ func NewQuest(name string, startDialogue []string, requiredItem *objs.Item, comp
 		RewardItem:       rewardItem,
 		DbId:             dbId,
 	}
+}
+
+func NewFakeQuest(dialogue []string) *Quest {
+	return NewQuest(
+		"Fake quest for dialogue",
+		dialogue,
+		items.ImpossibleItem,
+		[]string{},
+		items.ImpossibleItem,
+		0,
+	)
 }

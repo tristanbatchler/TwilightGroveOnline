@@ -41,6 +41,14 @@ func (i *Inventory) AddItem(item objs.Item, quantity uint32) {
 	}
 }
 
+func NewInventoryWithItems(items []*InventoryRow) *Inventory {
+	inv := NewInventory()
+	for _, row := range items {
+		inv.AddItem(row.item, row.quantity)
+	}
+	return inv
+}
+
 // RemoveItem removes a quantity of an item from the inventory. If the quantity is greater than the quantity of the item in the inventory, the item is removed from the inventory.
 // Returns the number of items remaining, or 0 if the item was removed, or -1 if the item was not found.
 func (i *Inventory) RemoveItem(item objs.Item, quantity uint32) int32 {

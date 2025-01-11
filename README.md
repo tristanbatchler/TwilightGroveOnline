@@ -80,7 +80,7 @@
 - [x] Add a quest to heal a wounded soldier with faerie dust to get a key
 - [x] Add a locked door that requires a key to open, with a reward inside
 - [ ] Add a special status symbol for players who have completed the quest
-- [ ] Add spawn point in levels
+- [x] Add spawn point in levels
 - [x] Speed up level uploading?
 - [ ] Translate to Japanese
 - [x] Use StringNames for inventory script?

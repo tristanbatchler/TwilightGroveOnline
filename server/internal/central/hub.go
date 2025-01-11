@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -15,6 +16,7 @@ import (
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/db"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/items"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/levels"
+	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central/quests"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/objs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/props"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/pkg/ds"
@@ -556,4 +558,34 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 	toolProps := getToolPropsFromInt4Id(queries, itemModel.ToolPropertiesID)
 
 	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
+}
+
+func (h *Hub) addQuestToDb(quest *quests.Quest) {
+	questModel, err := h.NewDbTx().Queries.CreateQuestIfNotExists(context.Background(), db.CreateQuestIfNotExistsParams{
+		Name:              quest.Name,
+		StartDialogue:     strings.Join(quest.StartDialogue, "|"),
+		RequiredItemID:    quest.RequiredItem.DbId,
+		CompletedDialogue: strings.Join(quest.CompleteDialogue, "|"),
+		RewardItemID:      quest.RewardItem.DbId,
+	})
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			log.Fatalf("Error creating quest %s in DB: %v", quest.Name, err)
+		}
+
+		// If the quest already existed, the result of the previous query will be empty
+		// so we need to get the quest from the DB
+		questModel, err = h.NewDbTx().Queries.GetQuest(context.Background(), db.GetQuestParams{
+			Name:              quest.Name,
+			StartDialogue:     strings.Join(quest.StartDialogue, "|"),
+			RequiredItemID:    quest.RequiredItem.DbId,
+			CompletedDialogue: strings.Join(quest.CompleteDialogue, "|"),
+			RewardItemID:      quest.RewardItem.DbId,
+		})
+		if err != nil {
+			log.Fatalf("Error getting quest %s from DB: %v", quest.Name, err)
+		}
+		// Inject the DB ID into the quest
+		quest.DbId = questModel.ID
+	}
 }
