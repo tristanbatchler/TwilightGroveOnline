@@ -23,6 +23,7 @@ type NpcMerchant struct {
 	initialX       int32
 	initialY       int32
 	logger         *log.Logger
+	Moves          bool
 	cancelMoveLoop context.CancelFunc
 }
 
@@ -109,7 +110,7 @@ func (n *NpcMerchant) handleActorInfo(senderId uint32, _ *packets.Packet_Actor) 
 	}
 
 	// Start the move loop if it hasn't been started yet
-	if n.cancelMoveLoop == nil {
+	if n.Moves && n.cancelMoveLoop == nil {
 		ctx, cancel := context.WithCancel(context.Background())
 		n.cancelMoveLoop = cancel
 		go n.moveLoop(ctx)
@@ -252,20 +253,23 @@ func (n *NpcMerchant) isOtherKnown(otherId uint32) bool {
 
 func (n *NpcMerchant) moveLoop(ctx context.Context) {
 	sleepTime := 2 * time.Second
+	previousDx := int32(0)
+	previousDy := int32(0)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(sleepTime):
-			if rand.IntN(5) == 0 {
-				sleepTime = 0 // 20% chance to keep moving
-			} else if rand.IntN(5) == 1 {
-				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
-			} else {
-				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
-			}
 			dx := rand.Int32N(3) - 1
 			dy := rand.Int32N(3) - 1
+
+			// If it hasn't been long since the last move, we want to try and keep moving in the same direction
+			// to avoid it looking too erratic
+			if sleepTime < 500*time.Millisecond {
+				dx = previousDx
+				dy = previousDy
+			}
+
 			if dx != 0 && dy != 0 {
 				// Choose one direction to move in, can't move diagonally
 				if rand.Int32N(2) == 0 {
@@ -273,6 +277,15 @@ func (n *NpcMerchant) moveLoop(ctx context.Context) {
 				} else {
 					dy = 0
 				}
+			}
+
+			// Determine how long to wait before moving again
+			if rand.IntN(5) == 0 {
+				sleepTime = time.Duration(200 * time.Millisecond) // 20% chance to keep moving
+			} else if rand.IntN(5) == 1 {
+				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
+			} else {
+				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
 			}
 
 			// Don't move if it's going to cause them to stray too far from their initial position
@@ -288,6 +301,8 @@ func (n *NpcMerchant) moveLoop(ctx context.Context) {
 			}
 
 			n.move(dx, dy)
+			previousDx = dx
+			previousDy = dy
 
 			// Check if we are all alone. If so, we can stop the move loop (it will start again if someone joins the level)
 			if len(n.othersInLevel) <= 0 {

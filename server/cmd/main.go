@@ -124,7 +124,7 @@ func main() {
 		"Actually, do you have a moment? I could use your help. The soldier upstairs is in pretty bad shape and I already used the last of my medicine to help an old friend.",
 		"If you happen to come across something that could help, I'd be very grateful. I don't have much to offer except for this key I found. It's a bit rusty, but you look like an adventurer who could use it.",
 		"Oh, and if you see my friends... tell them I've been looking for them.",
-	})
+	}, true)
 
 	// Add an NPC merchant to the game
 	// Don't really need to store the shop inventory in the DB. If the server is restarted, stocks will replenish, that's OK
@@ -134,7 +134,7 @@ func main() {
 	mudShop.AddItem(*items.IronHatchet, 10)
 	mudShop.AddItem(*items.GoldHatchet, 10)
 	mudShop.AddItem(*items.TwiliumHatchet, 10)
-	addNpcMerchant(hub, 1, 3, 13, "Mud", 96, 0, mudShop)
+	addNpcMerchant(hub, 1, 3, 13, "Mud", 96, 0, mudShop, true)
 
 	// Add another merchant
 	dezzickShop := ds.NewInventory()
@@ -143,21 +143,21 @@ func main() {
 	dezzickShop.AddItem(*items.IronPickaxe, 10)
 	dezzickShop.AddItem(*items.GoldPickaxe, 10)
 	dezzickShop.AddItem(*items.TwiliumPickaxe, 10)
-	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop)
+	addNpcMerchant(hub, 2, 2, 4, "Dezzick", 32, 0, dezzickShop, true)
 
 	// Add a dog
-	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, []string{"Woof!"})
+	addNpcWithDialogue(hub, 1, 21, 11, "Gus", 40, 8, []string{"Woof!"}, true)
 
 	// Wounded soldier
 	addNpcWithDialogue(hub, 3, -6, 1, "Oscar", 40, 0, []string{
 		"It's looking grim for me, friend. I was ambushed by bandits and left for dead.",
-	})
+	}, false)
 
 	// Merchant selling faerie dust
 	oldManShop := ds.NewInventory()
 	oldManShop.AddItem(*items.FaerieDust, 100)
 	oldManShop.AddItem(*items.RustyKey, 100)
-	addNpcMerchant(hub, 1, 34, 10, "Old man", 72, 0, oldManShop)
+	addNpcMerchant(hub, 1, 34, 10, "Old man", 72, 0, oldManShop, true)
 
 	// Actually start the server
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)
@@ -182,11 +182,12 @@ func addHeaders(next http.Handler) http.Handler {
 }
 
 // Add an NPC merchant to the game
-func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, shop *ds.Inventory) {
+func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, shop *ds.Inventory, moves bool) {
 	dummyClient, err := conn.NewDummyClient(hub, &states.NpcMerchant{
 		LevelId: levelId,
 		Actor:   objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
 		Shop:    shop,
+		Moves:   moves,
 	})
 	if err != nil {
 		log.Fatalf("Error creating dummy client: %v", err)
@@ -196,11 +197,12 @@ func addNpcMerchant(hub *central.Hub, levelId, x, y int32, name string, spriteRe
 }
 
 // Add an NPC with lines to the game
-func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dialogue []string) {
+func addNpcWithDialogue(hub *central.Hub, levelId, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dialogue []string, moves bool) {
 	dummyClient, err := conn.NewDummyClient(hub, &states.NpcWithDialogue{
 		LevelId:  levelId,
 		Actor:    objs.NewActor(levelId, x, y, name, spriteRegionX, spriteRegionY, 0),
 		Dialogue: dialogue,
+		Moves:    moves,
 	})
 	if err != nil {
 		log.Fatalf("Error creating dummy client: %v", err)

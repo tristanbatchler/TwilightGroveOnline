@@ -781,6 +781,8 @@ func _process(delta: float) -> void:
 					player.move_and_send(strongest_dir)
 				else:
 					_nag_message("This door is locked.")
+					_left_click_held = false
+					
 			
 func _pickup_nearby_ground_item() -> void:
 	if GameManager.client_id in _actors:

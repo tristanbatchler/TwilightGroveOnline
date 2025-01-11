@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand/v2"
-	"strings"
 	"time"
 
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
@@ -23,6 +22,7 @@ type NpcWithDialogue struct {
 	initialX       int32
 	initialY       int32
 	logger         *log.Logger
+	Moves          bool
 	cancelMoveLoop context.CancelFunc
 }
 
@@ -68,8 +68,6 @@ func (n *NpcWithDialogue) OnEnter() {
 
 func (n *NpcWithDialogue) HandleMessage(senderId uint32, message packets.Msg) {
 	switch message := message.(type) {
-	case *packets.Packet_Chat:
-		n.handleChat(senderId, message)
 	case *packets.Packet_Actor:
 		n.handleActorInfo(senderId, message)
 	case *packets.Packet_Logout:
@@ -78,22 +76,6 @@ func (n *NpcWithDialogue) HandleMessage(senderId uint32, message packets.Msg) {
 		n.removeFromOtherInLevel(senderId)
 	case *packets.Packet_InteractWithNpcRequest:
 		n.handleInteractWithNpcRequest(senderId, message)
-	}
-}
-
-func (n *NpcWithDialogue) handleChat(senderId uint32, message *packets.Packet_Chat) {
-	if !strings.Contains(strings.ToLower(message.Chat.Msg), "rickert") {
-		return
-	}
-
-	n.logger.Printf("Rickert mentioned by client %d", senderId)
-	fromActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
-	if exists {
-		go func() {
-			randMs := time.Duration(rand.Int64N(2000)) * time.Millisecond
-			time.Sleep(randMs)
-			n.client.Broadcast(packets.NewChat(fmt.Sprintf("Hello, %s", fromActor.Name)), n.othersInLevel)
-		}()
 	}
 }
 
@@ -118,7 +100,7 @@ func (n *NpcWithDialogue) handleActorInfo(senderId uint32, _ *packets.Packet_Act
 	}
 
 	// Start the move loop if it hasn't been started yet
-	if n.cancelMoveLoop == nil {
+	if n.Moves && n.cancelMoveLoop == nil {
 		ctx, cancel := context.WithCancel(context.Background())
 		n.cancelMoveLoop = cancel
 		go n.moveLoop(ctx)
@@ -143,17 +125,6 @@ func (n *NpcWithDialogue) handleInteractWithNpcRequest(senderId uint32, message 
 		return
 	}
 
-	// senderActor, exists := n.client.SharedGameObjects().Actors.Get(senderId)
-	// if !exists {
-	// 	n.logger.Printf("Client %d is not in the actors map", senderId)
-	// 	return
-	// }
-
-	// dialogue := []string{
-	// 	"Have you seen my friends? I went to find some wood for the fire and now they are all gone.",
-	// 	"I'm Rickert. What's your name?",
-	// 	fmt.Sprintf("Well met, %s! If you see any of my friends, please tell them I'm looking for them.", senderActor.Name),
-	// }
 	n.client.PassToPeer(packets.NewNpcDialogue(n.Dialogue), senderId)
 }
 
@@ -177,20 +148,23 @@ func (n *NpcWithDialogue) isOtherKnown(otherId uint32) bool {
 
 func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 	sleepTime := 2 * time.Second
+	previousDx := int32(0)
+	previousDy := int32(0)
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(sleepTime):
-			if rand.IntN(5) == 0 {
-				sleepTime = 0 // 20% chance to keep moving
-			} else if rand.IntN(5) == 1 {
-				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
-			} else {
-				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
-			}
 			dx := rand.Int32N(3) - 1
 			dy := rand.Int32N(3) - 1
+
+			// If it hasn't been long since the last move, we want to try and keep moving in the same direction
+			// to avoid it looking too erratic
+			if sleepTime < 500*time.Millisecond {
+				dx = previousDx
+				dy = previousDy
+			}
+
 			if dx != 0 && dy != 0 {
 				// Choose one direction to move in, can't move diagonally
 				if rand.Int32N(2) == 0 {
@@ -198,6 +172,15 @@ func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 				} else {
 					dy = 0
 				}
+			}
+
+			// Determine how long to wait before moving again
+			if rand.IntN(5) == 0 {
+				sleepTime = time.Duration(200 * time.Millisecond) // 20% chance to keep moving
+			} else if rand.IntN(5) == 1 {
+				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
+			} else {
+				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
 			}
 
 			// Don't move if it's going to cause them to stray too far from their initial position
@@ -213,6 +196,8 @@ func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 			}
 
 			n.move(dx, dy)
+			previousDx = dx
+			previousDy = dy
 
 			// Check if we are all alone. If so, we can stop the move loop (it will start again if someone joins the level)
 			if len(n.othersInLevel) <= 0 {
