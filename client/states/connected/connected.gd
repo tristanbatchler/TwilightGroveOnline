@@ -38,10 +38,12 @@ func _on_register_form_canceled() -> void:
 	_register_form.hide()
 	_register_prompt.show()
 	_login_form.show()
+	_settings_button.show()
 
 func _on_register_prompt_meta_clicked(meta) -> void:
 	if meta is String and meta == "register":
 		GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+		_settings_button.hide()
 		_login_form.hide()
 		_register_prompt.hide()
 		_register_form.show()

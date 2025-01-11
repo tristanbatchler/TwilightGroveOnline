@@ -78,7 +78,7 @@
 - [x] Make trees require a bit of time to cut down, proportional to their strength, the type of axe, and the player's woodcutting level
 - [x] Add an NPC that sells faerie dust
 - [ ] Add a quest to heal a wounded soldier with faerie dust to get a key
-- [ ] Add a locked door that requires a key to open, with a reward inside
+- [x] Add a locked door that requires a key to open, with a reward inside
 - [ ] Add a special status symbol for players who have completed the quest
 - [ ] Add spawn point in levels
 - [x] Speed up level uploading?
