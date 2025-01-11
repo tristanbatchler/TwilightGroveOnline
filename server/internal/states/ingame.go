@@ -49,7 +49,7 @@ func (g *InGame) OnEnter() {
 	// Initialize the player object
 	g.player.LevelId = g.levelId
 	if g.player.X == -1 && g.player.Y == -1 {
-		g.player.X = 19
+		g.player.X = 17
 		g.player.Y = 12
 	}
 
