@@ -44,6 +44,8 @@ func _ready() -> void:
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
 	_send_button.pressed.connect(_on_send_button_pressed)
 	_inventory.item_dropped.connect(_drop_item)
+	_tab_container.set_tab_hidden(_tab_container.get_tab_idx_from_control(_dialogue_box), true)
+	
 #
 func _input(event: InputEvent) -> void:
 	var input_dir := Vector2i.ZERO
@@ -286,7 +288,7 @@ func _add_new_actor(actor_id: int, x: int, y: int, actor_name: String, sprite_re
 	if _world_tilemap_layer != null:
 		_actors[actor_id] = actor
 		actor.place(_world_tilemap_layer)
-		_log.info("%s has entered" % actor.actor_name)
+		#_log.info("%s has entered" % actor.actor_name)
 	
 func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 	if actor_id in _actors:
@@ -843,12 +845,14 @@ func _on_shop_item_purchased(shop_owner_actor_id: int, item: Item, quantity: int
 func _show_dialogue(actor_name: String, lines: Array):
 	var tab_before_dialogue := _tab_container.current_tab
 		
+	_tab_container.set_tab_hidden(_tab_container.get_tab_idx_from_control(_dialogue_box), false)
 	_dialogue_box.show()
 	_dialogue_box.set_title(actor_name)
 	_dialogue_box.set_dialogue_lines(lines)
 	_dialogue_box.finished_dialogue.connect(func():
 		_dialogue_box.hide()
 		_tab_container.current_tab = tab_before_dialogue
+		_tab_container.set_tab_hidden(_tab_container.get_tab_idx_from_control(_dialogue_box), true)
 	)
 
 func _maybe_show_response_error(response: Packets.Response) -> void:

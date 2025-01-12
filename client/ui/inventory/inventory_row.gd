@@ -37,8 +37,8 @@ func _ready() -> void:
 	if item != null:
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)
 		
-		tooltip_text = item.description + "\n%sG" % Util.pretty_int(item.value)
-		_drop_button.tooltip_text = item.description  + "\n%sG" % Util.pretty_int(item.value)
+		tooltip_text = item.description + "\n%s ¤" % Util.pretty_int(item.value)
+		_drop_button.tooltip_text = item.description  + "\n%s ¤" % Util.pretty_int(item.value)
 		
 		if not labelless:
 			_name_label.text = item.item_name

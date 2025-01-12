@@ -86,7 +86,7 @@ var strengths_ores: Dictionary[int, String] = {
 	0: "Copper ore",
 	1: "Iron ore",
 	2: "Gold ore",
-	3: "Mystic ore",
+	3: "Twilium ore",
 }
 
 var strengths_shrubs: Dictionary[int, String] = {

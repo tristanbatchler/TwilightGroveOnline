@@ -102,3 +102,4 @@
 - [x] Add settings for sound volume and balance default settings
 - [x] Persist completed quests in the database
 - [x] Fix issue where required quest item won't be removed from the client's inventory after completing the quest (requires re-log to see the change).
+- [ ] Make some items untreadable and not droppable

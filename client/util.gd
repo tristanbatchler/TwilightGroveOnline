@@ -10,12 +10,12 @@ func argmax(inputs: Array[Variant], outputs: Array[float]) -> Variant:
 	return corresponding_input
 
 func pretty_int(num: int) -> String:
-	if num < 1_000:
+	if num < 10_000:
 		return str(num)
-	if num < 1_000_000:
-		return "%.2fK" % (num / 1_000.0)
-	if num < 1_000_000_000:
-		return "%.2fM" % (num / 1_000_000.0)
-	if num < 1_000_000_000_000:
-		return "%.2fB" % (num / 1_000_000_000.0)
-	return "%.2fT" % (num / 1_000_000_000_000.0)
+	if num < 10_000_000:
+		return "%dK" % roundi(num / 1_000.0)
+	if num < 10_000_000_000:
+		return "%.dM" % roundi(num / 1_000_000.0)
+	if num < 10_000_000_000_000:
+		return "%.dB" % roundi(num / 1_000_000_000.0)
+	return "%dT" % roundi(num / 1_000_000_000_000.0)

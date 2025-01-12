@@ -13,6 +13,7 @@ script = ExtResource("1_5whee")
 download_destination_scene_path = "user://ingame_tilemap_scene.tscn"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer"]
 anchors_preset = 15
@@ -59,12 +60,11 @@ layout_mode = 2
 size_flags_horizontal = 10
 
 [node name="TabContainer" type="TabContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 182)
 layout_mode = 2
 size_flags_vertical = 8
-mouse_filter = 0
 mouse_force_pass_scroll_events = false
 current_tab = 0
+use_hidden_tabs_for_min_size = true
 
 [node name="Chat" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
 layout_mode = 2

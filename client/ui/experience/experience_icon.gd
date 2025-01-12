@@ -11,13 +11,13 @@ var xp: int = 0:
 	set(value):
 		xp = value
 		if is_node_ready():
-			_xp_label.text = Util.pretty_int(xp)
+			_xp_label.text = Util.pretty_int(xp) + " XP"
 			
 			var level := get_level(xp)
 			_level_label.text = str(level)
 			
 			var xp_til_next_lvl := get_xp_at_level(level + 1) - xp
-			tooltip_text = "%s XP til next level: %d" % [GameManager.get_skill_name(skill).capitalize(), xp_til_next_lvl]
+			tooltip_text = "%s XP til next level: %s" % [GameManager.get_skill_name(skill).capitalize(), Util.pretty_int(xp_til_next_lvl)]
 
 func get_level(xp: int) -> int:
 	return 1 + sqrt(xp / 20)

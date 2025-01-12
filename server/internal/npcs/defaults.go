@@ -52,7 +52,6 @@ var dezzickShop = ds.NewInventoryWithItems([]*ds.InventoryRow{
 })
 var oldManShop = ds.NewInventoryWithItems([]*ds.InventoryRow{
 	ds.NewInventoryRow(*items.FaerieDust, 100),
-	ds.NewInventoryRow(*items.RustyKey, 100),
 })
 
 var Defaults = map[int]Npc{

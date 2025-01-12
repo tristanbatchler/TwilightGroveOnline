@@ -15,7 +15,9 @@ layout_mode = 2
 size_flags_horizontal = 4
 
 [node name="TitleSeparator" type="HSeparator" parent="."]
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/separation = 10
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
@@ -29,6 +31,7 @@ bbcode_enabled = true
 fit_content = true
 
 [node name="HSeparator" type="HSeparator" parent="."]
+visible = false
 layout_mode = 2
 
 [node name="ContinuePrompt" type="RichTextLabel" parent="."]
