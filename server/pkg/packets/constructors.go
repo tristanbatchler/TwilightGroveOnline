@@ -66,6 +66,7 @@ func NewActor(actor *objs.Actor) Msg {
 			Name:          actor.Name,
 			SpriteRegionX: actor.SpriteRegionX,
 			SpriteRegionY: actor.SpriteRegionY,
+			IsVip:         actor.IsVip,
 		},
 	}
 }
@@ -126,6 +127,7 @@ func NewItem(item *objs.Item) Msg {
 			SpriteRegionX: item.SpriteRegionX,
 			SpriteRegionY: item.SpriteRegionY,
 			ToolProps:     NewToolProps(item.ToolProps),
+			GrantsVip:     item.GrantsVip,
 		},
 	}
 }

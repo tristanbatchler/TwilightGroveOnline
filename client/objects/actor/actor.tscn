@@ -96,11 +96,11 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_kvhoe"]
 _data = {
-&"harvest_right": SubResource("Animation_c5r4i"),
+&"RESET": SubResource("Animation_5fdic"),
 &"harvest_down": SubResource("Animation_k3skb"),
 &"harvest_left": SubResource("Animation_rcya1"),
 &"harvest_up": SubResource("Animation_2t0lw"),
-&"RESET": SubResource("Animation_5fdic")
+&"harvest_right": SubResource("Animation_c5r4i")
 }
 
 [node name="Actor" type="CharacterBody2D"]

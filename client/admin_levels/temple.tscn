@@ -251,6 +251,7 @@ region_rect = Rect2(72, 40, 8, 8)
 item_name = "Ring of Fortitude"
 description = "A beautiful band of gold and ruby. Inscribed is a message in the native Grove tongue: \"Strength is not the absense of struggle; rather the mental fortitude to endure it\". It pulses faintly with warmth, as if the gratitude of a healed soul resides within."
 value = 1000000
+grants_vip = true
 
 [node name="Door" parent="." instance=ExtResource("4_6o3t1")]
 position = Vector2(-24, 40)

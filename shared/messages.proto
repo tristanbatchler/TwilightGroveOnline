@@ -51,6 +51,7 @@ message Actor {
     string name = 5;
     int32 sprite_region_x = 6;
     int32 sprite_region_y = 7;
+    bool is_vip = 8;
 }
 
 message ActorMove {
@@ -129,6 +130,7 @@ message Item {
     int32 sprite_region_x = 4;
     int32 sprite_region_y = 5;
     ToolProps tool_props = 6;
+    bool grants_vip = 7;
 }
 
 message GroundItem {

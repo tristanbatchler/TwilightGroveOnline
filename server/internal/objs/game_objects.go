@@ -13,6 +13,7 @@ type Actor struct {
 	SkillsXp                     map[skills.Skill]uint32
 	DbId                         int32
 	IsNpc                        bool
+	IsVip                        bool
 }
 
 func NewActor(levelId int32, x, y int32, name string, spriteRegionX int32, spriteRegionY int32, dbId int32) *Actor {
@@ -98,6 +99,7 @@ type Item struct {
 	Value                        int32
 	SpriteRegionX, SpriteRegionY int32
 	ToolProps                    *props.ToolProps
+	GrantsVip                    bool
 	DbId                         int32
 }
 

@@ -190,10 +190,10 @@ func _on_send_button_pressed() -> void:
 		if GameManager.client_id in _actors:
 			var player := _actors[GameManager.client_id]
 			if is_yelling:
-				_log.yell("You", entered_text)
+				_log.yell("You", player.is_vip, entered_text)
 				player.chat(entered_text.to_upper())
 			else:
-				_log.chat("You", entered_text)
+				_log.chat("You", player.is_vip, entered_text)
 				player.chat(entered_text)
 
 	_line_edit.clear()
@@ -255,14 +255,14 @@ func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 		var actor := _actors[sender_id]
 		var message := chat.get_msg()
 		actor.chat(message)
-		_log.chat(actor.actor_name, message)
+		_log.chat(actor.actor_name, actor.is_vip, message)
 
 func _handle_yell(sender_id: int, yell: Packets.Yell) -> void:
 	if sender_id in _actors: 
 		var actor := _actors[sender_id]
 		var message := yell.get_msg()
 		actor.chat(message.to_upper())
-		_log.yell(actor.actor_name, message)
+		_log.yell(actor.actor_name, actor.is_vip, message)
 
 func _handle_actor(sender_id: int, actor: Packets.Actor) -> void:
 	var x := actor.get_x()
@@ -270,21 +270,23 @@ func _handle_actor(sender_id: int, actor: Packets.Actor) -> void:
 	var actor_name := actor.get_name()
 	var sprite_region_x := actor.get_sprite_region_x()
 	var sprite_region_y := actor.get_sprite_region_y()
+	var is_vip := actor.get_is_vip()
 	
 	if sender_id in _actors:
-		_update_actor(sender_id, x, y)
+		_update_actor(sender_id, x, y, is_vip)
 	else:
-		_add_new_actor(sender_id, x, y, actor_name, sprite_region_x, sprite_region_y)
+		_add_new_actor(sender_id, x, y, actor_name, sprite_region_x, sprite_region_y, is_vip)
 	
-func _update_actor(actor_id: int, x: int, y: int) -> void:
+func _update_actor(actor_id: int, x: int, y: int, is_vip: bool) -> void:
 	var actor := _actors[actor_id]
+	actor.is_vip = is_vip
 	var dx := x - actor.x
 	var dy := y - actor.y
 	actor.move(dx, dy)
 	
-func _add_new_actor(actor_id: int, x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int) -> void:
+func _add_new_actor(actor_id: int, x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_vip: bool) -> void:
 	var is_player := actor_id == GameManager.client_id
-	var actor := Actor.instantiate(x, y, actor_name, sprite_region_x, sprite_region_y, is_player)
+	var actor := Actor.instantiate(x, y, actor_name, sprite_region_x, sprite_region_y, is_player, is_vip)
 	if _world_tilemap_layer != null:
 		_actors[actor_id] = actor
 		actor.place(_world_tilemap_layer)

@@ -424,6 +424,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 		SpriteRegionX:    itemMsg.SpriteRegionX,
 		SpriteRegionY:    itemMsg.SpriteRegionY,
 		ToolPropertiesID: toolPropsId,
+		GrantsVip:        itemMsg.GrantsVip,
 	})
 
 	if err != nil {
@@ -434,6 +435,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 				Value:         itemMsg.Value,
 				SpriteRegionX: itemMsg.SpriteRegionX,
 				SpriteRegionY: itemMsg.SpriteRegionY,
+				GrantsVip:     itemMsg.GrantsVip,
 			})
 			if err != nil {
 				return err

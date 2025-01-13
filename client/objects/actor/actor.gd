@@ -30,6 +30,14 @@ var sprite_region_x: int
 var sprite_region_y: int
 
 var is_player: bool
+var is_vip: bool:
+	set(value):
+		is_vip = value
+		if is_node_ready():
+			if is_vip:
+				_name_plate.add_theme_color_override("font_color", Color.html("8AEBB5"))
+			else:
+				_name_plate.remove_theme_color_override("font_color")
 
 var _world_tile_size := Vector2i(1, 1)
 
@@ -45,7 +53,7 @@ var _world_tile_size := Vector2i(1, 1)
 @onready var _sprite: Sprite2D = $Sprite2D
 
 
-static func instantiate(x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_player: bool) -> Actor:
+static func instantiate(x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_player: bool, is_vip: bool) -> Actor:
 	var actor := Scene.instantiate() as Actor
 	actor.x = x
 	actor.y = y
@@ -53,6 +61,7 @@ static func instantiate(x: int, y: int, actor_name: String, sprite_region_x: int
 	actor.sprite_region_x = sprite_region_x
 	actor.sprite_region_y = sprite_region_y
 	actor.is_player = is_player
+	actor.is_vip = is_vip
 	return actor
 	
 func place(world: TileMapLayer) -> void:
@@ -70,6 +79,9 @@ func _ready() -> void:
 	_chat_timer.timeout.connect(_chat_label.hide)
 	
 	_animation_player.stop()
+	
+	if is_vip:
+		_name_plate.add_theme_color_override("font_color", Color.html("8AEBB5"))
 	
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_player:

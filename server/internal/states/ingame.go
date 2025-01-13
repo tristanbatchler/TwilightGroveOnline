@@ -59,6 +59,11 @@ func (g *InGame) OnEnter() {
 
 	g.client.SharedGameObjects().Actors.Add(g.player, g.client.Id())
 
+	// Load auxiliary data
+	g.loadInventory()
+	g.loadSkillsXp()
+	g.loadIsVip() // Must occur after loading inventory as it depends on the presence of VIP-granting items
+
 	// Send our client info about all the other actors in the level (including ourselves!)
 	ourPlayerInfo := packets.NewActor(g.player)
 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, actor *objs.Actor) {
@@ -69,12 +74,8 @@ func (g *InGame) OnEnter() {
 		}
 	})
 
-	// Load and send our inventory
-	g.loadInventory()
+	// Send auxiliary data to the client
 	g.sendInventory()
-
-	// Load and send our skills XP
-	g.loadSkillsXp()
 	g.sendSkillsXp()
 
 	// Send our info back to all the other clients in the level
@@ -286,6 +287,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		Value:         groundItem.Item.Value,
 		SpriteRegionX: groundItem.Item.SpriteRegionX,
 		SpriteRegionY: groundItem.Item.SpriteRegionY,
+		GrantsVip:     groundItem.Item.GrantsVip,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
@@ -617,6 +619,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 		Value:         itemMsg.Value,
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
+		GrantsVip:     itemMsg.GrantsVip,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item from the database: %v", err)
@@ -1087,6 +1090,24 @@ func (g *InGame) loadSkillsXp() {
 	}
 
 	g.logger.Printf("Loaded skills XP")
+}
+
+func (g *InGame) loadIsVip() {
+	// If we hold a special item, or are an admin, we are a VIP
+	if g.isAdmin() {
+		g.player.IsVip = true
+		return
+	}
+
+	g.inventory.ForEach(func(item *objs.Item, quantity uint32) {
+		if g.player.IsVip {
+			return
+		}
+		if item.GrantsVip && quantity > 0 {
+			g.player.IsVip = true
+			return
+		}
+	})
 }
 
 func (g *InGame) sendSkillsXp() {

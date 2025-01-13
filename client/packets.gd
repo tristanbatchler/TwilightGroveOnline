@@ -1141,6 +1141,11 @@ class Actor:
 		service.field = _sprite_region_y
 		data[_sprite_region_y.tag] = service
 		
+		_is_vip = PBField.new("is_vip", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = _is_vip
+		data[_is_vip.tag] = service
+		
 	var data = {}
 	
 	var _id: PBField
@@ -1196,6 +1201,15 @@ class Actor:
 		_sprite_region_y.value = DEFAULT_VALUES_3[PB_DATA_TYPE.INT32]
 	func set_sprite_region_y(value : int) -> void:
 		_sprite_region_y.value = value
+	
+	var _is_vip: PBField
+	func get_is_vip() -> bool:
+		return _is_vip.value
+	func clear_is_vip() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_is_vip.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_is_vip(value : bool) -> void:
+		_is_vip.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)
@@ -1994,6 +2008,11 @@ class Item:
 		service.func_ref = Callable(self, "new_tool_props")
 		data[_tool_props.tag] = service
 		
+		_grants_vip = PBField.new("grants_vip", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 7, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = _grants_vip
+		data[_grants_vip.tag] = service
+		
 	var data = {}
 	
 	var _name: PBField
@@ -2050,6 +2069,15 @@ class Item:
 	func new_tool_props() -> ToolProps:
 		_tool_props.value = ToolProps.new()
 		return _tool_props.value
+	
+	var _grants_vip: PBField
+	func get_grants_vip() -> bool:
+		return _grants_vip.value
+	func clear_grants_vip() -> void:
+		data[7].state = PB_SERVICE_STATE.UNFILLED
+		_grants_vip.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_grants_vip(value : bool) -> void:
+		_grants_vip.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

@@ -7,6 +7,7 @@ const Scene: PackedScene = preload("res://objects/item/item.tscn")
 @export var description: String
 @export var value: int
 @export var tool_properties: ToolProperties
+@export var grants_vip: bool
 
 var sprite_region_x: int
 var sprite_region_y: int

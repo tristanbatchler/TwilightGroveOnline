@@ -205,16 +205,16 @@ WHERE id = $1 LIMIT 1;
 
 -- name: CreateItemIfNotExists :one
 INSERT INTO items (
-    name, description, value, sprite_region_x, sprite_region_y, tool_properties_id
+    name, description, value, sprite_region_x, sprite_region_y, tool_properties_id, grants_vip
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6, $7
 )
-ON CONFLICT (name, description, value, sprite_region_x, sprite_region_y) DO NOTHING
+ON CONFLICT (name, description, value, sprite_region_x, sprite_region_y, grants_vip) DO NOTHING
 RETURNING *;
 
 -- name: GetItem :one
 SELECT * FROM items
-WHERE name = $1 AND description = $2 AND value = $3 AND sprite_region_x = $4 AND sprite_region_y = $5
+WHERE name = $1 AND description = $2 AND value = $3 AND sprite_region_x = $4 AND sprite_region_y = $5 and grants_vip = $6
 LIMIT 1;
 
 -- name: GetItemById :one
@@ -285,6 +285,7 @@ SELECT
     i.sprite_region_x, 
     i.sprite_region_y, 
     i.tool_properties_id,
+    i.grants_vip,
     ai.quantity 
 FROM items i
 JOIN actors_inventory ai ON i.id = ai.item_id

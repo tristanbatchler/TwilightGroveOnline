@@ -491,6 +491,7 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 		Value:         itemMsg.Value,
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
+		GrantsVip:     itemMsg.GrantsVip,
 	})
 	if err != nil {
 		log.Printf("Failed to get item: %v", err)
@@ -590,6 +591,7 @@ func (h *Hub) addDefaultItems() {
 			SpriteRegionX:    item.SpriteRegionX,
 			SpriteRegionY:    item.SpriteRegionY,
 			ToolPropertiesID: toolPropertiesId,
+			GrantsVip:        item.GrantsVip,
 		})
 		if err != nil && err != pgx.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)
@@ -601,6 +603,7 @@ func (h *Hub) addDefaultItems() {
 				Value:         item.Value,
 				SpriteRegionX: item.SpriteRegionX,
 				SpriteRegionY: item.SpriteRegionY,
+				GrantsVip:     item.GrantsVip,
 			})
 			if err != nil {
 				log.Fatalf("Error getting default item %s: %v", item.Name, err)
@@ -625,6 +628,7 @@ func (h *Hub) addDefaultNpcs() {
 					Value:         item.Value,
 					SpriteRegionX: item.SpriteRegionX,
 					SpriteRegionY: item.SpriteRegionY,
+					GrantsVip:     item.GrantsVip,
 				})
 				if err != nil {
 					log.Fatalf("Error getting item %d for NPC %d: %v", item.DbId, id, err)

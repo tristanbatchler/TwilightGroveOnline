@@ -51,6 +51,7 @@ type Item struct {
 	SpriteRegionX    int32
 	SpriteRegionY    int32
 	ToolPropertiesID pgtype.Int4
+	GrantsVip        bool
 }
 
 type Level struct {

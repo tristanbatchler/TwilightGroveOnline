@@ -18,8 +18,14 @@ func error(message: String) -> void:
 func success(message: String) -> void:
 	_message(message, Color.html("8AEBB5"))
 	
-func chat(sender_name: String, message: String) -> void:
-	_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message])
+func chat(sender_name: String, is_vip: bool, message: String) -> void:
+	if is_vip:
+		success("[rainbow]%s:[/rainbow] [i]%s[/i]" % [sender_name, message])
+	else:
+		_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message])
 
-func yell(sender_name: String, message: String) -> void:
-	_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message.to_upper()])
+func yell(sender_name: String, is_vip: bool, message: String) -> void:
+	if is_vip:
+		success("[rainbow]%s:[/rainbow] [i]%s[/i]" % [sender_name, message.to_upper()])
+	else:
+		_message("[color=#6d5da6]%s:[/color] [i]%s[/i]" % [sender_name, message.to_upper()])
