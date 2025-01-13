@@ -842,6 +842,24 @@ func (g *InGame) handleSellRequest(senderId uint32, message *packets.Packet_Sell
 	// 	return
 	// }
 
+	requiredItemQty := uint32(message.SellRequest.Quantity)
+	if requiredItemQty <= 0 {
+		g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, errors.New("Must have a positive quantity to sell")))
+		return
+	}
+
+	// Check we have enough of the item to sell
+	itemObj, err := g.itemObjFromMessage(message.SellRequest.Item)
+	if err != nil {
+		g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, errors.New("Can't sell that item right now")))
+		return
+	}
+	ownedItemQty := g.inventory.GetItemQuantity(*itemObj)
+	if ownedItemQty < requiredItemQty {
+		g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, errors.New("Don't have enough of that item to sell")))
+		return
+	}
+
 	g.client.PassToPeer(message, shopOwnerActorId)
 }
 
@@ -851,19 +869,19 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 		return
 	}
 
-	itemQtyMsg := message.SellResponse.ItemQty
-
-	itemObj, err := g.itemObjFromMessage(itemQtyMsg.Item)
+	itemObj, err := g.itemObjFromMessage(message.SellResponse.ItemQty.Item)
 	if err != nil {
 		g.client.SocketSendAs(packets.NewSellResponse(false, message.SellResponse.ShopOwnerActorId, nil, errors.New("Can't sell that item right now")), senderId)
 		return
 	}
 
-	g.removeInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
+	itemQty := message.SellResponse.ItemQty.Quantity
+
+	g.removeInventoryItem(*itemObj, uint32(itemQty))
 
 	// Award the player with some gold equal to the item's value
-	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value))
-	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, itemObj.Value))
+	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value*itemQty))
+	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, itemObj.Value*itemQty))
 
 	g.client.SocketSendAs(message, senderId)
 }

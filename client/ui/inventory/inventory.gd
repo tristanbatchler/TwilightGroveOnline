@@ -19,7 +19,7 @@ func add(item: Item, quantity: int) -> void:
 		_rows[item.item_name] = row
 		
 		# Connect the new row's drop signal
-		row.drop_button_pressed.connect(func(): item_dropped.emit(row.item, 1))
+		row.drop_button_pressed.connect(func(shift_pressed: bool): item_dropped.emit(row.item, 10**int(Input.is_key_pressed(KEY_SHIFT))))
 		
 		# If this was the first item added, set the selected index
 		if len(_rows) == 1:

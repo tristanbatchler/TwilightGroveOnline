@@ -9,7 +9,7 @@ const Item := preload("res://objects/item/item.gd")
 @onready var _drop_button: Button = $PanelContainer/DropButton
 @onready var _item: Sprite2D = $PanelContainer/DropButton/MarginContainer/SubViewportContainer/SubViewport/Item
 
-signal drop_button_pressed()
+signal drop_button_pressed(shift_held: bool)
 
 var item: Item
 var item_quantity: int:
@@ -31,7 +31,7 @@ static func instantiate(item: Item, item_quantity: int, labelless: bool = false)
 	return inventory_row
 
 func _ready() -> void:
-	_drop_button.pressed.connect(drop_button_pressed.emit)
+	_drop_button.pressed.connect(_on_drop_button_pressed)
 	_quantity_label.text = str(item_quantity)
 	
 	if item != null:
@@ -47,6 +47,8 @@ func _ready() -> void:
 			tooltip_text = "%s\n%s" % [item.item_name, tooltip_text]
 			_drop_button.tooltip_text = "%s\n%s" % [item.item_name, _drop_button.tooltip_text]
 			
+func _on_drop_button_pressed() -> void:
+	drop_button_pressed.emit(Input.is_key_pressed(KEY_SHIFT))
 
 func set_selected(selected: bool) -> void:
 	selected = selected

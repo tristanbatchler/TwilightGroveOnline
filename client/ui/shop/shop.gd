@@ -43,7 +43,7 @@ func add(item: Item, quantity: int) -> void:
 		_tiles[item.item_name] = tile
 		
 		# Connect the new tile's buy signal
-		tile.drop_button_pressed.connect(func(): item_purchased.emit(_owner_actor_id, tile.item, 1))
+		tile.drop_button_pressed.connect(func(shift_pressed: bool): item_purchased.emit(_owner_actor_id, tile.item, 10**int(shift_pressed)))
 
 func remove(item_name: String, quantity: int) -> void:
 	if item_name in _tiles:
