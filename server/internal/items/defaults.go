@@ -36,9 +36,12 @@ var rustyKeyToolProps = props.NewToolProps(1, 1, props.NoneHarvestable, 0, 0)
 
 var Defaults = map[string]*objs.Item{
 	// DbId of 0 will be checked for to signal the actual ID needs to be looked up
-	logsKey:       objs.NewItem("Logs", "Logs from a sturdy natural wood.", 5, 128, 24, nil, false, 0),
-	rocksKey:      objs.NewItem("Rocks", "Rocks from a sturdy natural ore.", 5, 128, 80, nil, false, 0),
-	goldBarsKey:   objs.NewItem("Golden bars", "Pure gold formed into perfect ingots and stamped with the royal seal. Offical currency of the realm.", 1, 64, 80, nil, false, 0),
+	logsKey:  objs.NewItem("Logs", "Logs from a sturdy natural wood.", 5, 128, 24, nil, false, 0),
+	rocksKey: objs.NewItem("Rocks", "Rocks from a sturdy natural ore.", 5, 128, 80, nil, false, 0),
+
+	// The name of this item is hardcoded into the client, so if this changes, the client must also be updated. #TODO: This is bad.
+	goldBarsKey: objs.NewItem("Golden bars", "Pure gold formed into perfect ingots and stamped with the royal seal. Offical currency of the realm.", 1, 64, 80, nil, false, 0),
+
 	faerieDustKey: objs.NewItem("Faerie dust", "A pinch of faerie dust. It sparkles and glows with a magical light. Some say it has healing properties.", 10_000, 72, 80, nil, false, 0),
 	rustyKeyKey:   objs.NewItem("Rusty key", "A rusty old key. Who knows what this is for.", 0, 80, 40, rustyKeyToolProps, false, 0),
 

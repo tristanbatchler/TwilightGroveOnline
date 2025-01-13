@@ -16,6 +16,13 @@ func _ready() -> void:
 	_update_ui_visibility()
 
 	_continue_prompt_label.meta_clicked.connect(_on_continue_clicked)
+	
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		if event.is_action_released("ui_accept"):
+			_on_continue_clicked("next")
+		elif event.is_action_released("ui_cancel"):
+			_close_dialogue()
 
 func set_title(title: String) -> void:
 	_title_label.text = title
@@ -33,9 +40,7 @@ func _on_continue_clicked(meta):
 		GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 		_current_line_idx += 1
 		if _current_line_idx >= _dialogue_lines.size():
-			set_dialogue_lines([""])
-			set_title("")
-			finished_dialogue.emit()
+			_close_dialogue()
 		_update_ui_visibility()
 		_update_dialogue_text()
 
@@ -46,3 +51,8 @@ func _update_ui_visibility() -> void:
 	var has_dialogue = not _dialogue_text_label.text.is_empty()
 	_continue_prompt_label.visible = has_dialogue
 	_h_separator.visible = has_dialogue
+
+func _close_dialogue():
+	set_dialogue_lines([""])
+	set_title("")
+	finished_dialogue.emit()

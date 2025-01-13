@@ -70,6 +70,9 @@ use_hidden_tabs_for_min_size = true
 [node name="Chat" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_vertical = 10
+focus_neighbor_right = NodePath("../Inventory")
+focus_neighbor_bottom = NodePath("HBoxContainer/LineEdit")
+focus_next = NodePath("../Inventory")
 metadata/_tab_index = 0
 
 [node name="Log" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat"]
@@ -99,6 +102,8 @@ text = "Send"
 [node name="Inventory" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
 visible = false
 layout_mode = 2
+focus_neighbor_left = NodePath("../Chat")
+focus_previous = NodePath("../Chat")
 metadata/_tab_index = 1
 
 [node name="Inventory" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory" instance=ExtResource("4_wlbng")]
@@ -107,6 +112,10 @@ layout_mode = 2
 [node name="Dialogue" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer" instance=ExtResource("6_hysag")]
 visible = false
 layout_mode = 2
+focus_neighbor_left = NodePath("../Inventory")
+focus_neighbor_bottom = NodePath("../Chat/HBoxContainer/LineEdit")
+focus_next = NodePath("../Chat/HBoxContainer/LineEdit")
+focus_previous = NodePath("../Inventory")
 metadata/_tab_index = 2
 
 [node name="LevelTransition" type="ColorRect" parent="CanvasLayer"]

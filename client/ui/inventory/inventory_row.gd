@@ -53,7 +53,8 @@ func _on_drop_button_pressed() -> void:
 func set_selected(selected: bool) -> void:
 	selected = selected
 	if is_node_ready():
-		if selected:
-			_name_label.add_theme_color_override("font_color", Color.html("8AEBB5"))
-		else:
-			_name_label.remove_theme_color_override("font_color")
+		for label in [_name_label, _quantity_label]:
+			if selected:
+				label.add_theme_color_override("font_color", Color.html("8AEBB5"))
+			else:
+				label.remove_theme_color_override("font_color")

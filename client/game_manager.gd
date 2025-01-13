@@ -45,6 +45,7 @@ var _harvestables_classes: Dictionary[Harvestable, Variant] = {
 	Harvestable.ORE: Ore,
 }
 
+# Numbers must match Harvestable enum in shared/messages.proto!
 var _ids_harvestables: Dictionary[int, Harvestable] = {
 	0: Harvestable.NONE,
 	1: Harvestable.SHRUB,

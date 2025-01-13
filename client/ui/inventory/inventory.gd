@@ -21,10 +21,10 @@ func add(item: Item, quantity: int) -> void:
 		# Connect the new row's drop signal
 		row.drop_button_pressed.connect(func(shift_pressed: bool): item_dropped.emit(row.item, 10**int(Input.is_key_pressed(KEY_SHIFT))))
 		
-		# If this was the first item added, set the selected index
-		if len(_rows) == 1:
-			_selected_idx = 0
-			_set_selected_row_selected(true)
+	# If this was the first item added, set the selected index
+	if len(_rows) == 1:
+		_selected_idx = 0
+		_set_selected_row_selected(true)
 
 func remove(item_name: String, quantity: int) -> void:
 	if item_name in _rows:
@@ -58,10 +58,14 @@ func _input(event: InputEvent) -> void:
 		_set_selected_row_selected(false)
 		var num_rows := len(_rows)
 		
-		if event.is_action_released("ui_up"):
-			_selected_idx = (_selected_idx - 1) % num_rows
-		elif event.is_action_released("ui_down"):
-			_selected_idx = (_selected_idx + 1) % num_rows
+		if event.is_action_released("ui_up", true):
+			_selected_idx -= 1
+			if _selected_idx < 0:
+				_selected_idx = num_rows - 1
+		elif event.is_action_released("ui_down", true):
+			_selected_idx += 1
+			if _selected_idx >= num_rows:
+				_selected_idx = 0
 		_set_selected_row_selected(true)
 
 func get_selected_row() -> InventoryRow:

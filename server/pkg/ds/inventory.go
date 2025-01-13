@@ -27,7 +27,9 @@ func HashItem(item objs.Item) int {
 	hash += 17 * item.SpriteRegionX
 	hash += 31 * item.SpriteRegionY
 	if item.ToolProps != nil {
-		hash += 37 * item.ToolProps.KeyId
+		if item.ToolProps.KeyId >= 0 {
+			hash += 37 * item.ToolProps.KeyId
+		}
 		hash += 41 * item.ToolProps.LevelRequired
 		hash += 43 * item.ToolProps.Strength
 		if item.ToolProps.Harvests != nil {
@@ -40,6 +42,9 @@ func HashItem(item objs.Item) int {
 				hash += 59
 			}
 		}
+	}
+	if item.GrantsVip {
+		hash += 61
 	}
 	return int(hash)
 }

@@ -21,6 +21,7 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/Experience
 
 @onready var _tab_container: TabContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer
+@onready var _chat: VBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
 @onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
 @onready var _dialogue_box: DialogueBox = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Dialogue
@@ -79,21 +80,21 @@ func _input(event: InputEvent) -> void:
 			_stop_harvesting()
 			_talk_to_nearby_actor()
 		
-		for dir in DIRECTIONS:
-			if event.is_action_pressed(dir):
-				_keyboard_move_held += DIRECTIONS[dir]
-		
-		# Keyboard movement
-		#if event is InputEventKey:
-			#input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
-			#input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
-			#input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
-			#input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
-			#if input_dir != Vector2i.ZERO:
-				#_stop_harvesting()
-			#
-			#if player.at_target():
-				#player.move_and_send(input_dir)
+		for inp in DIRECTIONS:
+			if event.is_action_pressed(inp, false, true): # Exact match required to avoid modifiers
+				_keyboard_move_held += DIRECTIONS[inp]
+
+		# Cycle between tabs
+		if not _shop.visible:
+			if event.is_action_released("ui_left"):
+				_tab_container.select_previous_available()
+			elif event.is_action_released("ui_right"):
+				_tab_container.select_next_available()
+			# TODO: Allow cycling instead of stopping at last available
+			elif event.is_action_released("ui_focus_next"):
+				_tab_container.select_next_available()
+			elif event.is_action_released("ui_focus_prev"):
+				_tab_container.select_previous_available()
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player: Actor = null
@@ -762,7 +763,7 @@ func _process(delta: float) -> void:
 	
 	# Keyboard movement
 	for inp in DIRECTIONS:
-		if Input.is_action_just_released(inp):
+		if Input.is_action_just_released(inp, true): # Exact match required to avoid modifiers
 			_keyboard_move_held -= DIRECTIONS[inp]
 	
 	if _keyboard_move_held != Vector2.ZERO and player.at_target():
@@ -813,7 +814,20 @@ func _process(delta: float) -> void:
 					
 			
 func _pickup_nearby_ground_item() -> void:
-	if GameManager.client_id in _actors:
+	# If we are shopping, treat the pickup ground item button as a buy item button
+	if _shop.visible:
+		var shop_tile := _shop.get_selected_tile()
+		var packet := Packets.Packet.new()
+		var buy_request_msg := packet.new_buy_request()
+		_set_item_msg_from_obj(buy_request_msg, shop_tile.item)
+		var buy_amt := 10**int(Input.is_key_pressed(KEY_SHIFT))
+		buy_request_msg.set_quantity(buy_amt)
+		buy_request_msg.set_shop_owner_actor_id(_shop.get_owner_actor_id())
+		WS.send(packet)
+		return
+		
+	# Else, just pickup the ground item as usual
+	elif GameManager.client_id in _actors:
 		var player := _actors[GameManager.client_id]
 		var ground_item := player.get_ground_item_standing_on()
 		if ground_item != null:
