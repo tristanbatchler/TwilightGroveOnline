@@ -311,7 +311,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item := ground_item.item
 		_log.info("You found a %s." % item.item_name)
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
-		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties)
+		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties, item.grants_vip)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 		GameManager.play_sound(GameManager.SingleSound.PICKUP)
@@ -442,19 +442,8 @@ func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorI
 		
 func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = false, from_shop: bool = false) -> void:
 	var item_msg := item_qty_msg.get_item()
-	var item_name := item_msg.get_name()
-	var item_description := item_msg.get_description()
-	var item_value := item_msg.get_value()
 	var qty := item_qty_msg.get_quantity()
-	var tool_props_msg := item_msg.get_tool_props()
-	var tool_properties: ToolProperties = null
-	if tool_props_msg != null:
-		tool_properties = ToolProperties.new()
-		tool_properties.strength = tool_props_msg.get_strength()
-		tool_properties.level_required = tool_props_msg.get_level_required()
-		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_props_msg.get_harvests())
-		tool_properties.key_id = tool_props_msg.get_key_id()
-	var item := Item.instantiate(item_name, item_description, item_value, item_msg.get_sprite_region_x(), item_msg.get_sprite_region_y(), tool_properties)
+	var item := _get_item_obj_from_msg(item_msg)
 	
 	if from_shop:
 		if qty > 0:
@@ -469,7 +458,7 @@ func _handle_item_quantity(item_qty_msg: Packets.ItemQuantity, from_inv: bool = 
 		_inventory.remove(item.item_name, -qty)
 
 	if not from_inv and qty > 0:
-		_log.info("You found %s %s" % [qty, item_name])
+		_log.info("You found %s %s" % [qty, item.item_name])
 
 func _remove_actor(actor_id: int) -> void:
 	if actor_id in _actors:
@@ -528,6 +517,7 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 	item_msg.set_value(item.value)
 	item_msg.set_sprite_region_x(item.sprite_region_x)
 	item_msg.set_sprite_region_y(item.sprite_region_y)
+	item_msg.set_grants_vip(item.grants_vip)
 	
 	var tool_properties := item.tool_properties
 	if tool_properties != null:
@@ -554,8 +544,9 @@ func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
 		tool_properties.level_required = tool_properties_msg.get_level_required()
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
 		tool_properties.key_id = tool_properties_msg.get_key_id()
+	var grants_vip := item_msg.get_grants_vip()
 	
-	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties)
+	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties, grants_vip)
 
 func _drop_item(item: Item, item_qty: int) -> void:
 	# If we are shopping, we actually want this to sell the item

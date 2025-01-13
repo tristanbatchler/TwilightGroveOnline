@@ -335,7 +335,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	// })
 
 	// Add the item to the player's inventory
-	g.addInventoryItem(*groundItem.Item, 1)
+	g.addInventoryItem(*groundItem.Item, 1, true)
 
 	// Start the respawn time
 	if groundItem.RespawnSeconds > 0 {
@@ -508,7 +508,7 @@ func (g *InGame) chopDownShrub(message *packets.Packet_ChopShrubRequest, shrub *
 	// Award the player with some logs after a tiny delay
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		g.addInventoryItem(*items.Logs, 1)
+		g.addInventoryItem(*items.Logs, 1, true)
 		g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
 	}()
 }
@@ -607,7 +607,7 @@ func (g *InGame) mineOre(message *packets.Packet_MineOreRequest, ore *objs.Ore) 
 	// Award the player with some rocks after a tiny delay
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		g.addInventoryItem(*items.Rocks, 1)
+		g.addInventoryItem(*items.Rocks, 1, true)
 		g.client.SocketSend(packets.NewItemQuantity(items.Rocks, 1))
 	}()
 }
@@ -640,7 +640,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 		}
 	}
 
-	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.ID), nil
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ID), nil
 }
 
 func (g *InGame) questFromMessage(questInfoMsg *packets.QuestInfo) (*quests.Quest, error) {
@@ -822,7 +822,7 @@ func (g *InGame) handleBuyResponse(senderId uint32, message *packets.Packet_BuyR
 		return
 	}
 
-	g.addInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity))
+	g.addInventoryItem(*itemObj, uint32(itemQtyMsg.Quantity), true)
 	g.removeInventoryItem(*items.GoldBars, uint32(itemObj.Value)*uint32(itemQtyMsg.Quantity))
 
 	g.client.SocketSendAs(message, senderId)
@@ -883,7 +883,7 @@ func (g *InGame) handleSellResponse(senderId uint32, message *packets.Packet_Sel
 	g.removeInventoryItem(*itemObj, uint32(itemQty))
 
 	// Award the player with some gold equal to the item's value
-	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value*itemQty))
+	g.addInventoryItem(*items.GoldBars, uint32(itemObj.Value*itemQty), true)
 	g.client.SocketSend(packets.NewItemQuantity(items.GoldBars, itemObj.Value*itemQty))
 
 	g.client.SocketSendAs(message, senderId)
@@ -963,7 +963,7 @@ func (g *InGame) handleQuestInfo(senderId uint32, message *packets.Packet_QuestI
 
 			go g.client.SocketSendAs(packets.NewNpcDialogue(message.QuestInfo.CompletedDialogue.Dialogue), senderId)
 
-			g.addInventoryItem(*rewardItem, 1)
+			g.addInventoryItem(*rewardItem, 1, true)
 			go g.client.SocketSendAs(packets.NewItemQuantity(rewardItem, 1), senderId)
 		}
 	} else {
@@ -1062,8 +1062,8 @@ func (g *InGame) loadInventory() {
 	g.inventory = ds.NewInventory()
 	for _, itemModel := range invItems {
 		toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
-		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.ItemID)
-		g.addInventoryItem(*item, uint32(itemModel.Quantity))
+		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ItemID)
+		g.addInventoryItem(*item, uint32(itemModel.Quantity), false) // Don't add to DB because we're loading from it
 	}
 	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())
 }
@@ -1195,22 +1195,34 @@ func (g *InGame) isOtherKnown(otherId uint32) bool {
 	return false
 }
 
-func (g *InGame) addInventoryItem(item objs.Item, quantity uint32) {
+func (g *InGame) addInventoryItem(item objs.Item, quantity uint32, addToDb bool) {
 	g.inventory.AddItem(item, quantity)
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		g.queries.AddActorInventoryItem(ctx, db.AddActorInventoryItemParams{
-			ActorID:  g.player.DbId,
-			ItemID:   item.DbId,
-			Quantity: int32(quantity),
-		})
-	}()
+	if item.GrantsVip {
+		g.player.IsVip = true
+		go g.client.SocketSend(packets.NewActor(g.player))
+	}
+
+	if addToDb {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			g.queries.AddActorInventoryItem(ctx, db.AddActorInventoryItemParams{
+				ActorID:  g.player.DbId,
+				ItemID:   item.DbId,
+				Quantity: int32(quantity),
+			})
+		}()
+	}
 }
 
 func (g *InGame) removeInventoryItem(item objs.Item, quantity uint32) {
 	qtyRemaining := g.inventory.RemoveItem(item, quantity)
+
+	if item.GrantsVip {
+		g.player.IsVip = false
+		go g.client.SocketSend(packets.NewActor(g.player))
+	}
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -103,7 +103,7 @@ type Item struct {
 	DbId                         int32
 }
 
-func NewItem(name string, description string, value, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, dbId int32) *Item {
+func NewItem(name string, description string, value, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, grantsVip bool, dbId int32) *Item {
 	return &Item{
 		Name:          name,
 		Description:   description,
@@ -111,6 +111,7 @@ func NewItem(name string, description string, value, spriteRegionX, spriteRegion
 		SpriteRegionX: spriteRegionX,
 		SpriteRegionY: spriteRegionY,
 		ToolProps:     toolProps,
+		GrantsVip:     grantsVip,
 		DbId:          dbId,
 	}
 }

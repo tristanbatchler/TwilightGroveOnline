@@ -12,7 +12,7 @@ const Scene: PackedScene = preload("res://objects/item/item.tscn")
 var sprite_region_x: int
 var sprite_region_y: int
 
-static func instantiate(item_name: String, description: String, value: int, sprite_region_x: int, sprite_region_y: int, tool_properties: ToolProperties) -> Item:
+static func instantiate(item_name: String, description: String, value: int, sprite_region_x: int, sprite_region_y: int, tool_properties: ToolProperties, grants_vip: bool) -> Item:
 	var item := Scene.instantiate()
 	item.item_name = item_name
 	item.description = description
@@ -20,6 +20,7 @@ static func instantiate(item_name: String, description: String, value: int, spri
 	item.tool_properties = tool_properties
 	item.sprite_region_x = sprite_region_x
 	item.sprite_region_y = sprite_region_y
+	item.grants_vip = grants_vip
 	return item
 	
 func _ready() -> void:

@@ -257,7 +257,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 			}
 		}
 
-		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, 0)
+		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemMsg.GrantsVip, 0)
 		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds), nil
 	}
 
