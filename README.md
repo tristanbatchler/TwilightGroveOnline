@@ -105,3 +105,6 @@
 - [ ] Make some items untreadable and not droppable
 - [ ] Profanity filter for username registration
 - [ ] More lenient profanity filter for chat
+- [ ] Fix blurry font on resized windows
+- [ ] Add keyboard control hints
+- [ ] Add keyboard rebinds in settings

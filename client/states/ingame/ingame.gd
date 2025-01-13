@@ -34,7 +34,15 @@ var _shrubs: Dictionary[int, Shrub]
 var _ores: Dictionary[int, Ore]
 var _doors: Dictionary[int, Door]
 
-var _left_click_held: bool = false
+var _left_click_held := false
+var _keyboard_move_held := Vector2.ZERO
+
+const DIRECTIONS := {
+	&"move_right": Vector2.RIGHT,
+	&"move_down": Vector2.DOWN,
+	&"move_left": Vector2.LEFT,
+	&"move_up": Vector2.UP,
+}
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
@@ -48,7 +56,6 @@ func _ready() -> void:
 	
 #
 func _input(event: InputEvent) -> void:
-	var input_dir := Vector2i.ZERO
 	if event is InputEventKey:
 		var player: Actor = null
 		if GameManager.client_id in _actors:
@@ -72,15 +79,21 @@ func _input(event: InputEvent) -> void:
 			_stop_harvesting()
 			_talk_to_nearby_actor()
 		
-		input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
-		input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
-		input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
-		input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
-		if input_dir != Vector2i.ZERO:
-			_stop_harvesting()
+		for dir in DIRECTIONS:
+			if event.is_action_pressed(dir):
+				_keyboard_move_held += DIRECTIONS[dir]
 		
-		if player.at_target():
-			player.move_and_send(input_dir)
+		# Keyboard movement
+		#if event is InputEventKey:
+			#input_dir.x = int(event.is_action("move_right")) - int(event.is_action("move_left"))
+			#input_dir.x -= int(event.is_action("ui_right")) - int(event.is_action("ui_left"))
+			#input_dir.y = int(event.is_action("move_down")) - int(event.is_action("move_up"))
+			#input_dir.y -= int(event.is_action("ui_down")) - int(event.is_action("ui_up"))
+			#if input_dir != Vector2i.ZERO:
+				#_stop_harvesting()
+			#
+			#if player.at_target():
+				#player.move_and_send(input_dir)
 
 func _unhandled_input(event: InputEvent) -> void:
 	var player: Actor = null
@@ -744,13 +757,26 @@ func _process(delta: float) -> void:
 			_level_transition.color.a += 0.05
 		else:
 			_level_transition.hide()
+			
+	var should_move_in_dir := Vector2.ZERO
+	
+	# Keyboard movement
+	for inp in DIRECTIONS:
+		if Input.is_action_just_released(inp):
+			_keyboard_move_held -= DIRECTIONS[inp]
+	
+	if _keyboard_move_held != Vector2.ZERO and player.at_target():
+		_stop_harvesting()
+		should_move_in_dir = _keyboard_move_held
+		if should_move_in_dir.x != 0 and should_move_in_dir.y != 0:
+			should_move_in_dir.x = 0
+		
 	
 	# Mobile movement	
 	if Input.is_action_just_released("left_click"):
 		_left_click_held = false
 	
 	if _left_click_held and player.at_target():
-		
 		if pos_diff.length_squared() > 100:
 			var strongest_dir: Vector2 = Util.argmax(
 				[Vector2.RIGHT,       Vector2.DOWN,        Vector2.LEFT,         Vector2.UP          ],
@@ -758,30 +784,32 @@ func _process(delta: float) -> void:
 			)
 			
 			_stop_harvesting()
+			should_move_in_dir = strongest_dir
 			
-			var door_at_target: Door = null
-			for door_id in _doors:
-				var door := _doors[door_id]
-				if door.x == player.x + strongest_dir.x and door.y == player.y + strongest_dir.y:
-					door_at_target = door
+	if should_move_in_dir != Vector2.ZERO:
+		var door_at_target: Door = null
+		for door_id in _doors:
+			var door := _doors[door_id]
+			if door.x == player.x + should_move_in_dir.x and door.y == player.y + should_move_in_dir.y:
+				door_at_target = door
+				break
+				
+		if door_at_target == null or not door_at_target.locked:
+			player.move_and_send(should_move_in_dir)
+		
+		else:
+			var key_id := door_at_target.key_id
+			var has_key := false
+			for item in _inventory.get_items():
+				if item.tool_properties != null and item.tool_properties.key_id == key_id:
+					has_key = true
 					break
 					
-			if door_at_target == null or not door_at_target.locked:
-				player.move_and_send(strongest_dir)
-			
+			if has_key:
+				player.move_and_send(should_move_in_dir)
 			else:
-				var key_id := door_at_target.key_id
-				var has_key := false
-				for item in _inventory.get_items():
-					if item.tool_properties != null and item.tool_properties.key_id == key_id:
-						has_key = true
-						break
-						
-				if has_key:
-					player.move_and_send(strongest_dir)
-				else:
-					_nag_message("This door is locked.")
-					_left_click_held = false
+				_nag_message("This door is locked.")
+				_left_click_held = false
 					
 			
 func _pickup_nearby_ground_item() -> void:
