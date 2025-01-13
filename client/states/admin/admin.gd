@@ -17,6 +17,9 @@ const GroundItem := preload("res://objects/ground_item/ground_item.gd")
 @onready var _upload_level_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/Nav/UploadLevelButton
 @onready var _level_browser: FileDialog = $CanvasLayer/MarginContainer/VBoxContainer/LevelBrowser
 
+func _make_custom_tooltip(for_text: String) -> Object:
+	return GameManager.get_custom_tooltip(for_text)
+
 func _ready() -> void:
 	_logout_button.pressed.connect(_on_logout_button_pressed)
 	_join_game_button.pressed.connect(_on_join_game_button_pressed)

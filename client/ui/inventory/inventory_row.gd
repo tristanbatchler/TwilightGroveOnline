@@ -30,6 +30,9 @@ static func instantiate(item: Item, item_quantity: int, labelless: bool = false)
 	inventory_row.labelless = labelless
 	return inventory_row
 
+func _make_custom_tooltip(for_text: String) -> Object:
+	return GameManager.get_custom_tooltip(for_text)
+
 func _ready() -> void:
 	_drop_button.pressed.connect(_on_drop_button_pressed)
 	_quantity_label.text = str(item_quantity)

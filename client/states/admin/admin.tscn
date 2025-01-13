@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://dvjuacs5yy4f4"]
+[gd_scene load_steps=7 format=3 uid="uid://dvjuacs5yy4f4"]
 
 [ext_resource type="Script" path="res://states/admin/admin.gd" id="1_irqig"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="1_slhgr"]
 [ext_resource type="PackedScene" uid="uid://iclenkh4oour" path="res://ui/sql_console/sql_console.tscn" id="3_6q754"]
 [ext_resource type="Script" path="res://ui/log/log.gd" id="3_18qp0"]
+[ext_resource type="Script" path="res://ui/hint_button/hint_button.gd" id="3_pettn"]
 [ext_resource type="PackedScene" uid="uid://bn1mqtxr8ohag" path="res://ui/level_browser/level_browser.tscn" id="4_vd6dk"]
 
 [node name="Admin" type="Node"]
@@ -32,6 +33,7 @@ layout_mode = 2
 [node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
 text = "Logout"
+script = ExtResource("3_pettn")
 
 [node name="VSeparator" type="VSeparator" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
@@ -42,6 +44,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Opens an console to run remote SQL on the server's database directly. No hand holding!"
 text = "SQL Console"
+script = ExtResource("3_pettn")
 
 [node name="UploadLevelButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
@@ -49,12 +52,14 @@ tooltip_text = "Upload a Godot level to the server.
 The server will store this as the main game level to send to players upon login."
 text = "Upload Level
 "
+script = ExtResource("3_pettn")
 
 [node name="JoinGameButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/Nav"]
 layout_mode = 2
 size_flags_horizontal = 10
 tooltip_text = "Enter the game as a player with special privileges"
 text = "Join Game"
+script = ExtResource("3_pettn")
 
 [node name="SqlConsole" parent="CanvasLayer/MarginContainer/VBoxContainer" instance=ExtResource("3_6q754")]
 visible = false

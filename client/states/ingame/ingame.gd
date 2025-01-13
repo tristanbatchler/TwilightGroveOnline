@@ -86,9 +86,9 @@ func _input(event: InputEvent) -> void:
 
 		# Cycle between tabs
 		if not _shop.visible:
-			if event.is_action_released("ui_left"):
+			if event.is_action_released("ui_left", true):
 				_tab_container.select_previous_available()
-			elif event.is_action_released("ui_right"):
+			elif event.is_action_released("ui_right", true):
 				_tab_container.select_next_available()
 			# TODO: Allow cycling instead of stopping at last available
 			elif event.is_action_released("ui_focus_next"):

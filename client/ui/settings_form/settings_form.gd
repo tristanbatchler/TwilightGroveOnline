@@ -35,7 +35,10 @@ func _ready() -> void:
 	_original_ui_scale = saved_ui_scale
 	_apply_ui_scale(_original_ui_scale)
 	_ui_scale_option_button.select(_ui_scale_to_idx(_original_ui_scale))
-	
+
+func _make_custom_tooltip(for_text: String) -> Object:
+	return GameManager.get_custom_tooltip(for_text)
+
 func _on_sfx_volume_h_slider_changed(value: float) -> void:
 	_sfx_volume = value
 	_sfx_volume_h_slider.tooltip_text = str(value) + "%"

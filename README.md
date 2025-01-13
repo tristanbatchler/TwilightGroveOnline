@@ -108,3 +108,4 @@
 - [ ] Fix blurry font on resized windows
 - [ ] Add keyboard control hints
 - [ ] Add keyboard rebinds in settings
+- [ ] Make NPCs move again

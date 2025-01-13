@@ -181,3 +181,10 @@ func stop_looped_sound() -> void:
 		return
 	if _audio_stream_player.stream in _looped_sounds_resources.values():
 		_audio_stream_player.stop()
+
+func get_custom_tooltip(for_text: String) -> Object:
+	# TODO: If I really feel like it, see if we can make a custom instantiate static function for tooltip.gd
+	# but for now, it doesn't seem to be working and I don't think I'm likely to rename this script, so hardcoding is fine
+	var tooltip := preload("res://ui/tooltip/tooltip.tscn").instantiate()
+	tooltip.text = for_text
+	return tooltip
