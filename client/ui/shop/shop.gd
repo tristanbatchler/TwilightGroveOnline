@@ -17,6 +17,11 @@ signal closed()
 func _ready() -> void:
 	_close_button.pressed.connect(closed.emit)
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		if event.is_action_released("ui_cancel"):
+			closed.emit()
+
 func set_title(new_title: String) -> void:
 	_title.text = new_title
 	
