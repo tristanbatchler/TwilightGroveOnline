@@ -516,7 +516,7 @@ func _remove_ground_item(ground_item_id: int) -> void:
 
 func _drop_selected_item() -> void:
 	var selected_inventory_row := _inventory.get_selected_row()
-	var item_qty := 1#selected_inventory_row.item_quantity
+	var item_qty := 10**int(Input.is_key_pressed(KEY_SHIFT))
 	
 	if selected_inventory_row == null:
 		_log.error("No inventory item selected, can't drop")

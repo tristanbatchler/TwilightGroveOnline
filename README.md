@@ -112,4 +112,4 @@
 - [ ] Make NPCs move again, but only when not in range of a player (and refactor duplicated move logic)
 - [ ] Figure out weird tools spawning with Harvestable_NONE set, messing up sync between inventory
 - [x] Figure out weird keyboard sometimes jumping 2x
-- [ ] Hold shift while using keyboard controls to buy/sell in multiples of 10
+- [x] Hold shift while using keyboard controls to buy/sell in multiples of 10
