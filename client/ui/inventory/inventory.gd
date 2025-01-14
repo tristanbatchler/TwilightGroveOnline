@@ -11,6 +11,12 @@ var _selected_idx: int = -1
 
 signal item_dropped(item: Item, quantity: int)
 
+func stringname_sorter(a: StringName, b: StringName) -> bool:
+		if a.naturalnocasecmp_to(b) < 0:
+			return true
+		return false
+	
+
 func add(item: Item, quantity: int) -> void:
 	if item.item_name in _rows:
 		var row := _rows[item.item_name]
@@ -26,7 +32,8 @@ func add(item: Item, quantity: int) -> void:
 	# If this was the first item added, set the selected index
 	if len(_rows) == 1:
 		_selected_idx = 0
-		_set_selected_row_selected(true)
+		
+	_sort()
 
 func remove(item_name: String, quantity: int) -> void:
 	if item_name in _rows:
@@ -34,13 +41,17 @@ func remove(item_name: String, quantity: int) -> void:
 		row.item_quantity -= quantity
 		if row.item_quantity <= 0:
 			_rows.erase(item_name)
+			_vbox.remove_child(row)
 			row.queue_free()
-			var num_rows := len(_rows)
-			if num_rows > 0:
-				_selected_idx = (_selected_idx + 1) % num_rows
-				_set_selected_row_selected(true)
-			else:
-				_selected_idx = -1
+			#var num_rows := len(_rows)
+			#if num_rows > 0:
+				#_selected_idx = (_selected_idx + 1) % num_rows
+				#_set_selected_row_selected(true)
+			#else:
+				#_selected_idx = -1
+			
+			_selected_idx -= 1
+			_sort()
 
 func get_quantity(item_name: String) -> int:
 	if item_name not in _rows:
@@ -50,7 +61,9 @@ func get_quantity(item_name: String) -> int:
 
 func clear() -> void:
 	for item_name in _rows:
-		_rows[item_name].queue_free()
+		var row := _rows[item_name]
+		_vbox.remove_child(row)
+		row.queue_free()
 	_rows.clear()
 	
 func _input(event: InputEvent) -> void:
@@ -73,8 +86,12 @@ func _input(event: InputEvent) -> void:
 func get_selected_row() -> InventoryRow:
 	if len(_rows) <= 0:
 		return null
+		
+	var item_names := _rows.keys()
+	item_names.sort_custom(stringname_sorter)
+			
 	var i := 0
-	for item_name in _rows:
+	for item_name in item_names:
 		if i == _selected_idx:
 			return _rows[item_name]
 		i += 1
@@ -93,4 +110,39 @@ func get_items() -> Array[Item]:
 		var inv_row := _rows[row_name]
 		if inv_row.item != null and inv_row.item_quantity > 0:
 			items.append(inv_row.item)
+	items.sort_custom(func(a: Item, b: Item) -> bool:
+		if a.item_name.naturalnocasecmp_to(b.item_name) < 0:
+			return true
+		return false
+	)
 	return items
+
+func _sort() -> void:
+	# Save the item at the selected index
+	var selected_item_name := get_selected_row().item.item_name
+	
+	# Remove all children
+	for item_name in _rows:
+		var row := _rows[item_name]
+		_vbox.remove_child(row)
+	
+	# Get a list of item names in _rows and sort it
+	var item_names := _rows.keys()
+	item_names.sort_custom(stringname_sorter)
+	
+	# Add all the children back
+	# and bring back the recalculated selected index based off the saved item
+	var found_selected_item := false
+	_selected_idx = 0
+	for item_name in item_names:
+		_vbox.add_child(_rows[item_name])
+		if item_name != selected_item_name and not found_selected_item:
+			_selected_idx += 1
+		elif item_name == selected_item_name:
+			found_selected_item = true
+		
+		# Might as well make sure only one item is selected while we're here
+		if item_name != selected_item_name:
+			_rows[item_name].selected = false
+	
+	_set_selected_row_selected(true)

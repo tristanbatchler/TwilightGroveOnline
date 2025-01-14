@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://b34vntdhsm4su"]
+[gd_scene load_steps=2 format=3 uid="uid://b34vntdhsm4su"]
 
 [ext_resource type="Script" path="res://ui/inventory/inventory.gd" id="1_b7411"]
-[ext_resource type="PackedScene" uid="uid://d0lp1xh615hj6" path="res://ui/inventory/inventory_row.tscn" id="1_hesmb"]
 
 [node name="Inventory" type="ScrollContainer"]
 anchors_preset = 15
@@ -16,8 +15,3 @@ script = ExtResource("1_b7411")
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="InventoryRow" parent="VBoxContainer" instance=ExtResource("1_hesmb")]
-visible = false
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
