@@ -18,7 +18,6 @@ import (
 type NpcWithDialogue struct {
 	client         central.ClientInterfacer
 	Npc            *npcs.Npc
-	Moves          bool
 	othersInLevel  []uint32
 	initialX       int32
 	initialY       int32
@@ -109,7 +108,7 @@ func (n *NpcWithDialogue) handleActorInfo(senderId uint32, _ *packets.Packet_Act
 	}
 
 	// Start the move loop if it hasn't been started yet
-	if n.Moves && n.cancelMoveLoop == nil {
+	if n.Npc.Moves && n.cancelMoveLoop == nil {
 		ctx, cancel := context.WithCancel(context.Background())
 		n.cancelMoveLoop = cancel
 		go n.moveLoop(ctx)
@@ -155,6 +154,7 @@ func (n *NpcWithDialogue) isOtherKnown(otherId uint32) bool {
 	return false
 }
 
+// TODO: This is duplicate code from npc_merchant.go. Refactor this into a common place.
 func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 	sleepTime := 2 * time.Second
 	previousDx := int32(0)
@@ -189,18 +189,46 @@ func (n *NpcWithDialogue) moveLoop(ctx context.Context) {
 			} else if rand.IntN(5) == 1 {
 				sleepTime = time.Duration(5+rand.IntN(5)) * time.Second // 20% chance to wait between 5 and 10 seconds
 			} else {
-				sleepTime = time.Duration(200+rand.IntN(800)) * time.Millisecond // Otherwise, wait between 200ms and 1s
+				sleepTime = time.Duration(1+rand.IntN(5)) * time.Second // Otherwise, wait between 200ms and 1s
 			}
 
 			// Don't move if it's going to cause them to stray too far from their initial position
-			if n.Npc.Actor.X+dx < n.initialX-10 || n.Npc.Actor.X+dx > n.initialX+10 {
+			if n.Npc.Actor.X+dx < n.initialX-5 || n.Npc.Actor.X+dx > n.initialX+5 {
 				dx = 0
 			}
-			if n.Npc.Actor.Y+dy < n.initialY-10 || n.Npc.Actor.Y+dy > n.initialY+10 {
+			if n.Npc.Actor.Y+dy < n.initialY-5 || n.Npc.Actor.Y+dy > n.initialY+5 {
 				dy = 0
 			}
 
 			if dx == 0 && dy == 0 {
+				continue
+			}
+
+			// Don't move if there is a player within 3 squares of the NPC because they could be trying to interact
+			playerTooClose := false
+			for _, id := range n.othersInLevel {
+				actor, exists := n.client.SharedGameObjects().Actors.Get(id)
+				if !exists {
+					continue
+				}
+
+				// Don't care about NPCs
+				if actor.IsNpc {
+					continue
+				}
+
+				if actor.LevelId != n.Npc.LevelId { // This should never happen since we're looping through the othersInLevel map but it doesn't hurt to check
+					continue
+				}
+
+				if actor.X > n.Npc.Actor.X-3 && actor.X < n.Npc.Actor.X+3 && actor.Y > n.Npc.Actor.Y-3 && actor.Y < n.Npc.Actor.Y+3 {
+					playerTooClose = true
+					break
+				}
+			}
+
+			if playerTooClose {
+				n.logger.Printf("Player is too close to NPC, not moving")
 				continue
 			}
 

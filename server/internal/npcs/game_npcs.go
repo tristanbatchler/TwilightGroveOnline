@@ -13,9 +13,10 @@ type Npc struct {
 	Actor   *objs.Actor
 	Quest   *quests.Quest
 	Shop    *ds.Inventory
+	Moves   bool
 }
 
-func NewNpcQuestGiver(id int, levelId int32, actor *objs.Actor, quest *quests.Quest) Npc {
+func NewNpcQuestGiver(id int, levelId int32, actor *objs.Actor, quest *quests.Quest, moves bool) Npc {
 	if actor == nil {
 		panic("Actor cannot be nil")
 	}
@@ -24,10 +25,11 @@ func NewNpcQuestGiver(id int, levelId int32, actor *objs.Actor, quest *quests.Qu
 		LevelId: levelId,
 		Actor:   actor,
 		Quest:   quest,
+		Moves:   moves,
 	}
 }
 
-func NewNpcShopkeeper(id int, levelId int32, actor *objs.Actor, shop *ds.Inventory) Npc {
+func NewNpcShopkeeper(id int, levelId int32, actor *objs.Actor, shop *ds.Inventory, moves bool) Npc {
 	if actor == nil {
 		panic("Actor cannot be nil")
 	}
@@ -36,5 +38,6 @@ func NewNpcShopkeeper(id int, levelId int32, actor *objs.Actor, shop *ds.Invento
 		LevelId: levelId,
 		Actor:   actor,
 		Shop:    shop,
+		Moves:   moves,
 	}
 }

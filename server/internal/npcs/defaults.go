@@ -55,12 +55,12 @@ var oldManShop = ds.NewInventoryWithItems([]*ds.InventoryRow{
 })
 
 var Defaults = map[int]Npc{
-	rickertKey: NewNpcQuestGiver(rickertKey, 1, objs.NewActor(1, 21, 6, "Rickert", 48, 0, 0), rickertQuest),
-	gusKey:     NewNpcQuestGiver(gusKey, 1, objs.NewActor(1, 21, 11, "Gus", 40, 8, 0), gusQuest),
-	oscarKey:   NewNpcQuestGiver(oscarKey, 3, objs.NewActor(3, -6, 1, "Oscar", 40, 0, 0), oscarQuest),
-	mudKey:     NewNpcShopkeeper(mudKey, 1, objs.NewActor(1, 3, 13, "Mud", 96, 0, 0), mudShop),
-	dezzickKey: NewNpcShopkeeper(dezzickKey, 2, objs.NewActor(2, 2, 4, "Dezzick", 32, 0, 0), dezzickShop),
-	oldManKey:  NewNpcShopkeeper(oldManKey, 1, objs.NewActor(1, 34, 10, "Old man", 72, 0, 0), oldManShop),
+	rickertKey: NewNpcQuestGiver(rickertKey, 1, objs.NewActor(1, 21, 6, "Rickert", 48, 0, 0), rickertQuest, true),
+	gusKey:     NewNpcQuestGiver(gusKey, 1, objs.NewActor(1, 21, 11, "Gus", 40, 8, 0), gusQuest, true),
+	oscarKey:   NewNpcQuestGiver(oscarKey, 3, objs.NewActor(3, -6, 1, "Oscar", 40, 0, 0), oscarQuest, false),
+	mudKey:     NewNpcShopkeeper(mudKey, 1, objs.NewActor(1, 3, 13, "Mud", 96, 0, 0), mudShop, true),
+	dezzickKey: NewNpcShopkeeper(dezzickKey, 2, objs.NewActor(2, 2, 4, "Dezzick", 32, 0, 0), dezzickShop, true),
+	oldManKey:  NewNpcShopkeeper(oldManKey, 1, objs.NewActor(1, 34, 10, "Old man", 72, 0, 0), oldManShop, true),
 }
 
 var Rickert = Defaults[rickertKey]
