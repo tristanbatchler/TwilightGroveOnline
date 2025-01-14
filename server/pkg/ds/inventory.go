@@ -46,6 +46,9 @@ func HashItem(item objs.Item) int {
 	if item.GrantsVip {
 		hash += 61
 	}
+	if item.Tradeable {
+		hash += 67
+	}
 	return int(hash)
 }
 

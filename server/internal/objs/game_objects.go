@@ -101,9 +101,10 @@ type Item struct {
 	ToolProps                    *props.ToolProps
 	GrantsVip                    bool
 	DbId                         int32
+	Tradeable                    bool
 }
 
-func NewItem(name string, description string, value, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, grantsVip bool, dbId int32) *Item {
+func NewItem(name string, description string, value, spriteRegionX, spriteRegionY int32, toolProps *props.ToolProps, grantsVip bool, tradeable bool, dbId int32) *Item {
 	return &Item{
 		Name:          name,
 		Description:   description,
@@ -112,6 +113,7 @@ func NewItem(name string, description string, value, spriteRegionX, spriteRegion
 		SpriteRegionY: spriteRegionY,
 		ToolProps:     toolProps,
 		GrantsVip:     grantsVip,
+		Tradeable:     tradeable,
 		DbId:          dbId,
 	}
 }

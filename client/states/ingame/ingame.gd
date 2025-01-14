@@ -327,7 +327,7 @@ func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.Pi
 		var item := ground_item.item
 		_log.info("You found a %s." % item.item_name)
 		# Prevent ground_item.item from being garbage collected after the ground_item is freed?
-		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties, item.grants_vip)
+		var item_copy := Item.instantiate(item.item_name, item.description, item.value, item.sprite_region_x, item.sprite_region_y, item.tool_properties, item.grants_vip, item.tradeable)
 		_inventory.add(item_copy, 1)
 		_remove_ground_item(ground_item_id)
 		GameManager.play_sound(GameManager.SingleSound.PICKUP)
@@ -534,6 +534,7 @@ func _set_item_msg_from_obj(receiver: Variant, item: Item) -> Packets.Item:
 	item_msg.set_sprite_region_x(item.sprite_region_x)
 	item_msg.set_sprite_region_y(item.sprite_region_y)
 	item_msg.set_grants_vip(item.grants_vip)
+	item_msg.set_tradeable(item.tradeable)
 	
 	var tool_properties := item.tool_properties
 	if tool_properties != null:
@@ -561,8 +562,9 @@ func _get_item_obj_from_msg(item_msg: Packets.Item) -> Item:
 		tool_properties.harvests = GameManager.get_harvestable_enum_from_int(tool_properties_msg.get_harvests())
 		tool_properties.key_id = tool_properties_msg.get_key_id()
 	var grants_vip := item_msg.get_grants_vip()
+	var tradeable := item_msg.get_tradeable()
 	
-	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties, grants_vip)
+	return Item.instantiate(item_name, description, value, sprite_region_x, sprite_region_y, tool_properties, grants_vip, tradeable)
 
 func _drop_item(item: Item, item_qty: int) -> void:
 	# If we are shopping, we actually want this to sell the item

@@ -294,7 +294,7 @@ func (h *Hub) Run(adminPassword string) {
 				}
 				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, keyId, toolPropsModel.ID)
 			}
-			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ID)
+			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.Tradeable, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, model.RespawnSeconds), nil
 		},
 	)
@@ -492,6 +492,7 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
 		GrantsVip:     itemMsg.GrantsVip,
+		Tradeable:     itemMsg.Tradeable,
 	})
 	if err != nil {
 		log.Printf("Failed to get item: %v", err)
@@ -500,7 +501,7 @@ func (h *Hub) itemMsgToObj(itemMsg *packets.Item) (*objs.Item, error) {
 
 	toolProps := getToolPropsFromInt4Id(queries, itemModel.ToolPropertiesID)
 
-	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ID), nil
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.Tradeable, itemModel.ID), nil
 }
 
 func (h *Hub) addQuestToDb(quest *quests.Quest) {
@@ -592,6 +593,7 @@ func (h *Hub) addDefaultItems() {
 			SpriteRegionY:    item.SpriteRegionY,
 			ToolPropertiesID: toolPropertiesId,
 			GrantsVip:        item.GrantsVip,
+			Tradeable:        item.Tradeable,
 		})
 		if err != nil && err != pgx.ErrNoRows {
 			log.Fatalf("Error creating default item %s: %v", item.Name, err)
@@ -604,6 +606,7 @@ func (h *Hub) addDefaultItems() {
 				SpriteRegionX: item.SpriteRegionX,
 				SpriteRegionY: item.SpriteRegionY,
 				GrantsVip:     item.GrantsVip,
+				Tradeable:     item.Tradeable,
 			})
 			if err != nil {
 				log.Fatalf("Error getting default item %s: %v", item.Name, err)
@@ -629,6 +632,7 @@ func (h *Hub) addDefaultNpcs() {
 					SpriteRegionX: item.SpriteRegionX,
 					SpriteRegionY: item.SpriteRegionY,
 					GrantsVip:     item.GrantsVip,
+					Tradeable:     item.Tradeable,
 				})
 				if err != nil {
 					log.Fatalf("Error getting item %d for NPC %d: %v", item.DbId, id, err)

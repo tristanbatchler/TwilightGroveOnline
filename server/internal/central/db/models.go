@@ -52,6 +52,7 @@ type Item struct {
 	SpriteRegionY    int32
 	ToolPropertiesID pgtype.Int4
 	GrantsVip        bool
+	Tradeable        bool
 }
 
 type Level struct {

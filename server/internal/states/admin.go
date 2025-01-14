@@ -257,7 +257,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 			}
 		}
 
-		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemMsg.GrantsVip, 0)
+		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemMsg.GrantsVip, itemMsg.Tradeable, 0)
 		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds), nil
 	}
 
@@ -425,6 +425,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 		SpriteRegionY:    itemMsg.SpriteRegionY,
 		ToolPropertiesID: toolPropsId,
 		GrantsVip:        itemMsg.GrantsVip,
+		Tradeable:        itemMsg.Tradeable,
 	})
 
 	if err != nil {
@@ -436,6 +437,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 				SpriteRegionX: itemMsg.SpriteRegionX,
 				SpriteRegionY: itemMsg.SpriteRegionY,
 				GrantsVip:     itemMsg.GrantsVip,
+				Tradeable:     itemMsg.Tradeable,
 			})
 			if err != nil {
 				return err

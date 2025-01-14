@@ -86,7 +86,8 @@ CREATE TABLE IF NOT EXISTS items (
     sprite_region_y INTEGER NOT NULL,
     tool_properties_id INTEGER REFERENCES tool_properties(id) ON DELETE SET NULL, -- set tool_properties_id to NULL when tool_properties with id tool_properties_id is deleted
     grants_vip BOOLEAN NOT NULL DEFAULT FALSE,
-    CONSTRAINT unique_item_combination UNIQUE (name, description, value, sprite_region_x, sprite_region_y, grants_vip)
+    tradeable BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT unique_item_combination UNIQUE (name, description, value, sprite_region_x, sprite_region_y, grants_vip, tradeable)
 );
 
 CREATE TABLE IF NOT EXISTS levels_ground_items (

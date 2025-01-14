@@ -2013,6 +2013,11 @@ class Item:
 		service.field = _grants_vip
 		data[_grants_vip.tag] = service
 		
+		_tradeable = PBField.new("tradeable", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 8, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = _tradeable
+		data[_tradeable.tag] = service
+		
 	var data = {}
 	
 	var _name: PBField
@@ -2078,6 +2083,15 @@ class Item:
 		_grants_vip.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
 	func set_grants_vip(value : bool) -> void:
 		_grants_vip.value = value
+	
+	var _tradeable: PBField
+	func get_tradeable() -> bool:
+		return _tradeable.value
+	func clear_tradeable() -> void:
+		data[8].state = PB_SERVICE_STATE.UNFILLED
+		_tradeable.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_tradeable(value : bool) -> void:
+		_tradeable.value = value
 	
 	func _to_string() -> String:
 		return PBPacker.message_to_string(data)

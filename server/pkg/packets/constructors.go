@@ -128,6 +128,7 @@ func NewItem(item *objs.Item) Msg {
 			SpriteRegionY: item.SpriteRegionY,
 			ToolProps:     NewToolProps(item.ToolProps),
 			GrantsVip:     item.GrantsVip,
+			Tradeable:     item.Tradeable,
 		},
 	}
 }

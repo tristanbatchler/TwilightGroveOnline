@@ -131,6 +131,7 @@ message Item {
     int32 sprite_region_y = 5;
     ToolProps tool_props = 6;
     bool grants_vip = 7;
+    bool tradeable = 8;
 }
 
 message GroundItem {

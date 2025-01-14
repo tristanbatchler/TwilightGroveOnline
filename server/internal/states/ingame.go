@@ -301,6 +301,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		SpriteRegionX: groundItem.Item.SpriteRegionX,
 		SpriteRegionY: groundItem.Item.SpriteRegionY,
 		GrantsVip:     groundItem.Item.GrantsVip,
+		Tradeable:     groundItem.Item.Tradeable,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
@@ -635,6 +636,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 		SpriteRegionX: itemMsg.SpriteRegionX,
 		SpriteRegionY: itemMsg.SpriteRegionY,
 		GrantsVip:     itemMsg.GrantsVip,
+		Tradeable:     itemMsg.Tradeable,
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item from the database: %v", err)
@@ -655,7 +657,7 @@ func (g *InGame) itemObjFromMessage(itemMsg *packets.Item) (*objs.Item, error) {
 		}
 	}
 
-	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ID), nil
+	return objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.Tradeable, itemModel.ID), nil
 }
 
 func (g *InGame) questFromMessage(questInfoMsg *packets.QuestInfo) (*quests.Quest, error) {
@@ -1077,7 +1079,7 @@ func (g *InGame) loadInventory() {
 	g.inventory = ds.NewInventory()
 	for _, itemModel := range invItems {
 		toolProps := g.client.UtilFunctions().ToolPropsFromInt4Id(itemModel.ToolPropertiesID)
-		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.ItemID)
+		item := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.Tradeable, itemModel.ItemID)
 		g.addInventoryItem(*item, uint32(itemModel.Quantity), false) // Don't add to DB because we're loading from it
 	}
 	g.logger.Printf("Loaded inventory with %d rows", g.inventory.GetNumRows())
