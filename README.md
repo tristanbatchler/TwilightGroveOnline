@@ -88,7 +88,7 @@
 - [x] Allow support for multiple items in LevelPointMap stacked on top of each other
 - [x] Smooth camera zooming
 - [ ] Pinch to zoom on mobile
-- [ ] Scroll down inventory when selecting items with the keyboard
+- [x] Scroll down inventory when selecting items with the keyboard
 - [ ] Rearrange DB schema so that the tool_properties table has a foreign key to the items table instead of the other way around
 - [x] Fix bug where dropping a tool doesn't work
     - Is going to require re-thinking how the inventory is stored in server memory

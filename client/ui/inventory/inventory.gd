@@ -1,5 +1,7 @@
-extends VBoxContainer
+extends ScrollContainer
 class_name Inventory
+
+@onready var _vbox: VBoxContainer = $VBoxContainer
 
 const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 const Item := preload("res://objects/item/item.gd")
@@ -15,7 +17,7 @@ func add(item: Item, quantity: int) -> void:
 		row.item_quantity += quantity
 	else:
 		var row := InventoryRow.instantiate(item, quantity)
-		add_child(row)
+		_vbox.add_child(row)
 		_rows[item.item_name] = row
 		
 		# Connect the new row's drop signal
@@ -83,6 +85,7 @@ func _set_selected_row_selected(selected: bool) -> void:
 	var selected_row := get_selected_row()
 	if selected_row != null:
 		selected_row.set_selected(selected)
+		selected_row.grab_focus()
 
 func get_items() -> Array[Item]:
 	var items: Array[Item] = []

@@ -23,7 +23,8 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @onready var _tab_container: TabContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer
 @onready var _chat: VBoxContainer = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/Log
-@onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory/Inventory
+@onready var _inventory: Inventory = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Inventory
+
 @onready var _dialogue_box: DialogueBox = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Dialogue
 
 var _world: Node2D
