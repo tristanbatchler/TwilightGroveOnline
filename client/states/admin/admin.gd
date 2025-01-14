@@ -139,6 +139,7 @@ func _on_level_browser_file_selected(path: String) -> void:
 			item_msg.set_sprite_region_x(node.item.region_rect.position.x)
 			item_msg.set_sprite_region_y(node.item.region_rect.position.y)
 			item_msg.set_grants_vip(node.item.grants_vip)
+			item_msg.set_tradeable(node.item.tradeable)
 			
 			if node.item.tool_properties != null:
 				var tool_props_msg := item_msg.new_tool_props()
