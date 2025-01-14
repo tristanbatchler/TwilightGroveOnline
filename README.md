@@ -107,8 +107,8 @@
 - [ ] Profanity filter for username registration
 - [ ] More lenient profanity filter for chat
 - [ ] Fix blurry font on resized windows
-- [ ] Add keyboard control hints
-- [ ] Add keyboard rebinds in settings
+- [x] Add keyboard control hints
+- [x] Add keyboard rebinds in settings
 - [ ] Make NPCs move again, but only when not in range of a player (and refactor duplicated move logic)
 - [ ] Figure out weird tools spawning with Harvestable_NONE set, messing up sync between inventory
 - [x] Figure out weird keyboard sometimes jumping 2x

@@ -163,8 +163,22 @@ func set_config(key: ConfigKey, value: Variant) -> void:
 func get_config(key: ConfigKey, default: Variant = null) -> Variant:
 	return _config.get_value("global", _config_key_names[key], default)
 
+func set_config_key_binding(action: StringName, value: InputEventKey) -> void:
+	_config.set_value("input", action, var_to_str(value))
+	_config.save(_config_path)
+
+func get_config_key_binding(action: StringName, default: Variant = "") -> InputEvent:
+	var key: Variant = _config.get_value("input", action, default)
+	if typeof(key) != TYPE_STRING:
+		printerr("Config input key %s is not a string" % action)
+	return str_to_var(key) as InputEvent
+
 func clear_config(key: ConfigKey) -> void:
 	_config.erase_section_key("global", _config_key_names[key])
+	_config.save(_config_path)
+	
+func clear_config_key_binding(action: StringName) -> void:
+	_config.erase_section_key("input", action)
 	_config.save(_config_path)
 
 func play_sound(sound: SingleSound) -> void:

@@ -748,13 +748,13 @@ func _process(delta: float) -> void:
 				if actor == null:
 					_ground_hint_label.text = ""#"(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y]
 				else:
-					_ground_hint_label.text = actor.actor_name
+					_ground_hint_label.text = "Talk to %s (%s)" % [actor.actor_name, InputMap.action_get_events(&"talk")[0].as_text()]
 			else:
-				_ground_hint_label.text = GameManager.strengths_ores[ore.strength]
+				_ground_hint_label.text = "Mine %s (%s)" % [GameManager.strengths_ores[ore.strength], InputMap.action_get_events(&"harvest")[0].as_text()]
 		else:
-			_ground_hint_label.text  = GameManager.strengths_shrubs[shrub.strength]
+			_ground_hint_label.text  = "Chop %s (%s)" % [GameManager.strengths_shrubs[shrub.strength], InputMap.action_get_events(&"harvest")[0].as_text()]
 	else:
-		_ground_hint_label.text = ground_item.item.item_name
+		_ground_hint_label.text = "Grab %s (%s)" % [ground_item.item.item_name, InputMap.action_get_events(&"pickup_item")[0].as_text()]
 	
 	# Level transition effect
 	if _level_transition.visible:

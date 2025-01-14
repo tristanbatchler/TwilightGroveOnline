@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://cxc5en8cac0x3"]
+[gd_scene load_steps=3 format=3 uid="uid://cxc5en8cac0x3"]
 
 [ext_resource type="Script" path="res://ui/settings_form/settings_form.gd" id="1_w1dsw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_srjgn"]
 
 [node name="SettingsForm" type="VBoxContainer"]
 anchors_preset = 15
@@ -10,17 +12,22 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_w1dsw")
 
-[node name="GridContainer" type="GridContainer" parent="."]
+[node name="GlobalSettingsLabel" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Global settings"
+
+[node name="GlobalSettingsGrid" type="GridContainer" parent="."]
 layout_mode = 2
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 5
 columns = 2
 
-[node name="UiScaleLabel" type="Label" parent="GridContainer"]
+[node name="UiScaleLabel" type="Label" parent="GlobalSettingsGrid"]
 layout_mode = 2
 text = "UI scale"
 
-[node name="UiScaleOptionButton" type="OptionButton" parent="GridContainer"]
+[node name="UiScaleOptionButton" type="OptionButton" parent="GlobalSettingsGrid"]
 layout_mode = 2
 size_flags_vertical = 4
 item_count = 4
@@ -33,14 +40,64 @@ popup/item_2/id = 2
 popup/item_3/text = "160%"
 popup/item_3/id = 3
 
-[node name="SfxVolumeLabel" type="Label" parent="GridContainer"]
+[node name="SfxVolumeLabel" type="Label" parent="GlobalSettingsGrid"]
 layout_mode = 2
 text = "SFX volume"
 
-[node name="SfxVolumeHSlider" type="HSlider" parent="GridContainer"]
+[node name="SfxVolumeHSlider" type="HSlider" parent="GlobalSettingsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 32
+theme_override_styles/separator = SubResource("StyleBoxEmpty_srjgn")
+
+[node name="InputSettingsLabel" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Input settings"
+
+[node name="InputSettingsGrid" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 2
+
+[node name="PickupItemKeyButton" type="Button" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "Pickup/buy item"
+alignment = 0
+
+[node name="PickupItemKeyLabel" type="Label" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "?"
+
+[node name="DropItemKeyButton" type="Button" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "Drop/sell item"
+alignment = 0
+
+[node name="DropItemKeyLabel" type="Label" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "?"
+
+[node name="HarvestKeyButton" type="Button" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "Harvest resource"
+alignment = 0
+
+[node name="HarvestKeyLabel" type="Label" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "?"
+
+[node name="TalkKeyButton" type="Button" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "Interact with NPC"
+alignment = 0
+
+[node name="TalkKeyLabel" type="Label" parent="InputSettingsGrid"]
+layout_mode = 2
+text = "?"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 2
