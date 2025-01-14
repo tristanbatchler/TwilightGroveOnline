@@ -509,7 +509,7 @@ func (g *InGame) chopDownShrub(message *packets.Packet_ChopShrubRequest, shrub *
 	// Tell all the clients in the level that the shrub was chopped
 	g.client.Broadcast(message, g.othersInLevel)
 
-	g.logger.Printf("hopped shrub %d", shrub.Id)
+	g.logger.Printf("Chopped shrub %d", shrub.Id)
 
 	// Send the response and reward the player with some XP
 	go func() {
@@ -521,8 +521,9 @@ func (g *InGame) chopDownShrub(message *packets.Packet_ChopShrubRequest, shrub *
 	// Award the player with some logs after a tiny delay
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		g.addInventoryItem(*items.Logs, 1, true)
-		g.client.SocketSend(packets.NewItemQuantity(items.Logs, 1))
+		numLogs := shrub.Strength + 1
+		g.addInventoryItem(*items.Logs, uint32(numLogs), true)
+		g.client.SocketSend(packets.NewItemQuantity(items.Logs, numLogs))
 	}()
 }
 
@@ -620,8 +621,9 @@ func (g *InGame) mineOre(message *packets.Packet_MineOreRequest, ore *objs.Ore) 
 	// Award the player with some rocks after a tiny delay
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		g.addInventoryItem(*items.Rocks, 1, true)
-		g.client.SocketSend(packets.NewItemQuantity(items.Rocks, 1))
+		numRocks := ore.Strength + 1
+		g.addInventoryItem(*items.Rocks, uint32(numRocks), true)
+		g.client.SocketSend(packets.NewItemQuantity(items.Rocks, numRocks))
 	}()
 }
 

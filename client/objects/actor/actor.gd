@@ -109,7 +109,7 @@ func _process(delta: float) -> void:
 		
 func at_target() -> bool:
 	var dist_sq_to_target := position.distance_squared_to(target_pos)
-	return dist_sq_to_target <= 0.75
+	return dist_sq_to_target <= 0.3
 		
 func _physics_process(delta: float) -> void:
 	velocity = (target_pos - position) * 15

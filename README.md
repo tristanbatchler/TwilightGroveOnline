@@ -88,6 +88,7 @@
 - [x] Allow support for multiple items in LevelPointMap stacked on top of each other
 - [x] Smooth camera zooming
 - [ ] Pinch to zoom on mobile
+- [ ] Scroll down inventory when selecting items with the keyboard
 - [ ] Rearrange DB schema so that the tool_properties table has a foreign key to the items table instead of the other way around
 - [x] Fix bug where dropping a tool doesn't work
     - Is going to require re-thinking how the inventory is stored in server memory
@@ -108,4 +109,7 @@
 - [ ] Fix blurry font on resized windows
 - [ ] Add keyboard control hints
 - [ ] Add keyboard rebinds in settings
-- [ ] Make NPCs move again
+- [ ] Make NPCs move again, but only when not in range of a player (and refactor duplicated move logic)
+- [ ] Figure out weird tools spawning with Harvestable_NONE set, messing up sync between inventory
+- [x] Figure out weird keyboard sometimes jumping 2x
+- [ ] Hold shift while using keyboard controls to buy/sell in multiples of 10

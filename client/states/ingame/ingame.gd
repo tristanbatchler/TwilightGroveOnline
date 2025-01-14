@@ -36,14 +36,10 @@ var _ores: Dictionary[int, Ore]
 var _doors: Dictionary[int, Door]
 
 var _left_click_held := false
-var _keyboard_move_held := Vector2i.ZERO
-
-const DIRECTIONS: Dictionary[StringName, Vector2i]= {
-	&"move_right": Vector2i.RIGHT,
-	&"move_down": Vector2i.DOWN,
-	&"move_left": Vector2i.LEFT,
-	&"move_up": Vector2i.UP,
-}
+var _move_right_held := false
+var _move_down_held := false
+var _move_left_held := false
+var _move_up_held := false
 
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
@@ -80,9 +76,15 @@ func _input(event: InputEvent) -> void:
 			_stop_harvesting()
 			_talk_to_nearby_actor()
 		
-		for inp in DIRECTIONS:
-			if event.is_action_pressed(inp, false, true): # Exact match required to avoid modifiers
-				_keyboard_move_held += DIRECTIONS[inp]
+		if event.is_action_pressed("move_right", false, true):
+			_move_right_held = true
+		if event.is_action_pressed("move_down", false, true):
+			_move_down_held = true
+		if event.is_action_pressed("move_left", false, true):
+			_move_left_held = true
+		if event.is_action_pressed("move_up", false, true):
+			_move_up_held = true
+				
 
 		# Cycle between tabs
 		if not _shop.visible:
@@ -762,20 +764,25 @@ func _process(delta: float) -> void:
 	var should_move_in_dir := Vector2.ZERO
 	
 	# Keyboard movement
-	for inp in DIRECTIONS:
-		if Input.is_action_just_released(inp, true): # Exact match required to avoid modifiers
-			var keyboard_move_released := DIRECTIONS[inp]
-			if _keyboard_move_held.x != 0 and keyboard_move_released.x != 0:
-				_keyboard_move_held.x = 0
-			if _keyboard_move_held.y != 0 and keyboard_move_released.y != 0:
-				_keyboard_move_held.y = 0
+
+	if Input.is_action_just_released("move_right"):
+		_move_right_held = false
+	if Input.is_action_just_released("move_down"):
+		_move_down_held = false
+	if Input.is_action_just_released("move_left"):
+		_move_left_held = false
+	if Input.is_action_just_released("move_up"):
+		_move_up_held = false
 	
-	if _keyboard_move_held != Vector2i.ZERO and player.at_target():
+	
+	if (_move_right_held or _move_down_held or _move_left_held or _move_up_held) and player.at_target():
 		_stop_harvesting()
-		should_move_in_dir = _keyboard_move_held
+		
+		should_move_in_dir.x = int(_move_right_held) - int(_move_left_held)
+		should_move_in_dir.y = int(_move_down_held) - int(_move_up_held)
+		
 		if should_move_in_dir.x != 0 and should_move_in_dir.y != 0:
 			should_move_in_dir.x = 0
-		
 	
 	# Mobile movement	
 	if Input.is_action_just_released("left_click"):
