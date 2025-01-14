@@ -740,6 +740,8 @@ func _process(delta: float) -> void:
 	var pos_diff := player.get_mouse_diff_from_player_pos()
 		
 	# Hint at what's on the ground underneath you
+	# Can get in the way of the shop though, so...
+	_ground_hint_label.visible = not _shop.visible
 	var ground_item := player.get_ground_item_standing_on()
 	if ground_item == null or ground_item.item == null:
 		var shrub := player.get_shrub_standing_on()
