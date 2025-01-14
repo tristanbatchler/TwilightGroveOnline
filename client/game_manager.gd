@@ -170,7 +170,7 @@ func set_config_key_binding(action: StringName, value: InputEventKey) -> void:
 func get_config_key_binding(action: StringName, default: Variant = "") -> InputEvent:
 	var key: Variant = _config.get_value("input", action, default)
 	if typeof(key) != TYPE_STRING:
-		printerr("Config input key %s is not a string" % action)
+		return default
 	return str_to_var(key) as InputEvent
 
 func clear_config(key: ConfigKey) -> void:

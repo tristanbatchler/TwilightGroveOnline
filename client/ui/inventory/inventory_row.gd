@@ -35,7 +35,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 
 func _ready() -> void:
 	_drop_button.pressed.connect(_on_drop_button_pressed)
-	_quantity_label.text = str(item_quantity)
+	_quantity_label.text = Util.pretty_int(item_quantity)
 	
 	if item != null:
 		_item.region_rect = Rect2(item.sprite_region_x, item.sprite_region_y, 8, 8)

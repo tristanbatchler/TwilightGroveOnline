@@ -113,3 +113,4 @@
 - [ ] Figure out weird tools spawning with Harvestable_NONE set, messing up sync between inventory
 - [x] Figure out weird keyboard sometimes jumping 2x
 - [x] Hold shift while using keyboard controls to buy/sell in multiples of 10
+- [ ] Fix animations not playing if not perfectly aligned to tile yet
