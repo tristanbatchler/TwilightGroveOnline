@@ -611,7 +611,8 @@ func _send_chop_shrub_request(shrub: Shrub) -> void:
 	if WS.send(packet) == OK:
 		if GameManager.client_id in _actors:
 			var player := _actors[GameManager.client_id]
-			player.play_harvest_animation(player.position.direction_to(shrub.position))
+			var dir_to_shrub := Vector2i(shrub.x - player.x, shrub.y - player.y).clampi(-1, 1)
+			player.play_harvest_animation(dir_to_shrub)
 		GameManager.loop_sound(GameManager.LoopedSound.CHOPPING)
 		
 	
