@@ -296,7 +296,7 @@ func _update_actor(actor_id: int, x: int, y: int, is_vip: bool) -> void:
 	actor.is_vip = is_vip
 	var dx := x - actor.x
 	var dy := y - actor.y
-	actor.move(dx, dy)
+	actor.move(dx, dy, true)
 	
 func _add_new_actor(actor_id: int, x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_vip: bool) -> void:
 	var is_player := actor_id == GameManager.client_id

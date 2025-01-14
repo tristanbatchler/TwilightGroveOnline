@@ -190,8 +190,11 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 		return
 	}
 
+	playerMessageBeforeMove := packets.NewActor(g.player)
+
 	if abs(message.ActorMove.Dx) > 1 || abs(message.ActorMove.Dy) > 1 {
 		g.logger.Printf("Player tried to move more than one tile at once (%d, %d)", message.ActorMove.Dx, message.ActorMove.Dy)
+		go g.client.SocketSend(playerMessageBeforeMove)
 		return
 	}
 
@@ -209,7 +212,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 	// Check if the target position is in a collision point
 	if g.client.LevelPointMaps().Collisions.Contains(g.levelId, collisionPoint) {
 		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
-		go g.client.SocketSend(packets.NewActor(g.player))
+		go g.client.SocketSend(playerMessageBeforeMove)
 		return
 	}
 

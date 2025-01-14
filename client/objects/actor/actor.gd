@@ -119,10 +119,11 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		position = target_pos
 
-func move(dx: int, dy: int) -> KinematicCollision2D:
-	var hit := move_and_collide(Vector2(dx, dy) * _world_tile_size.x, true)
-	if hit != null:
-		return hit
+func move(dx: int, dy: int, ignore_collisions: bool = false) -> KinematicCollision2D:
+	if not ignore_collisions:
+		var hit := move_and_collide(Vector2(dx, dy) * _world_tile_size.x, true)
+		if hit != null:
+			return hit
 	
 	# Becuase of setters on x & y, this will update position according to _world_tile_size
 	x += dx
