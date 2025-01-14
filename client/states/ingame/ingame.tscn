@@ -64,11 +64,10 @@ layout_mode = 2
 size_flags_vertical = 8
 mouse_filter = 0
 mouse_force_pass_scroll_events = false
-current_tab = 2
+current_tab = 0
 use_hidden_tabs_for_min_size = true
 
 [node name="Chat" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
 size_flags_vertical = 10
 focus_neighbor_bottom = NodePath("HBoxContainer/LineEdit")
@@ -104,6 +103,7 @@ layout_mode = 2
 metadata/_tab_index = 1
 
 [node name="Dialogue" parent="CanvasLayer/MarginContainer/VBoxContainer/TabContainer" instance=ExtResource("6_hysag")]
+visible = false
 layout_mode = 2
 focus_neighbor_bottom = NodePath("../Chat/HBoxContainer/LineEdit")
 focus_next = NodePath("../Chat/HBoxContainer/LineEdit")
