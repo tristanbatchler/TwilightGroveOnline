@@ -697,6 +697,12 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 
 	itemMsg := message.DropItemRequest.Item
 
+	if !itemMsg.Tradeable {
+		g.logger.Printf("Client tried to drop an item that isn't tradeable: %s", itemMsg.Name)
+		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("This item can't be dropped")))
+		return
+	}
+
 	itemObj, err := g.itemObjFromMessage(itemMsg)
 	if err != nil {
 		g.client.SocketSend(packets.NewDropItemResponse(false, nil, 0, errors.New("Can't drop that right now")))
@@ -853,14 +859,25 @@ func (g *InGame) handleSellRequest(senderId uint32, message *packets.Packet_Sell
 
 	g.maybeCancelHarvestTimer()
 
-	shopOwnerActorId := message.SellRequest.ShopOwnerActorId
+	if message.SellRequest.Item == nil {
+		g.logger.Println("Received a sell request with no item, ignoring")
+		g.client.SocketSend(packets.NewSellResponse(false, message.SellRequest.ShopOwnerActorId, nil, errors.New("Can't sell that item right now")))
+		return
+	}
 
-	// See the comment in the BuyRequest handler
-	// err := g.checkActorIsInteractable(shopOwnerActorId)
-	// if err != nil {
-	// 	g.client.SocketSend(packets.NewSellResponse(false, shopOwnerActorId, nil, err))
-	// 	return
-	// }
+	if message.SellRequest.Quantity <= 0 {
+		g.logger.Println("Received a sell request with a non-positive quantity, ignoring")
+		g.client.SocketSend(packets.NewSellResponse(false, message.SellRequest.ShopOwnerActorId, nil, errors.New("Must have a positive quantity to sell")))
+		return
+	}
+
+	if !message.SellRequest.Item.Tradeable {
+		g.logger.Println("Received a sell request for a non-tradeable item, ignoring")
+		g.client.SocketSend(packets.NewSellResponse(false, message.SellRequest.ShopOwnerActorId, nil, errors.New("This item can't be sold")))
+		return
+	}
+
+	shopOwnerActorId := message.SellRequest.ShopOwnerActorId
 
 	requiredItemQty := uint32(message.SellRequest.Quantity)
 	if requiredItemQty <= 0 {
