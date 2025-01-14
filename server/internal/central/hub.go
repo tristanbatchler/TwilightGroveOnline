@@ -293,6 +293,14 @@ func (h *Hub) Run(adminPassword string) {
 					keyId = toolPropsModel.KeyID.Int32
 				}
 				toolProps = props.NewToolProps(toolPropsModel.Strength, toolPropsModel.LevelRequired, props.NoneHarvestable, keyId, toolPropsModel.ID)
+				switch toolPropsModel.Harvests { // In the DB, Harvest 0 = None, 1 = Shrub, 2 = Ore - corrsponds directly to packets Harvestable enum
+				case int32(packets.Harvestable_SHRUB):
+					toolProps.Harvests = props.ShrubHarvestable
+				case int32(packets.Harvestable_ORE):
+					toolProps.Harvests = props.OreHarvestable
+				default:
+					toolProps.Harvests = props.NoneHarvestable
+				}
 			}
 			itemObj := objs.NewItem(itemModel.Name, itemModel.Description, itemModel.Value, itemModel.SpriteRegionX, itemModel.SpriteRegionY, toolProps, itemModel.GrantsVip, itemModel.Tradeable, itemModel.ID)
 			return objs.NewGroundItem(0, model.LevelID, itemObj, model.X, model.Y, model.RespawnSeconds), nil
