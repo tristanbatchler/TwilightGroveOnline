@@ -190,6 +190,16 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 		return
 	}
 
+	if abs(message.ActorMove.Dx) > 1 || abs(message.ActorMove.Dy) > 1 {
+		g.logger.Printf("Player tried to move more than one tile at once (%d, %d)", message.ActorMove.Dx, message.ActorMove.Dy)
+		return
+	}
+
+	if message.ActorMove.Dx == 0 && message.ActorMove.Dy == 0 {
+		g.logger.Println("Player tried to move to the same tile they're already on")
+		return
+	}
+
 	g.maybeCancelHarvestTimer()
 
 	targetX := g.player.X + message.ActorMove.Dx
@@ -222,7 +232,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 
 	go g.syncPlayerLocation(500 * time.Millisecond)
 
-	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
+	// g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
 	g.client.Broadcast(packets.NewActor(g.player), g.othersInLevel)
 }
@@ -1277,4 +1287,11 @@ func (g *InGame) maybeCancelHarvestTimer() {
 		g.cancelHarvestTimer()
 		g.cancelHarvestTimer = nil
 	}
+}
+
+func abs(x int32) int32 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }

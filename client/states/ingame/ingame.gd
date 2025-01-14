@@ -36,13 +36,13 @@ var _ores: Dictionary[int, Ore]
 var _doors: Dictionary[int, Door]
 
 var _left_click_held := false
-var _keyboard_move_held := Vector2.ZERO
+var _keyboard_move_held := Vector2i.ZERO
 
-const DIRECTIONS := {
-	&"move_right": Vector2.RIGHT,
-	&"move_down": Vector2.DOWN,
-	&"move_left": Vector2.LEFT,
-	&"move_up": Vector2.UP,
+const DIRECTIONS: Dictionary[StringName, Vector2i]= {
+	&"move_right": Vector2i.RIGHT,
+	&"move_down": Vector2i.DOWN,
+	&"move_left": Vector2i.LEFT,
+	&"move_up": Vector2i.UP,
 }
 
 func _ready() -> void:
@@ -764,9 +764,13 @@ func _process(delta: float) -> void:
 	# Keyboard movement
 	for inp in DIRECTIONS:
 		if Input.is_action_just_released(inp, true): # Exact match required to avoid modifiers
-			_keyboard_move_held -= DIRECTIONS[inp]
+			var keyboard_move_released := DIRECTIONS[inp]
+			if _keyboard_move_held.x != 0 and keyboard_move_released.x != 0:
+				_keyboard_move_held.x = 0
+			if _keyboard_move_held.y != 0 and keyboard_move_released.y != 0:
+				_keyboard_move_held.y = 0
 	
-	if _keyboard_move_held != Vector2.ZERO and player.at_target():
+	if _keyboard_move_held != Vector2i.ZERO and player.at_target():
 		_stop_harvesting()
 		should_move_in_dir = _keyboard_move_held
 		if should_move_in_dir.x != 0 and should_move_in_dir.y != 0:
