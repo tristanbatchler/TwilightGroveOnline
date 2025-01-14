@@ -356,12 +356,14 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 		go func() {
 			time.Sleep(time.Duration(groundItem.RespawnSeconds) * time.Second)
 			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
-			g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-				LevelID: g.levelId,
-				ItemID:  groundItem.Item.DbId,
-				X:       groundItem.X,
-				Y:       groundItem.Y,
-			})
+
+			// Don't add the ground item to the DB. It will be respawned naturally if the server is rebooted, so there's no need
+			// g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
+			// 	LevelID: g.levelId,
+			// 	ItemID:  groundItem.Item.DbId,
+			// 	X:       groundItem.X,
+			// 	Y:       groundItem.Y,
+			// })
 			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
 			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
 			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)

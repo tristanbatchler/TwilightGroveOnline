@@ -114,3 +114,4 @@
 - [x] Figure out weird keyboard sometimes jumping 2x
 - [x] Hold shift while using keyboard controls to buy/sell in multiples of 10
 - [ ] Fix animations not playing if not perfectly aligned to tile yet
+- [x] Stop player-dropped or respawned items from being added to the DB and growing the stack each server reboot
