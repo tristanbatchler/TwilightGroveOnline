@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=77 format=3 uid="uid://chlnkbertyww3"]
+[gd_resource type="Theme" load_steps=78 format=3 uid="uid://chlnkbertyww3"]
 
 [ext_resource type="Texture2D" uid="uid://cuyh1skb8m8hc" path="res://resources/theme/ornate.png" id="1"]
 [ext_resource type="FontFile" uid="uid://brxkvyam2q4xf" path="res://resources/theme/pixelplay.ttf" id="2"]
@@ -305,6 +305,14 @@ region_rect = Rect2(0, 80, 16, 16)
 
 [sub_resource type="StyleBoxLine" id="37"]
 color = Color(1, 1, 1, 0.352941)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rf7g8"]
+texture = ExtResource("1")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+region_rect = Rect2(0, 80, 16, 16)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xo2hi"]
 content_margin_left = 0.0
@@ -613,6 +621,7 @@ PopupMenu/styles/labeled_separator_right = SubResource("35")
 PopupMenu/styles/panel = SubResource("36")
 PopupMenu/styles/panel_disabled = null
 PopupMenu/styles/separator = SubResource("37")
+PopupPanel/styles/panel = SubResource("StyleBoxTexture_rf7g8")
 ProgressBar/colors/font_color = Color(0.94, 0.94, 0.94, 1)
 ProgressBar/colors/font_color_shadow = Color(0, 0, 0, 1)
 ProgressBar/fonts/font = SubResource("66")
