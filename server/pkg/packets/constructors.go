@@ -137,10 +137,12 @@ func NewGroundItem(id uint32, groundItem *objs.GroundItem) Msg {
 	item := NewItem(groundItem.Item)
 	return &Packet_GroundItem{
 		GroundItem: &GroundItem{
-			Id:   id,
-			Item: item.(*Packet_Item).Item,
-			X:    groundItem.X,
-			Y:    groundItem.Y,
+			Id:             id,
+			Item:           item.(*Packet_Item).Item,
+			X:              groundItem.X,
+			Y:              groundItem.Y,
+			RespawnSeconds: groundItem.RespawnSeconds,
+			DespawnSeconds: groundItem.DespawnSeconds,
 		},
 	}
 }
@@ -416,6 +418,14 @@ func NewQuestInfo(quest *quests.Quest) Msg {
 			RequiredItem:      NewItem(quest.RequiredItem).(*Packet_Item).Item,
 			CompletedDialogue: &NpcDialogue{Dialogue: quest.CompleteDialogue},
 			RewardItem:        NewItem(quest.RewardItem).(*Packet_Item).Item,
+		},
+	}
+}
+
+func NewDespawnGroundItem(id uint32) Msg {
+	return &Packet_DespawnGroundItem{
+		DespawnGroundItem: &DespawnGroundItem{
+			GroundItemId: id,
 		},
 	}
 }

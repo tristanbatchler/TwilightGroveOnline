@@ -89,6 +89,7 @@ type LevelsGroundItem struct {
 	X              int32
 	Y              int32
 	RespawnSeconds int32
+	DespawnSeconds int32
 }
 
 type LevelsOre struct {

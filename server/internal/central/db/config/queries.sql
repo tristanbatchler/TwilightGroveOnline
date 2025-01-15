@@ -241,9 +241,9 @@ WHERE id = $1 LIMIT 1;
 
 -- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, item_id, x, y, respawn_seconds
+    level_id, item_id, x, y, respawn_seconds, despawn_seconds
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
 RETURNING *;
 

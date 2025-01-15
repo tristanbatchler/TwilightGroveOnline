@@ -177,6 +177,8 @@ func _on_ws_packet_received(packet: Packets.Packet) -> void:
 		_handle_sell_response(sender_id, packet.get_sell_response())
 	elif packet.has_buy_response():
 		_handle_buy_response(sender_id, packet.get_buy_response())
+	elif packet.has_despawn_ground_item():
+		_remove_ground_item(packet.get_despawn_ground_item().get_ground_item_id())
 
 func _on_logout_button_pressed() -> void:
 	_stop_harvesting()
@@ -721,7 +723,6 @@ func _handle_buy_response(shop_owner_actor_id: int, buy_response_msg: Packets.Bu
 		_inventory.remove("Golden bars", quantity * item.value)
 		
 		GameManager.play_sound(GameManager.SingleSound.COINS)
-		
 
 func _process(delta: float) -> void:
 	var player: Actor = null

@@ -136,6 +136,8 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 		g.handleSellResponse(senderId, message)
 	case *packets.Packet_QuestInfo:
 		g.handleQuestInfo(senderId, message)
+	case *packets.Packet_DespawnGroundItem:
+		g.client.SocketSendAs(message, senderId)
 	}
 }
 
@@ -361,18 +363,12 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	g.addInventoryItem(*groundItem.Item, 1, true)
 
 	// Start the respawn time
-	if groundItem.RespawnSeconds > 0 {
+	if groundItem.RespawnSeconds > 0 { // 0 would mean it doesn't respawn
 		go func() {
 			time.Sleep(time.Duration(groundItem.RespawnSeconds) * time.Second)
 			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 
 			// Don't add the ground item to the DB. It will be respawned naturally if the server is rebooted, so there's no need
-			// g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-			// 	LevelID: g.levelId,
-			// 	ItemID:  groundItem.Item.DbId,
-			// 	X:       groundItem.X,
-			// 	Y:       groundItem.Y,
-			// })
 			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
 			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
 			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
@@ -733,18 +729,21 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 	g.removeInventoryItem(*itemObj, message.DropItemRequest.Quantity)
 
 	// Create the ground item
-	groundItem := objs.NewGroundItem(0, g.levelId, itemObj, g.player.X, g.player.Y, 0)
+	const playerDropsDespawnAfterSeconds = 5 * 60
+	groundItem := objs.NewGroundItem(0, g.levelId, itemObj, g.player.X, g.player.Y, 0, playerDropsDespawnAfterSeconds)
 
 	groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 
+	// Start the despawn timer
+	go func() {
+		time.Sleep(playerDropsDespawnAfterSeconds * time.Second)
+		g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
+		despawnGroundItemMsg := packets.NewDespawnGroundItem(groundItem.Id)
+		g.client.Broadcast(despawnGroundItemMsg, g.othersInLevel)
+		g.client.SocketSend(despawnGroundItemMsg)
+	}()
+
 	// Don't add dropped items to the database. Means player-dropped items will be wiped on server reboot, which is expected behavior
-	// go g.queries.CreateLevelGroundItem(context.Background(), db.CreateLevelGroundItemParams{
-	// 	LevelID:        g.levelId,
-	// 	ItemID:         itemObj.DbId,
-	// 	X:              g.player.X,
-	// 	Y:              g.player.Y,
-	// 	RespawnSeconds: 0, // Player drops don't respawn
-	// })
 
 	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
 	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))

@@ -140,6 +140,7 @@ message GroundItem {
     int32 x = 3;
     int32 y = 4;
     int32 respawn_seconds = 5;
+    int32 despawn_seconds = 6;
 }
 
 message LevelUpload {
@@ -278,6 +279,10 @@ message QuestInfo {
     Item reward_item = 5;
 }
 
+message DespawnGroundItem {
+    uint32 ground_item_id = 1;
+}
+
 message Packet {
     uint32 sender_id = 1;
     oneof msg {
@@ -328,5 +333,6 @@ message Packet {
         SellResponse sell_response = 46;
         LevelMetadata level_metadata = 47;
         QuestInfo quest_info = 48;
+        DespawnGroundItem despawn_ground_item = 49;
     }
 }

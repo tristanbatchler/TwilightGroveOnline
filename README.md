@@ -98,7 +98,7 @@
 - [x] Rate limit client actions
 - [ ] Figure out how to long tap to hover over an item on mobile to get the tooltips
 - [x] Add a placeholder sprite over top of depleted resources to show they can't be walked on
-- [ ] Make player drops despawn after a while
+- [x] Make player drops despawn after a while
 - [x] Add collision points to areas beyond doorways to stop players from getting stuck inside a room
 - [x] Add settings for sound volume and balance default settings
 - [x] Persist completed quests in the database

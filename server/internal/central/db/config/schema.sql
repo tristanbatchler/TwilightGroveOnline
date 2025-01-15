@@ -96,7 +96,8 @@ CREATE TABLE IF NOT EXISTS levels_ground_items (
     item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE, -- delete from levels_ground_items when item with id item_id is deleted
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
-    respawn_seconds INTEGER NOT NULL
+    respawn_seconds INTEGER NOT NULL DEFAULT 120, -- default 2 minutes, but 0 would mean never respawn
+    despawn_seconds INTEGER NOT NULL DEFAULT 0 -- 0 means never despawn
 );
 
 CREATE TABLE IF NOT EXISTS actors_inventory (

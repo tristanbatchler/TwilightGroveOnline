@@ -124,9 +124,10 @@ type GroundItem struct {
 	Item           *Item
 	X, Y           int32
 	RespawnSeconds int32
+	DespawnSeconds int32
 }
 
-func NewGroundItem(id uint32, levelId int32, item *Item, x int32, y int32, respawnSeconds int32) *GroundItem {
+func NewGroundItem(id uint32, levelId int32, item *Item, x int32, y int32, respawnSeconds int32, despawnSeconds int32) *GroundItem {
 	return &GroundItem{
 		Id:             id,
 		LevelId:        levelId,
@@ -134,5 +135,6 @@ func NewGroundItem(id uint32, levelId int32, item *Item, x int32, y int32, respa
 		X:              x,
 		Y:              y,
 		RespawnSeconds: respawnSeconds,
+		DespawnSeconds: despawnSeconds,
 	}
 }

@@ -258,7 +258,7 @@ func (a *Admin) handleLevelUpload(senderId uint32, message *packets.Packet_Level
 		}
 
 		item := objs.NewItem(itemMsg.Name, itemMsg.Description, itemMsg.Value, itemMsg.SpriteRegionX, itemMsg.SpriteRegionY, toolProps, itemMsg.GrantsVip, itemMsg.Tradeable, 0)
-		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds), nil
+		return objs.NewGroundItem(0, level.ID, item, g.X, g.Y, g.RespawnSeconds, g.DespawnSeconds), nil
 	}
 
 	for _, importFunc := range importFuncs {
@@ -453,6 +453,7 @@ func (a *Admin) addGroundItemToDb(ctx context.Context, levelId int32, message *p
 		X:              message.X,
 		Y:              message.Y,
 		RespawnSeconds: message.RespawnSeconds,
+		DespawnSeconds: message.DespawnSeconds,
 	})
 	return err
 }

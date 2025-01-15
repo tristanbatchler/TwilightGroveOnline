@@ -322,11 +322,11 @@ func (q *Queries) CreateLevelDoor(ctx context.Context, arg CreateLevelDoorParams
 
 const createLevelGroundItem = `-- name: CreateLevelGroundItem :one
 INSERT INTO levels_ground_items (
-    level_id, item_id, x, y, respawn_seconds
+    level_id, item_id, x, y, respawn_seconds, despawn_seconds
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
-RETURNING id, level_id, item_id, x, y, respawn_seconds
+RETURNING id, level_id, item_id, x, y, respawn_seconds, despawn_seconds
 `
 
 type CreateLevelGroundItemParams struct {
@@ -335,6 +335,7 @@ type CreateLevelGroundItemParams struct {
 	X              int32
 	Y              int32
 	RespawnSeconds int32
+	DespawnSeconds int32
 }
 
 func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGroundItemParams) (LevelsGroundItem, error) {
@@ -344,6 +345,7 @@ func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGrou
 		arg.X,
 		arg.Y,
 		arg.RespawnSeconds,
+		arg.DespawnSeconds,
 	)
 	var i LevelsGroundItem
 	err := row.Scan(
@@ -353,6 +355,7 @@ func (q *Queries) CreateLevelGroundItem(ctx context.Context, arg CreateLevelGrou
 		&i.X,
 		&i.Y,
 		&i.RespawnSeconds,
+		&i.DespawnSeconds,
 	)
 	return i, err
 }
@@ -1054,7 +1057,7 @@ func (q *Queries) GetLevelDoorsByLevelId(ctx context.Context, levelID int32) ([]
 }
 
 const getLevelGroundItemsByLevelId = `-- name: GetLevelGroundItemsByLevelId :many
-SELECT id, level_id, item_id, x, y, respawn_seconds FROM levels_ground_items
+SELECT id, level_id, item_id, x, y, respawn_seconds, despawn_seconds FROM levels_ground_items
 WHERE level_id = $1
 `
 
@@ -1074,6 +1077,7 @@ func (q *Queries) GetLevelGroundItemsByLevelId(ctx context.Context, levelID int3
 			&i.X,
 			&i.Y,
 			&i.RespawnSeconds,
+			&i.DespawnSeconds,
 		); err != nil {
 			return nil, err
 		}
