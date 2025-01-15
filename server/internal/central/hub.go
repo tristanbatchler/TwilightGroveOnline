@@ -84,6 +84,11 @@ type LevelPointMaps struct {
 // A structure for the connected client to interface with the hub
 type ClientInterfacer interface {
 	Id() uint32
+
+	// A channel for packets to be processed
+	PacketsForProcessingChan() chan *packets.Packet
+
+	// Processes a message from a particular sender
 	ProcessMessage(senderId uint32, message packets.Msg)
 
 	// Sets the client's ID and anything else that needs to be initialized
@@ -341,12 +346,29 @@ func (h *Hub) Run(adminPassword string) {
 	defer h.dbPool.Close()
 
 	log.Println("Awaiting client registrations...")
+
+	tickRate := 10 // Max 10 packets per second
+	ticker := time.NewTicker(time.Second / time.Duration(tickRate))
+	defer ticker.Stop()
+
 	for {
 		select {
 		case client := <-h.RegisterChan:
 			h.registerClient(client)
+
 		case client := <-h.UnregisterChan:
 			h.Clients.Remove(client.Id())
+
+		case <-ticker.C:
+			// Process one packet from each client's PacketsForProcessingChan per tick
+			h.Clients.ForEach(func(clientId uint32, client ClientInterfacer) {
+				select {
+				case packet := <-client.PacketsForProcessingChan():
+					client.ProcessMessage(packet.SenderId, packet.Msg)
+				default:
+				}
+			})
+
 		case packet := <-h.BroadcastChan:
 			h.Clients.ForEach(func(clientId uint32, client ClientInterfacer) {
 				if clientId != packet.SenderId {

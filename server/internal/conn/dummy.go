@@ -10,20 +10,22 @@ import (
 )
 
 type DummyClient struct {
-	id           uint32
-	initialState central.ClientStateHandler
-	hub          *central.Hub
-	dbTx         *central.DbTx
-	state        central.ClientStateHandler
-	logger       *log.Logger
+	id                       uint32
+	initialState             central.ClientStateHandler
+	hub                      *central.Hub
+	packetsForProcessingChan chan *packets.Packet
+	dbTx                     *central.DbTx
+	state                    central.ClientStateHandler
+	logger                   *log.Logger
 }
 
 func NewDummyClient(hub *central.Hub, initialState central.ClientStateHandler) (central.ClientInterfacer, error) {
 	c := &DummyClient{
-		initialState: initialState,
-		hub:          hub,
-		dbTx:         hub.NewDbTx(),
-		logger:       log.New(log.Writer(), "Client unknown: ", log.LstdFlags),
+		initialState:             initialState,
+		hub:                      hub,
+		packetsForProcessingChan: make(chan *packets.Packet, 16),
+		dbTx:                     hub.NewDbTx(),
+		logger:                   log.New(log.Writer(), "Client unknown: ", log.LstdFlags),
 	}
 
 	return c, nil
@@ -31,6 +33,10 @@ func NewDummyClient(hub *central.Hub, initialState central.ClientStateHandler) (
 
 func (c *DummyClient) Id() uint32 {
 	return c.id
+}
+
+func (c *DummyClient) PacketsForProcessingChan() chan *packets.Packet {
+	return c.packetsForProcessingChan
 }
 
 func (c *DummyClient) Initialize(id uint32) {

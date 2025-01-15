@@ -14,13 +14,14 @@ import (
 )
 
 type WebSocketClient struct {
-	id       uint32
-	conn     *websocket.Conn
-	hub      *central.Hub
-	sendChan chan *packets.Packet
-	dbTx     *central.DbTx
-	state    central.ClientStateHandler
-	logger   *log.Logger
+	id                       uint32
+	conn                     *websocket.Conn
+	hub                      *central.Hub
+	sendChan                 chan *packets.Packet // Packets to send to the client i.e. WS connection
+	packetsForProcessingChan chan *packets.Packet // Packets to send to the hub
+	dbTx                     *central.DbTx
+	state                    central.ClientStateHandler
+	logger                   *log.Logger
 }
 
 func NewWebSocketClient(hub *central.Hub, writer http.ResponseWriter, request *http.Request) (central.ClientInterfacer, error) {
@@ -37,11 +38,12 @@ func NewWebSocketClient(hub *central.Hub, writer http.ResponseWriter, request *h
 	}
 
 	c := &WebSocketClient{
-		hub:      hub,
-		conn:     conn,
-		sendChan: make(chan *packets.Packet, 256),
-		dbTx:     hub.NewDbTx(),
-		logger:   log.New(log.Writer(), "Client unknown: ", log.LstdFlags),
+		hub:                      hub,
+		conn:                     conn,
+		sendChan:                 make(chan *packets.Packet, 256),
+		packetsForProcessingChan: make(chan *packets.Packet, 16),
+		dbTx:                     hub.NewDbTx(),
+		logger:                   log.New(log.Writer(), "Client unknown: ", log.LstdFlags),
 	}
 
 	return c, nil
@@ -49,6 +51,10 @@ func NewWebSocketClient(hub *central.Hub, writer http.ResponseWriter, request *h
 
 func (c *WebSocketClient) Id() uint32 {
 	return c.id
+}
+
+func (c *WebSocketClient) PacketsForProcessingChan() chan *packets.Packet {
+	return c.packetsForProcessingChan
 }
 
 func (c *WebSocketClient) Initialize(id uint32) {
@@ -112,7 +118,12 @@ func (c *WebSocketClient) ReadPump() {
 			packet.SenderId = c.id
 		}
 
-		c.ProcessMessage(packet.SenderId, packet.Msg)
+		// Try putting this out to the hub for processing, but if the channel is full, just drop it
+		select {
+		case c.packetsForProcessingChan <- packet:
+		default:
+			c.logger.Printf("Client %d processing channel full, dropping message: %T", c.id, packet.Msg)
+		}
 	}
 }
 

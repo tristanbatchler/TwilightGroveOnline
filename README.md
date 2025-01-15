@@ -95,7 +95,7 @@
     - Currently storing a map of objs.Item, but these don't hash well due to holding a pointer to a ToolsProps struct, which in turns holds a pointer to a Harvestable struct... Differing memory addresses for the same item in different maps. Need to think of a way to store the inventory in a way that can be hashed and compared, but can also communicate all the necessary information to the client.
 - [x] Fix bug where dropping an item on the ground causes some kind of null pointer exception in Godot because it seems the item is null before it goes into the InGame._drop_item method. I think it's getting garbage collected or something.
 - [x] Sort inventory items by name alphabetically
-- [ ] Rate limit client actions
+- [x] Rate limit client actions
 - [ ] Figure out how to long tap to hover over an item on mobile to get the tooltips
 - [x] Add a placeholder sprite over top of depleted resources to show they can't be walked on
 - [ ] Make player drops despawn after a while
@@ -104,8 +104,8 @@
 - [x] Persist completed quests in the database
 - [x] Fix issue where required quest item won't be removed from the client's inventory after completing the quest (requires re-log to see the change).
 - [x] Make some items untreadable and not droppable
-- [ ] Profanity filter for username registration
-- [ ] More lenient profanity filter for chat
+- [x] Profanity filter for username registration
+- [x] More lenient profanity filter for chat
 - [ ] Fix blurry font on resized windows
 - [x] Add keyboard control hints
 - [x] Add keyboard rebinds in settings
