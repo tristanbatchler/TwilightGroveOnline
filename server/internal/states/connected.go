@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
@@ -19,9 +20,10 @@ import (
 )
 
 type Connected struct {
-	client  central.ClientInterfacer
-	queries *db.Queries
-	logger  *log.Logger
+	client            central.ClientInterfacer
+	queries           *db.Queries
+	logger            *log.Logger
+	profanityDetector *goaway.ProfanityDetector
 }
 
 func (c *Connected) Name() string {
@@ -33,6 +35,7 @@ func (c *Connected) SetClient(client central.ClientInterfacer) {
 	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), c.Name())
 	c.queries = client.DbTx().Queries
 	c.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
+	c.profanityDetector = goaway.NewProfanityDetector().WithCustomDictionary(client.GameData().Profanity, []string{}, []string{})
 }
 
 func (c *Connected) OnEnter() {
@@ -228,8 +231,9 @@ func (c *Connected) validateUsername(username string) error {
 	if username != strings.TrimSpace(username) {
 		return errors.New("leading or trailing whitespace")
 	}
-	if _, exists := c.client.GameData().Profanity[username]; exists {
+	if c.profanityDetector.IsProfane(username) {
 		return errors.New("watch your profanity")
 	}
+
 	return nil
 }

@@ -18,7 +18,7 @@ func _ready() -> void:
 	_continue_prompt_label.meta_clicked.connect(_on_continue_clicked)
 	
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
+	if event is InputEventKey and not GameManager.is_typing:
 		if event.is_action_released("ui_accept"):
 			_on_continue_clicked("next")
 		elif event.is_action_released("ui_cancel"):

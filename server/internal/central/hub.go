@@ -72,8 +72,8 @@ type SharedGameObjects struct {
 // A collection of static data for the game
 type GameData struct {
 	MotdPath  string
-	Profanity map[string]struct{}
-	Slurs     map[string]struct{}
+	Profanity []string
+	Slurs     []string
 }
 
 type LevelPointMaps struct {
@@ -683,15 +683,18 @@ func (h *Hub) addDefaultNpcs() {
 	}
 }
 
-func wordsFromFile(filePath string) map[string]struct{} {
-	words := make(map[string]struct{})
+func wordsFromFile(filePath string) []string {
+	words := make([]string, 0)
 	text, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Error reading file %s: %v", filePath, err)
 	}
 
 	for _, word := range strings.Split(string(text), "\n") {
-		words[word] = struct{}{}
+		trimmedWord := strings.TrimSpace(word)
+		if trimmedWord != "" {
+			words = append(words, trimmedWord)
+		}
 	}
 
 	return words

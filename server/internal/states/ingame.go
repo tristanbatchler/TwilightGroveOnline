@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
@@ -33,6 +34,7 @@ type InGame struct {
 	logger                 *log.Logger
 	cancelPlayerUpdateLoop context.CancelFunc
 	cancelHarvestTimer     context.CancelFunc
+	profanityDetector      *goaway.ProfanityDetector
 }
 
 func (g *InGame) Name() string {
@@ -44,6 +46,7 @@ func (g *InGame) SetClient(client central.ClientInterfacer) {
 	loggingPrefix := fmt.Sprintf("Client %d [%s]: ", client.Id(), g.Name())
 	g.queries = client.DbTx().Queries
 	g.logger = log.New(log.Writer(), loggingPrefix, log.LstdFlags)
+	g.profanityDetector = goaway.NewProfanityDetector().WithCustomDictionary(client.GameData().Slurs, []string{}, []string{})
 }
 
 func (g *InGame) OnEnter() {
@@ -137,26 +140,22 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 }
 
 func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
-	for _, word := range strings.Fields(message.Chat.Msg) {
-		if _, exists := g.client.GameData().Slurs[word]; exists {
-			g.logger.Printf("Client %d tried to send a message containing a slur (%s). Censoring...", senderId, word)
-			message.Chat.Msg = strings.ReplaceAll(message.Chat.Msg, word, "****")
-		}
-	}
-
 	if strings.TrimSpace(message.Chat.Msg) == "" {
 		g.logger.Println("Received a chat message with no content, ignoring")
 		return
 	}
 
+	censoredText := message.Chat.Msg
+	censored := packets.NewChat(g.profanityDetector.Censor(censoredText))
+
 	if senderId == g.client.Id() {
 		// TODO: Remove this debug code
-		if strings.HasPrefix(message.Chat.Msg, "/level ") {
+		if strings.HasPrefix(censoredText, "/level ") {
 			if !g.isAdmin() {
 				g.client.SocketSend(packets.NewServerMessage("You are not an admin"))
 				return
 			}
-			levelId, err := strconv.Atoi(strings.TrimPrefix(message.Chat.Msg, "/level "))
+			levelId, err := strconv.Atoi(strings.TrimPrefix(censoredText, "/level "))
 			if err != nil {
 				g.logger.Printf("Failed to parse level ID: %v", err)
 				return
@@ -167,13 +166,13 @@ func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
 		// End debug code
 
 		g.logger.Println("Received a chat message from ourselves, broadcasting")
-		g.client.Broadcast(message, g.othersInLevel)
-		g.client.SocketSend(message)
+		g.client.Broadcast(censored, g.othersInLevel)
+		g.client.SocketSend(censored)
 		return
 	}
 
 	g.logger.Printf("Received a chat message from client %d, forwarding", senderId)
-	g.client.SocketSendAs(message, senderId)
+	g.client.SocketSendAs(censored, senderId)
 }
 
 func (g *InGame) handleYell(senderId uint32, message *packets.Packet_Yell) {
@@ -182,14 +181,16 @@ func (g *InGame) handleYell(senderId uint32, message *packets.Packet_Yell) {
 		return
 	}
 
+	censored := packets.NewYell(g.profanityDetector.Censor(message.Yell.Msg))
+
 	if senderId == g.client.Id() {
 		g.logger.Println("Received a yell message from ourselves, broadcasting")
-		g.client.Broadcast(message)
+		g.client.Broadcast(censored)
 		return
 	}
 
 	g.logger.Printf("Received a yell message from client %d, forwarding", senderId)
-	g.client.SocketSendAs(message, senderId)
+	g.client.SocketSendAs(censored, senderId)
 }
 
 func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorMove) {

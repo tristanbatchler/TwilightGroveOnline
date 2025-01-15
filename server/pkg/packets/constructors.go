@@ -354,6 +354,14 @@ func NewChat(msg string) Msg {
 	}
 }
 
+func NewYell(msg string) Msg {
+	return &Packet_Yell{
+		Yell: &Yell{
+			Msg: msg,
+		},
+	}
+}
+
 func NewInteractWithNpcResponse(success bool, actorId uint32, err error) Msg {
 	return &Packet_InteractWithNpcResponse{
 		InteractWithNpcResponse: &InteractWithNpcResponse{
