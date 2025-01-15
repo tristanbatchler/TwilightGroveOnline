@@ -91,9 +91,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.is_pressed():
 		match event.button_index:
 			MOUSE_BUTTON_WHEEL_UP:
-				_target_zoom = min(5.0, _target_zoom * 1.05)
+				_target_zoom = min(8.0, _target_zoom * 1.1)
 			MOUSE_BUTTON_WHEEL_DOWN:
-				_target_zoom = max(0.2, _target_zoom * 0.95)
+				_target_zoom = max(2, _target_zoom * 0.9)
 		
 func _process(delta: float) -> void:
 	_name_plate.position = _name_plate_position.get_global_transform_with_canvas().origin - Vector2(150/2.0, 0)

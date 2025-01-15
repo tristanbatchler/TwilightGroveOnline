@@ -892,6 +892,7 @@ func _on_shop_item_purchased(shop_owner_actor_id: int, item: Item, quantity: int
 	WS.send(packet)
 
 func _show_dialogue(actor_name: String, lines: Array):
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	var tab_before_dialogue := _tab_container.current_tab
 		
 	_tab_container.set_tab_hidden(_tab_container.get_tab_idx_from_control(_dialogue_box), false)
