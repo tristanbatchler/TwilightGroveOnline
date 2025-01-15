@@ -4,10 +4,10 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 const Scene := preload("res://ui/inventory/inventory_row.tscn")
 const Item := preload("res://objects/item/item.gd")
 
-@onready var _quantity_label: Label = $PanelContainer/QuantityLabel
+@onready var _quantity_label: Label = $DropButton/QuantityLabel
 @onready var _name_label: Label = $NameLabel
-@onready var _drop_button: Button = $PanelContainer/DropButton
-@onready var _item: Sprite2D = $PanelContainer/DropButton/MarginContainer/SubViewportContainer/SubViewport/Item
+@onready var _drop_button: Button = $DropButton
+@onready var _item: Sprite2D = $DropButton/SubViewportContainer/SubViewport/Item
 
 signal drop_button_pressed(shift_held: bool)
 
