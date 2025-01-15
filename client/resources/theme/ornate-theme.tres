@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=76 format=3 uid="uid://chlnkbertyww3"]
+[gd_resource type="Theme" load_steps=77 format=3 uid="uid://chlnkbertyww3"]
 
 [ext_resource type="Texture2D" uid="uid://cuyh1skb8m8hc" path="res://resources/theme/ornate.png" id="1"]
 [ext_resource type="FontFile" uid="uid://brxkvyam2q4xf" path="res://resources/theme/pixelplay.ttf" id="2"]
@@ -252,12 +252,20 @@ atlas = ExtResource("1")
 region = Rect2(58, 16, 5, 8)
 
 [sub_resource type="StyleBoxTexture" id="32"]
-texture = ExtResource("1")
+texture = ExtResource("3_cns0m")
 texture_margin_left = 12.0
 texture_margin_top = 14.0
 texture_margin_right = 12.0
 texture_margin_bottom = 14.0
 region_rect = Rect2(27, 1, 26, 30)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y6oyf"]
+texture = ExtResource("3_cns0m")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+region_rect = Rect2(0, 80, 16, 16)
 
 [sub_resource type="AtlasTexture" id="33"]
 atlas = ExtResource("1")
@@ -581,6 +589,7 @@ OptionButton/styles/hover = null
 OptionButton/styles/normal = null
 OptionButton/styles/pressed = null
 Panel/styles/panel = SubResource("32")
+PanelContainer/styles/panel = SubResource("StyleBoxTexture_y6oyf")
 PopupMenu/colors/font_color = Color(0.88, 0.88, 0.88, 1)
 PopupMenu/colors/font_color_accel = Color(0.7, 0.7, 0.7, 0.8)
 PopupMenu/colors/font_color_disabled = Color(0.4, 0.4, 0.4, 0.8)
