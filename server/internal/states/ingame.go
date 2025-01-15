@@ -183,16 +183,17 @@ func (g *InGame) handleYell(senderId uint32, message *packets.Packet_Yell) {
 		return
 	}
 
-	censored := packets.NewYell(g.profanityDetector.Censor(message.Yell.Msg))
-
 	if senderId == g.client.Id() {
 		g.logger.Println("Received a yell message from ourselves, broadcasting")
+		censored := packets.NewYell(g.player.Name, g.player.IsVip, g.profanityDetector.Censor(message.Yell.Msg))
 		g.client.Broadcast(censored)
+		go g.client.SocketSend(censored)
 		return
 	}
 
+	censored := packets.NewYell(message.Yell.SenderName, message.Yell.IsVip, g.profanityDetector.Censor(message.Yell.Msg))
 	g.logger.Printf("Received a yell message from client %d, forwarding", senderId)
-	g.client.SocketSendAs(censored, senderId)
+	go g.client.SocketSendAs(censored, senderId)
 }
 
 func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorMove) {

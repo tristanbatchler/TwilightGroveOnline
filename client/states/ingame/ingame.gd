@@ -271,11 +271,13 @@ func _handle_chat(sender_id: int, chat: Packets.Chat) -> void:
 		_log.chat(actor.actor_name, actor.is_vip, message)
 
 func _handle_yell(sender_id: int, yell: Packets.Yell) -> void:
-	if sender_id in _actors: 
-		var actor := _actors[sender_id]
-		var message := yell.get_msg()
-		actor.chat(message.to_upper())
-		_log.yell(actor.actor_name, actor.is_vip, message)
+	var sender_name := yell.get_sender_name()
+	var is_sender_vip := yell.get_is_vip()
+	var message := yell.get_msg()
+	_log.yell(sender_name, is_sender_vip, message)
+	
+	if sender_id in _actors:
+		_actors[sender_id].chat(message.to_upper())
 
 func _handle_actor(sender_id: int, actor: Packets.Actor) -> void:
 	var x := actor.get_x()

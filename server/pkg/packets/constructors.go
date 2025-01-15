@@ -356,10 +356,12 @@ func NewChat(msg string) Msg {
 	}
 }
 
-func NewYell(msg string) Msg {
+func NewYell(name string, isVip bool, msg string) Msg {
 	return &Packet_Yell{
 		Yell: &Yell{
-			Msg: msg,
+			SenderName: name,
+			IsVip:      isVip,
+			Msg:        msg,
 		},
 	}
 }

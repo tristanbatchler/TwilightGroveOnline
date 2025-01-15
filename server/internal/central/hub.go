@@ -139,9 +139,6 @@ type LevelDataImporters struct {
 type Hub struct {
 	Clients *ds.SharedCollection[ClientInterfacer]
 
-	// Packets in this channel will be processed by all connected clients except the sender
-	BroadcastChan chan *packets.Packet
-
 	// Clients in this channel will be registered with the hub
 	RegisterChan chan ClientInterfacer
 
@@ -180,7 +177,6 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 
 	hub := &Hub{
 		Clients:        ds.NewSharedCollection[ClientInterfacer](),
-		BroadcastChan:  make(chan *packets.Packet),
 		RegisterChan:   make(chan ClientInterfacer),
 		UnregisterChan: make(chan ClientInterfacer),
 		dbPool:         dbPool,
@@ -368,13 +364,6 @@ func (h *Hub) Run(adminPassword string) {
 				default:
 				}
 			})
-
-		case packet := <-h.BroadcastChan:
-			h.Clients.ForEach(func(clientId uint32, client ClientInterfacer) {
-				if clientId != packet.SenderId {
-					client.ProcessMessage(packet.SenderId, packet.Msg)
-				}
-			})
 		}
 	}
 }
@@ -386,7 +375,11 @@ func (h *Hub) SetNpcClients(npcClients map[int]ClientInterfacer) {
 // Broadcasts a message to all connected clients except the sender
 func (h *Hub) Broadcast(senderId uint32, message packets.Msg, to ...[]uint32) {
 	if len(to) <= 0 {
-		h.BroadcastChan <- &packets.Packet{SenderId: senderId, Msg: message}
+		h.Clients.ForEach(func(clientId uint32, client ClientInterfacer) {
+			if clientId != senderId {
+				client.ProcessMessage(senderId, message)
+			}
+		})
 		return
 	}
 

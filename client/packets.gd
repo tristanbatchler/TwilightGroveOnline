@@ -1061,7 +1061,12 @@ class Yell:
 		service.field = _sender_name
 		data[_sender_name.tag] = service
 		
-		_msg = PBField.new("msg", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
+		_is_vip = PBField.new("is_vip", PB_DATA_TYPE.BOOL, PB_RULE.OPTIONAL, 2, true, DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL])
+		service = PBServiceField.new()
+		service.field = _is_vip
+		data[_is_vip.tag] = service
+		
+		_msg = PBField.new("msg", PB_DATA_TYPE.STRING, PB_RULE.OPTIONAL, 3, true, DEFAULT_VALUES_3[PB_DATA_TYPE.STRING])
 		service = PBServiceField.new()
 		service.field = _msg
 		data[_msg.tag] = service
@@ -1077,11 +1082,20 @@ class Yell:
 	func set_sender_name(value : String) -> void:
 		_sender_name.value = value
 	
+	var _is_vip: PBField
+	func get_is_vip() -> bool:
+		return _is_vip.value
+	func clear_is_vip() -> void:
+		data[2].state = PB_SERVICE_STATE.UNFILLED
+		_is_vip.value = DEFAULT_VALUES_3[PB_DATA_TYPE.BOOL]
+	func set_is_vip(value : bool) -> void:
+		_is_vip.value = value
+	
 	var _msg: PBField
 	func get_msg() -> String:
 		return _msg.value
 	func clear_msg() -> void:
-		data[2].state = PB_SERVICE_STATE.UNFILLED
+		data[3].state = PB_SERVICE_STATE.UNFILLED
 		_msg.value = DEFAULT_VALUES_3[PB_DATA_TYPE.STRING]
 	func set_msg(value : String) -> void:
 		_msg.value = value

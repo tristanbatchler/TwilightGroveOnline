@@ -41,7 +41,8 @@ message Chat {
 
 message Yell {
     string sender_name = 1;
-    string msg = 2;
+    bool is_vip = 2;
+    string msg = 3;
 }
 
 message Actor {
