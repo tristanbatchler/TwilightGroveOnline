@@ -43,8 +43,8 @@ theme_override_constants/separation = 30
 
 [node name="Shop" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer" instance=ExtResource("4_gbxnh")]
 visible = false
+custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="RightMenu" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
