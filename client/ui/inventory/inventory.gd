@@ -70,18 +70,20 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if len(_rows) <= 1:
 			return
-		_set_selected_row_selected(false)
 		var num_rows := len(_rows)
 		
 		if event.is_action_released("ui_up", true):
+			_set_selected_row_selected(false)
 			_selected_idx -= 1
 			if _selected_idx < 0:
 				_selected_idx = num_rows - 1
+			_set_selected_row_selected(true)
 		elif event.is_action_released("ui_down", true):
+			_set_selected_row_selected(false)
 			_selected_idx += 1
 			if _selected_idx >= num_rows:
 				_selected_idx = 0
-		_set_selected_row_selected(true)
+			_set_selected_row_selected(true)
 
 func get_selected_row() -> InventoryRow:
 	if len(_rows) <= 0:
@@ -102,7 +104,6 @@ func _set_selected_row_selected(selected: bool) -> void:
 	var selected_row := get_selected_row()
 	if selected_row != null:
 		selected_row.set_selected(selected)
-		selected_row.grab_focus()
 
 func get_items() -> Array[Item]:
 	var items: Array[Item] = []

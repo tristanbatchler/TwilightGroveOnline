@@ -64,6 +64,7 @@ layout_mode = 2
 size_flags_vertical = 8
 mouse_filter = 0
 mouse_force_pass_scroll_events = false
+theme = ExtResource("2_mm4dv")
 current_tab = 0
 use_hidden_tabs_for_min_size = true
 
