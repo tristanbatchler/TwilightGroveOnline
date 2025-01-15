@@ -48,6 +48,8 @@ func _ready() -> void:
 	_logout_button.pressed.connect(_on_logout_button_pressed)
 	_shop.item_purchased.connect(_on_shop_item_purchased)
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
+	_line_edit.focus_entered.connect(func(): GameManager.is_typing = true)
+	_line_edit.focus_exited.connect(func(): GameManager.is_typing = false)
 	_send_button.pressed.connect(_on_send_button_pressed)
 	_inventory.item_dropped.connect(_drop_item)
 	_tab_container.set_tab_hidden(_tab_container.get_tab_idx_from_control(_dialogue_box), true)
@@ -204,6 +206,7 @@ func _on_send_button_pressed() -> void:
 		chat.set_msg(entered_text)
 	
 	WS.send(packet)
+
 	_line_edit.clear()
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	#_line_edit.release_focus()

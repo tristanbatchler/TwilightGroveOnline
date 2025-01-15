@@ -5,6 +5,10 @@ const Ore := preload("res://objects/ore/ore.gd")
 
 var _audio_stream_player: AudioStreamPlayer
 
+# Had to add a global flag for whather the player is typing a message otherwise
+# it's too easy for other nodes to assume focus and interrupt
+var is_typing: bool
+
 enum State {
 	ENTERED,
 	CONNECTED,

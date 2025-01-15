@@ -58,7 +58,8 @@ func set_selected(selected: bool) -> void:
 	if is_node_ready():
 		for label in [_name_label, _quantity_label]:
 			if selected:
-				_drop_button.grab_focus()
+				if not GameManager.is_typing:
+					_drop_button.grab_focus()
 				label.add_theme_color_override("font_color", Color.html("8AEBB5"))
 			else:
 				_drop_button.release_focus()
