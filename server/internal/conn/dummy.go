@@ -23,7 +23,7 @@ func NewDummyClient(hub *central.Hub, initialState central.ClientStateHandler) (
 	c := &DummyClient{
 		initialState:             initialState,
 		hub:                      hub,
-		packetsForProcessingChan: make(chan *packets.Packet, 16),
+		packetsForProcessingChan: make(chan *packets.Packet, 64),
 		dbTx:                     hub.NewDbTx(),
 		logger:                   log.New(log.Writer(), "Client unknown: ", log.LstdFlags),
 	}
