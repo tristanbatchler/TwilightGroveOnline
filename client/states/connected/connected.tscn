@@ -27,7 +27,6 @@ theme_override_constants/margin_bottom = 20
 [node name="AttributionsPopupPanel" type="PopupPanel" parent="CanvasLayer/MarginContainer"]
 initial_position = 1
 size = Vector2i(300, 285)
-visible = true
 
 [node name="AttributionsRichTextLabel" type="RichTextLabel" parent="CanvasLayer/MarginContainer/AttributionsPopupPanel"]
 offset_left = 5.0
