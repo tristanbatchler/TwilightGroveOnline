@@ -24,6 +24,33 @@ theme_override_constants/margin_top = 50
 theme_override_constants/margin_right = 100
 theme_override_constants/margin_bottom = 20
 
+[node name="AttributionsPopupPanel" type="PopupPanel" parent="CanvasLayer/MarginContainer"]
+initial_position = 1
+size = Vector2i(300, 285)
+visible = true
+
+[node name="AttributionsRichTextLabel" type="RichTextLabel" parent="CanvasLayer/MarginContainer/AttributionsPopupPanel"]
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 295.0
+offset_bottom = 280.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+bbcode_enabled = true
+text = "Micro roguelike sprites by [color=#E3A071][url=sprites]kenney[/url][/color]
+Ornate theme by [color=#E3A071][url=theme]azagaya[/url][/color]
+Woodcutting sound loop by [color=#E3A071][url=woodcutting]dheming[/url][/color]
+Mining sound loop by [color=#E3A071][url=mining]WolfOWI[/url][/color]
+Tree felling sound by [color=#E3A071][url=felling]DasDeer[/url][/color]
+Ore crumbling sound by [color=#E3A071][url=crumbling]F.M.Audio[/url][/color]
+Buy/sell item sound by [color=#E3A071][url=coins]StormwaveAudio[/url][/color]
+Drop item sound by [color=#E3A071][url=dropped]dersuperanton[/url][/color]
+UI button click sound by [color=#E3A071][url=click]leoanderson67[/url][/color]
+Door opening sound by [color=#E3A071][url=door]pagancow[/url][/color]
+~
+[color=#E3A071][url=learn]Learn to make a game like this with the Godot Engine and Golang![/url][/color]"
+horizontal_alignment = 1
+
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer"]
 layout_mode = 2
 
@@ -57,3 +84,11 @@ size_flags_vertical = 10
 bbcode_enabled = true
 scroll_following = true
 script = ExtResource("2_1p833")
+
+[node name="Credits" type="RichTextLabel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "[center]Made by [color=#E3A071][url=mywebsite]saltytaro[/url][/color][/center]
+[center][color=#E3A071][url=attributions]Attributions[/url][/color][/center]
+"
+fit_content = true

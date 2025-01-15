@@ -8,6 +8,10 @@ const Packets := preload("res://packets.gd")
 @onready var _register_form: RegisterForm = $CanvasLayer/MarginContainer/VBoxContainer/RegisterForm
 @onready var _register_prompt: RichTextLabel = $CanvasLayer/MarginContainer/VBoxContainer/RegisterPrompt
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
+@onready var _credits: RichTextLabel = $CanvasLayer/MarginContainer/VBoxContainer/Credits
+@onready var _attributions_popup_panel: PopupPanel = $CanvasLayer/MarginContainer/AttributionsPopupPanel
+@onready var _attributions_rich_text_label: RichTextLabel = $CanvasLayer/MarginContainer/AttributionsPopupPanel/AttributionsRichTextLabel
+
 
 func _ready() -> void:
 	_settings_button.pressed.connect(_on_settings_button_pressed)
@@ -16,6 +20,8 @@ func _ready() -> void:
 	_register_form.form_submitted.connect(_on_register_form_submitted)
 	_register_form.form_canceled.connect(_on_register_form_canceled)
 	_register_prompt.meta_clicked.connect(_on_register_prompt_meta_clicked)
+	_credits.meta_clicked.connect(_on_credit_meta_clicked)
+	_attributions_rich_text_label.meta_clicked.connect(_on_credit_meta_clicked)
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
 
@@ -47,6 +53,44 @@ func _on_register_prompt_meta_clicked(meta) -> void:
 		_login_form.hide()
 		_register_prompt.hide()
 		_register_form.show()
+
+func _on_credit_meta_clicked(meta) -> void:
+	if meta is not String:
+		return
+		
+	meta = meta as String
+	
+	var url := ""
+	match meta:
+		"mywebsite":
+			url = "https://tbat.me"
+		"attributions":
+			_attributions_popup_panel.popup()
+		"sprites":
+			url = "https://kenney.nl/assets/micro-roguelike"
+		"theme":
+			url = "https://azagaya.itch.io/ornate-theme"
+		"woodcutting":
+			url = "https://freesound.org/s/240980"
+		"mining":
+			url = "https://freesound.org/s/588306"
+		"felling":
+			url = "https://freesound.org/s/161601"
+		"crumbling":
+			url = "https://freesound.org/s/574449"
+		"coins":
+			url = "https://freesound.org/s/614069"
+		"dropped":
+			url = "https://freesound.org/s/435558"
+		"click":
+			url = "https://freesound.org/s/710463"
+		"door":
+			url = "https://freesound.org/s/15419"
+		"learn":
+			url = "https://tbat.me/projects/godot-golang-mmo-tutorial-series"
+		
+	if url != "":
+		OS.shell_open(url)
 
 func _on_login_form_submitted(username: String, password: String) -> void:
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
