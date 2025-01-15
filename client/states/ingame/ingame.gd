@@ -203,15 +203,16 @@ func _on_send_button_pressed() -> void:
 		var chat := packet.new_chat()
 		chat.set_msg(entered_text)
 	
-	if WS.send(packet) == OK:
-		if GameManager.client_id in _actors:
-			var player := _actors[GameManager.client_id]
-			if is_yelling:
-				_log.yell("You", player.is_vip, entered_text)
-				player.chat(entered_text.to_upper())
-			else:
-				_log.chat("You", player.is_vip, entered_text)
-				player.chat(entered_text)
+	WS.send(packet)
+	#if WS.send(packet) == OK:
+		#if GameManager.client_id in _actors:
+			#var player := _actors[GameManager.client_id]
+			#if is_yelling:
+				#_log.yell("You", player.is_vip, entered_text)
+				#player.chat(entered_text.to_upper())
+			#else:
+				#_log.chat("You", player.is_vip, entered_text)
+				#player.chat(entered_text)
 
 	_line_edit.clear()
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)

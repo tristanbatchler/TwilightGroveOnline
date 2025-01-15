@@ -150,7 +150,7 @@ func (c *Connected) handleRegisterRequest(_ uint32, message *packets.Packet_Regi
 	defer cancel()
 
 	username := strings.ToLower(message.RegisterRequest.Username)
-	err := validateUsername(username)
+	err := c.validateUsername(username)
 	if err != nil {
 		reason := fmt.Sprintf("invalid username: %v", err)
 		c.logger.Println(reason)
@@ -218,7 +218,7 @@ func (c *Connected) handleRegisterRequest(_ uint32, message *packets.Packet_Regi
 func (c *Connected) OnExit() {
 }
 
-func validateUsername(username string) error {
+func (c *Connected) validateUsername(username string) error {
 	if len(username) <= 0 {
 		return errors.New("empty")
 	}
@@ -227,6 +227,9 @@ func validateUsername(username string) error {
 	}
 	if username != strings.TrimSpace(username) {
 		return errors.New("leading or trailing whitespace")
+	}
+	if _, exists := c.client.GameData().Profanity[username]; exists {
+		return errors.New("watch your profanity")
 	}
 	return nil
 }

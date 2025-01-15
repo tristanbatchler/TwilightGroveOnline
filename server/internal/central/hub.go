@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -70,7 +71,9 @@ type SharedGameObjects struct {
 
 // A collection of static data for the game
 type GameData struct {
-	MotdPath string
+	MotdPath  string
+	Profanity map[string]struct{}
+	Slurs     map[string]struct{}
 }
 
 type LevelPointMaps struct {
@@ -186,7 +189,9 @@ func NewHub(dataDirPath, pgConnString string) *Hub {
 			GroundItems: ds.NewSharedCollection[*objs.GroundItem](),
 		},
 		GameData: &GameData{
-			MotdPath: path.Join(dataDirPath, "motd.txt"),
+			MotdPath:  path.Join(dataDirPath, "motd.txt"),
+			Profanity: wordsFromFile(path.Join(dataDirPath, "profanity.txt")),
+			Slurs:     wordsFromFile(path.Join(dataDirPath, "slurs.txt")),
 		},
 		LevelPointMaps: &LevelPointMaps{
 			Collisions: ds.NewLevelPointMap[*struct{}](),
@@ -654,4 +659,18 @@ func (h *Hub) addDefaultNpcs() {
 		// Register the client
 		h.registerClient(h.npcClients[id])
 	}
+}
+
+func wordsFromFile(filePath string) map[string]struct{} {
+	words := make(map[string]struct{})
+	text, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Printf("Error reading file %s: %v", filePath, err)
+	}
+
+	for _, word := range strings.Split(string(text), "\n") {
+		words[word] = struct{}{}
+	}
+
+	return words
 }

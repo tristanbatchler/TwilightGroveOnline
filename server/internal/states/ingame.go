@@ -137,6 +137,13 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 }
 
 func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
+	for _, word := range strings.Fields(message.Chat.Msg) {
+		if _, exists := g.client.GameData().Slurs[word]; exists {
+			g.logger.Printf("Client %d tried to send a message containing a slur (%s). Censoring...", senderId, word)
+			message.Chat.Msg = strings.ReplaceAll(message.Chat.Msg, word, "****")
+		}
+	}
+
 	if strings.TrimSpace(message.Chat.Msg) == "" {
 		g.logger.Println("Received a chat message with no content, ignoring")
 		return
@@ -161,6 +168,7 @@ func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
 
 		g.logger.Println("Received a chat message from ourselves, broadcasting")
 		g.client.Broadcast(message, g.othersInLevel)
+		g.client.SocketSend(message)
 		return
 	}
 
