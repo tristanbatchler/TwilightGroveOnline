@@ -825,6 +825,10 @@ func _process(delta: float) -> void:
 			else:
 				_nag_message("This door is locked.")
 				_left_click_held = false
+				_move_right_held = false
+				_move_down_held = false
+				_move_left_held = false
+				_move_up_held = false
 					
 			
 func _pickup_nearby_ground_item() -> void:

@@ -30,11 +30,15 @@ func _on_settings_button_pressed() -> void:
 	_login_form.hide()
 	_register_prompt.hide()
 	_settings_button.hide()
+	_log.hide()
+	_credits.hide()
 	_settings_form.show()
 	
 func _on_settings_form_closed() -> void:
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 	_settings_form.hide()
+	_credits.show()
+	_log.show()
 	_settings_button.show()
 	_register_prompt.show()
 	_login_form.show()
