@@ -223,7 +223,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 
 	// Check if the target position is in a collision point
 	if g.client.LevelPointMaps().Collisions.Contains(g.levelId, collisionPoint) {
-		g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
+		// g.logger.Printf("Player tried to move to a collision point (%d, %d)", targetX, targetY)
 		go g.client.SocketSend(playerMessageBeforeMove)
 		return
 	}
@@ -247,7 +247,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 
 	go g.syncPlayerLocation(500 * time.Millisecond)
 
-	// g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
+	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
 	g.client.Broadcast(packets.NewActor(g.player), g.othersInLevel)
 }

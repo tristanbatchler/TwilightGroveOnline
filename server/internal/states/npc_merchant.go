@@ -356,7 +356,7 @@ func (n *NpcMerchant) move(dx, dy int32) {
 
 	// Check if the target position is in a collision point
 	if n.client.LevelPointMaps().Collisions.Contains(n.Npc.LevelId, collisionPoint) {
-		n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
+		// n.logger.Printf("Tried to move to a collision point (%d, %d)", targetX, targetY)
 		return
 	}
 

@@ -247,12 +247,12 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 			_world_tilemap_layer = node
 			
 			# Hide cells that are just invisible collision points
-			for cell_pos in node.get_used_cells():
-				var tile_data: TileData = node.get_cell_tile_data(cell_pos)
-				const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
-				if tile_data and tile_data.get_collision_polygons_count(physics_layer):
-					if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
-						node.erase_cell(cell_pos)
+			#for cell_pos in node.get_used_cells():
+				#var tile_data: TileData = node.get_cell_tile_data(cell_pos)
+				#const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
+				#if tile_data and tile_data.get_collision_polygons_count(physics_layer):
+					#if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
+						#node.erase_cell(cell_pos)
 		else:
 			# Remove everything except the tilemap because these will be sent to us from the server's dynamic data structure
 			node.queue_free()
@@ -747,7 +747,7 @@ func _process(delta: float) -> void:
 			if ore == null:
 				var actor := player.get_actor_standing_on()
 				if actor == null:
-					_ground_hint_label.text = ""#"(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y]
+					_ground_hint_label.text = "(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y]
 				else:
 					_ground_hint_label.text = "Talk to %s (%s)" % [actor.actor_name, InputMap.action_get_events(&"talk")[0].as_text()]
 			else:
