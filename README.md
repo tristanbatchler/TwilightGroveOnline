@@ -118,3 +118,5 @@
 - [x] Stop player-dropped or respawned items from being added to the DB and growing the stack each server reboot
 - [x] Fix transparency inconsistencies in UI panels e.g. log is more opaque than shop
 - [x] Add credits and attributions
+- [ ] Add a guest mode
+- [ ] Compress the WASM and serve client over netlify

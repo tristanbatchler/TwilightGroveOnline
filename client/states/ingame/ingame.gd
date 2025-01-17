@@ -247,14 +247,14 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 			_world_tilemap_layer = node
 			
 			# Hide cells that are just invisible collision points
-			#for cell_pos in node.get_used_cells():
-				#var tile_data: TileData = node.get_cell_tile_data(cell_pos)
-				#const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
-				#if tile_data and tile_data.get_collision_polygons_count(physics_layer):
-					#if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
-						#node.erase_cell(cell_pos)
+			for cell_pos in node.get_used_cells():
+				var tile_data: TileData = node.get_cell_tile_data(cell_pos)
+				const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
+				if tile_data and tile_data.get_collision_polygons_count(physics_layer):
+					if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
+						node.erase_cell(cell_pos)
 		else:
-			# Remove everything except the tilemap because these will be sent to us from the server's dynamic data structure
+			# Remove everything exc_ept the tilemap because these will be sent to us from the server's dynamic data structure
 			node.queue_free()
 	
 	if _world_tilemap_layer == null:
@@ -420,6 +420,8 @@ func _handle_door(door_msg: Packets.Door) -> void:
 		
 	var door_obj := Door.instantiate(dest_lvl_id, dest_x, dest_y, x, y, key_id)
 	_doors[door_id] = door_obj
+	if _has_key(door_obj.key_id):
+		door_obj.unlock()
 	door_obj.place(_world_tilemap_layer)
 
 func _handle_actor_inventory(sender_id: int, actor_inventory_msg: Packets.ActorInventory) -> void:
@@ -747,7 +749,7 @@ func _process(delta: float) -> void:
 			if ore == null:
 				var actor := player.get_actor_standing_on()
 				if actor == null:
-					_ground_hint_label.text = "(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y]
+					_ground_hint_label.text = ""#"(%d, %d)" % [_actors[GameManager.client_id].x, _actors[GameManager.client_id].y]
 				else:
 					_ground_hint_label.text = "Talk to %s (%s)" % [actor.actor_name, InputMap.action_get_events(&"talk")[0].as_text()]
 			else:
@@ -814,13 +816,10 @@ func _process(delta: float) -> void:
 		
 		else:
 			var key_id := door_at_target.key_id
-			var has_key := false
-			for item in _inventory.get_items():
-				if item.tool_properties != null and item.tool_properties.key_id == key_id:
-					has_key = true
-					break
+			var has_key := _has_key(key_id)
 					
 			if has_key:
+				door_at_target.unlock()
 				player.move_and_send(should_move_in_dir)
 			else:
 				_nag_message("This door is locked.")
@@ -830,6 +829,12 @@ func _process(delta: float) -> void:
 				_move_left_held = false
 				_move_up_held = false
 					
+			
+func _has_key(key_id: int) -> bool:
+	for item in _inventory.get_items():
+		if item.tool_properties != null and item.tool_properties.key_id == key_id:
+			return true
+	return false
 			
 func _pickup_nearby_ground_item() -> void:
 	# If we are shopping, treat the pickup ground item button as a buy item button

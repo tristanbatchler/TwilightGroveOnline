@@ -26,8 +26,8 @@ tracks/0/keys = {
 "values": [Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_k3skb"]
-resource_name = "harvest_down"
+[sub_resource type="Animation" id="Animation_2t0lw"]
+resource_name = "harvest_up"
 length = 0.6
 loop_mode = 1
 tracks/0/type = "value"
@@ -40,7 +40,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.26, 0.44),
 "transitions": PackedFloat32Array(0.435275, 1.8025, 1.8025),
 "update": 0,
-"values": [Vector2(0, 0), Vector2(0, 0.825), Vector2(0, 0)]
+"values": [Vector2(0, 0), Vector2(0, -0.825), Vector2(0, 0)]
 }
 
 [sub_resource type="Animation" id="Animation_rcya1"]
@@ -60,23 +60,6 @@ tracks/0/keys = {
 "values": [Vector2(0, 0), Vector2(-0.825, 0), Vector2(0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_2t0lw"]
-resource_name = "harvest_up"
-length = 0.6
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.26, 0.44),
-"transitions": PackedFloat32Array(0.435275, 1.8025, 1.8025),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(0, -0.825), Vector2(0, 0)]
-}
-
 [sub_resource type="Animation" id="Animation_c5r4i"]
 resource_name = "harvest_right"
 length = 0.6
@@ -94,13 +77,30 @@ tracks/0/keys = {
 "values": [Vector2(0, 0), Vector2(0.825, 0), Vector2(0, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_k3skb"]
+resource_name = "harvest_down"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.26, 0.44),
+"transitions": PackedFloat32Array(0.435275, 1.8025, 1.8025),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 0.825), Vector2(0, 0)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_kvhoe"]
 _data = {
-&"RESET": SubResource("Animation_5fdic"),
-&"harvest_up": SubResource("Animation_2t0lw"),
 &"harvest_left": SubResource("Animation_rcya1"),
 &"harvest_right": SubResource("Animation_c5r4i"),
-&"harvest_down": SubResource("Animation_k3skb")
+&"harvest_up": SubResource("Animation_2t0lw"),
+&"harvest_down": SubResource("Animation_k3skb"),
+&"RESET": SubResource("Animation_5fdic")
 }
 
 [node name="Actor" type="CharacterBody2D"]

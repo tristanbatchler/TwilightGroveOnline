@@ -53,3 +53,7 @@ func _ready() -> void:
 
 	if locked:
 		set_collision_layer_value(2, true)
+
+func unlock() -> void:
+	locked = false
+	set_collision_layer_value(2, false)

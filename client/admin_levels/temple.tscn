@@ -257,4 +257,4 @@ tradeable = false
 [node name="Door" parent="." instance=ExtResource("4_6o3t1")]
 position = Vector2(-24, 40)
 destination_level_res_path = "res://admin_levels/forest.tscn"
-destination_pos = Vector2i(34, -6)
+destination_pos = Vector2i(34, -7)
