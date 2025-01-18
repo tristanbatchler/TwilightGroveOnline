@@ -133,7 +133,7 @@ func NewItem(item *objs.Item) Msg {
 	}
 }
 
-func NewGroundItem(id uint32, groundItem *objs.GroundItem) Msg {
+func NewGroundItem(id uint32, groundItem *objs.GroundItem, levelId int32) Msg {
 	item := NewItem(groundItem.Item)
 	return &Packet_GroundItem{
 		GroundItem: &GroundItem{
@@ -143,6 +143,7 @@ func NewGroundItem(id uint32, groundItem *objs.GroundItem) Msg {
 			Y:              groundItem.Y,
 			RespawnSeconds: groundItem.RespawnSeconds,
 			DespawnSeconds: groundItem.DespawnSeconds,
+			LevelId:        levelId,
 		},
 	}
 }
@@ -238,17 +239,17 @@ func NewServerMessage(msg string) Msg {
 	}
 }
 
-func newOptionalGroundItem(groundItem *objs.GroundItem) *GroundItem {
+func newOptionalGroundItem(groundItem *objs.GroundItem, levelId int32) *GroundItem {
 	if groundItem == nil {
 		return nil
 	}
-	return NewGroundItem(groundItem.Id, groundItem).(*Packet_GroundItem).GroundItem
+	return NewGroundItem(groundItem.Id, groundItem, levelId).(*Packet_GroundItem).GroundItem
 }
 
-func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, err error) Msg {
+func NewPickupGroundItemResponse(success bool, groundItem *objs.GroundItem, levelId int32, err error) Msg {
 	return &Packet_PickupGroundItemResponse{
 		PickupGroundItemResponse: &PickupGroundItemResponse{
-			GroundItem: newOptionalGroundItem(groundItem),
+			GroundItem: newOptionalGroundItem(groundItem, levelId),
 			Response: &Response{
 				Success:     success,
 				OptionalMsg: newOptionalResponse(err),
@@ -424,10 +425,11 @@ func NewQuestInfo(quest *quests.Quest) Msg {
 	}
 }
 
-func NewDespawnGroundItem(id uint32) Msg {
+func NewDespawnGroundItem(id uint32, levelId int32) Msg {
 	return &Packet_DespawnGroundItem{
 		DespawnGroundItem: &DespawnGroundItem{
 			GroundItemId: id,
+			LevelId:      levelId,
 		},
 	}
 }

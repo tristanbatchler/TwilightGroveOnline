@@ -315,7 +315,7 @@ func _handle_actor_move(actor_id: int, actor_move: Packets.ActorMove) -> void:
 
 func _handle_pickup_ground_item_response(pickup_ground_item_response: Packets.PickupGroundItemResponse) -> void:
 	var response := pickup_ground_item_response.get_response()
-	if not response.get_success():
+	if response != null and not response.get_success():
 		_maybe_show_response_error(response)
 		return
 	var ground_item_msg := pickup_ground_item_response.get_ground_item()

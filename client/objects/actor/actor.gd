@@ -51,6 +51,7 @@ var _world_tile_size := Vector2i(1, 1)
 @onready var _chat_timer: Timer = $CanvasLayer/ChatLabel/Timer
 @onready var _animation_player: AnimationPlayer = $AnimationPlayer
 @onready var _sprite: Sprite2D = $Sprite2D
+@onready var _collision_shape: CollisionShape2D = $CollisionShape2D
 
 
 static func instantiate(x: int, y: int, actor_name: String, sprite_region_x: int, sprite_region_y: int, is_player: bool, is_vip: bool) -> Actor:
@@ -82,6 +83,12 @@ func _ready() -> void:
 	
 	if is_vip:
 		_name_plate.add_theme_color_override("font_color", Color.html("8AEBB5"))
+		
+	# Remove collisions from non-player actors because they can cause some weird/unneccesary
+	# effects when interacting with coming out of doors that, from the player's perspective, 
+	# are locked.
+	if not is_player:
+		_collision_shape.disabled = true
 	
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_player:

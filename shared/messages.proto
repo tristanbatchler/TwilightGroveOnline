@@ -142,6 +142,7 @@ message GroundItem {
     int32 y = 4;
     int32 respawn_seconds = 5;
     int32 despawn_seconds = 6;
+    int32 level_id = 7;
 }
 
 message LevelUpload {
@@ -282,6 +283,7 @@ message QuestInfo {
 
 message DespawnGroundItem {
     uint32 ground_item_id = 1;
+    int32 level_id = 2;
 }
 
 message Packet {

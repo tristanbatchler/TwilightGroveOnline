@@ -107,7 +107,7 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 	case *packets.Packet_PickupGroundItemRequest:
 		g.handlePickupGroundItemRequest(senderId, message)
 	case *packets.Packet_GroundItem:
-		g.client.SocketSendAs(message, senderId)
+		g.handleGroundItem(senderId, message)
 	case *packets.Packet_DropItemRequest:
 		g.handleDropItemRequest(senderId, message)
 	case *packets.Packet_ChopShrubRequest:
@@ -137,7 +137,7 @@ func (g *InGame) HandleMessage(senderId uint32, message packets.Msg) {
 	case *packets.Packet_QuestInfo:
 		g.handleQuestInfo(senderId, message)
 	case *packets.Packet_DespawnGroundItem:
-		g.client.SocketSendAs(message, senderId)
+		g.handleDespawnGroundItem(senderId, message)
 	}
 }
 
@@ -164,6 +164,36 @@ func (g *InGame) handleChat(senderId uint32, message *packets.Packet_Chat) {
 			}
 			g.switchLevel(int32(levelId))
 			return
+			//} else if strings.HasPrefix(censoredText, "/reward ") {
+			// 	if !g.isAdmin() {
+			// 		g.client.SocketSend(packets.NewServerMessage("You are not an admin"))
+			// 		return
+			// 	}
+			// 	parts := strings.Split(strings.TrimPrefix(censoredText, "/reward "), " ")
+			// 	if len(parts) != 2 {
+			// 		g.client.SocketSend(packets.NewServerMessage("Usage: /reward <actor_name> <gold_amount>"))
+			// 		return
+			// 	}
+			// 	actorName := parts[0]
+			// 	goldAmount, err := strconv.Atoi(parts[1])
+			// 	if err != nil {
+			// 		g.logger.Printf("Failed to parse gold amount: %v", err)
+			// 		g.client.SocketSend(packets.NewServerMessage("Invalid gold amount"))
+			// 		return
+			// 	}
+			// 	recipientId := uint32(0)
+			// 	g.client.SharedGameObjects().Actors.ForEach(func(owner_client_id uint32, a *objs.Actor) {
+			// 		if a.Name == actorName {
+			// 			recipientId = owner_client_id
+			// 		}
+			// 	})
+			// 	if recipientId == 0 {
+			// 		g.client.SocketSend(packets.NewServerMessage("Actor not found"))
+			// 		return
+			// 	}
+			// 	g.client.PassToPeer(packets.NewItemQuantity(items.GoldBars, int32(goldAmount)), recipientId)
+			// 	g.client.PassToPeer(packets.NewServerMessage(fmt.Sprintf("%s has gifted you %d gold bars", g.player.Name, goldAmount)), recipientId)
+			// 	return
 		}
 		// End debug code
 
@@ -301,7 +331,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 
 	if !exists {
 		g.logger.Printf("Client %d tried to pick up a ground item that doesn't exist in the shared game object collection", senderId)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Ground item doesn't exist")))
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, 0, errors.New("Ground item doesn't exist")))
 		return
 	}
 
@@ -317,7 +347,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	})
 	if err != nil {
 		g.logger.Printf("Failed to get item: %v", err)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("Failed to get item from the database")))
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, 0, errors.New("Failed to get item from the database")))
 		return
 	}
 	groundItem.Item.DbId = itemModel.ID
@@ -330,7 +360,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 			wcLvl := int32(skills.Level(g.player.SkillsXp[skills.Woodcutting]))
 			if toolProps.LevelRequired > wcLvl {
 				g.logger.Printf("Client %d tried to pick up a tool with level requirement %d, but only has level %d", senderId, toolProps.LevelRequired, skills.Level(g.player.SkillsXp[skills.Woodcutting]))
-				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a woodcutting level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
+				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, 0, fmt.Errorf("You need a woodcutting level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
 				return
 			}
 		}
@@ -338,7 +368,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 			miningLvl := int32(skills.Level(g.player.SkillsXp[skills.Mining]))
 			if toolProps.LevelRequired > miningLvl {
 				g.logger.Printf("Client %d tried to pick up a tool with level requirement %d, but only has level %d", senderId, toolProps.LevelRequired, skills.Level(g.player.SkillsXp[skills.Mining]))
-				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, fmt.Errorf("You need a mining level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
+				g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, 0, fmt.Errorf("You need a mining level of %d to effectively wield a %s", toolProps.LevelRequired, groundItem.Item.Name)))
 				return
 			}
 		}
@@ -346,7 +376,7 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 
 	if !g.isActorInRange(groundItem.X, groundItem.Y) {
 		g.logger.Printf("Client %d tried to pick up ground item %d, but it's not in range", senderId, groundItem.Id)
-		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, errors.New("That item is too far away to reach.")))
+		g.client.SocketSend(packets.NewPickupGroundItemResponse(false, nil, 0, errors.New("That item is too far away to reach.")))
 		return
 	}
 
@@ -366,18 +396,23 @@ func (g *InGame) handlePickupGroundItemRequest(senderId uint32, message *packets
 	// Start the respawn time
 	if groundItem.RespawnSeconds > 0 { // 0 would mean it doesn't respawn
 		go func() {
+			pickedupInLevelId := g.levelId
 			time.Sleep(time.Duration(groundItem.RespawnSeconds) * time.Second)
 			groundItem.Id = g.client.SharedGameObjects().GroundItems.Add(groundItem)
 
 			// Don't add the ground item to the DB. It will be respawned naturally if the server is rebooted, so there's no need
-			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
-			g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+			// TODO: at the moment, we just broadcast this to everyone and let each client decide what to do with it.
+			// If I get time, I should find a way to determine the recipient IDs based only on who is currently in the same level as the item when it respawns.
+			g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem, pickedupInLevelId))
+			if pickedupInLevelId == g.player.LevelId {
+				g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem, pickedupInLevelId))
+			}
 			g.logger.Printf("Ground item %d respawned at (%d, %d)", groundItem.Id, groundItem.X, groundItem.Y)
 		}()
 	}
 
 	g.client.Broadcast(message, g.othersInLevel)
-	go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, nil))
+	go g.client.SocketSend(packets.NewPickupGroundItemResponse(true, groundItem, g.levelId, nil))
 
 	g.logger.Printf("Client %d picked up ground item %d", senderId, groundItem.Id)
 }
@@ -739,15 +774,19 @@ func (g *InGame) handleDropItemRequest(senderId uint32, message *packets.Packet_
 	go func() {
 		time.Sleep(playerDropsDespawnAfterSeconds * time.Second)
 		g.client.SharedGameObjects().GroundItems.Remove(groundItem.Id)
-		despawnGroundItemMsg := packets.NewDespawnGroundItem(groundItem.Id)
-		g.client.Broadcast(despawnGroundItemMsg, g.othersInLevel)
-		g.client.SocketSend(despawnGroundItemMsg)
+		despawnGroundItemMsg := packets.NewDespawnGroundItem(groundItem.Id, groundItem.LevelId)
+		// TODO: at the moment, we just broadcast this to everyone and let each client decide what to do with it.
+		// If I get time, I should find a way to determine the recipient IDs based only on who is currently in the same level as the item when it respawns.
+		g.client.Broadcast(despawnGroundItemMsg)
+		if groundItem.LevelId == g.player.LevelId {
+			g.client.SocketSend(despawnGroundItemMsg)
+		}
 	}()
 
 	// Don't add dropped items to the database. Means player-dropped items will be wiped on server reboot, which is expected behavior
 
-	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem), g.othersInLevel)
-	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem))
+	g.client.Broadcast(packets.NewGroundItem(groundItem.Id, groundItem, g.levelId), g.othersInLevel)
+	g.client.SocketSend(packets.NewGroundItem(groundItem.Id, groundItem, g.levelId))
 }
 
 func (g *InGame) isActorInRange(x int32, y int32) bool {
@@ -1017,6 +1056,22 @@ func (g *InGame) handleQuestInfo(senderId uint32, message *packets.Packet_QuestI
 
 }
 
+func (g *InGame) handleDespawnGroundItem(senderId uint32, message *packets.Packet_DespawnGroundItem) {
+	if message.DespawnGroundItem.LevelId != g.player.LevelId {
+		g.logger.Printf("Received a despawn ground item message for level %d, but we're in level %d", message.DespawnGroundItem.LevelId, g.levelId)
+		return
+	}
+	g.client.SocketSendAs(message, senderId)
+}
+
+func (g *InGame) handleGroundItem(senderId uint32, message *packets.Packet_GroundItem) {
+	if message.GroundItem.LevelId != g.player.LevelId {
+		g.logger.Printf("Received a ground item message for level %d, but we're in level %d", message.GroundItem.LevelId, g.levelId)
+		return
+	}
+	g.client.SocketSendAs(message, senderId)
+}
+
 func (g *InGame) OnExit() {
 	g.client.Broadcast(packets.NewLogout(), g.othersInLevel)
 	g.client.SharedGameObjects().Actors.Remove(g.client.Id())
@@ -1068,7 +1123,7 @@ func (g *InGame) sendLevel() {
 	g.logger.Printf("Sending shared game objects...")
 	g.client.SharedGameObjects().GroundItems.ForEach(func(id uint32, groundItem *objs.GroundItem) {
 		if groundItem.LevelId == g.levelId {
-			go g.client.SocketSend(packets.NewGroundItem(id, groundItem))
+			go g.client.SocketSend(packets.NewGroundItem(id, groundItem, g.levelId))
 		}
 	})
 	g.client.SharedGameObjects().Doors.ForEach(func(id uint32, door *objs.Door) {
