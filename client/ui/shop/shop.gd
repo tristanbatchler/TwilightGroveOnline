@@ -59,7 +59,7 @@ func add(item: Item, quantity: int) -> void:
 		_tiles[item.item_name] = tile
 		
 		# Connect the new tile's buy signal
-		tile.drop_button_pressed.connect(func(shift_pressed: bool): item_purchased.emit(_owner_actor_id, tile.item, 10**int(shift_pressed)))
+		tile.drop_button_pressed.connect(func(inventory_row: InventoryRow, shift_pressed: bool): item_purchased.emit(_owner_actor_id, tile.item, 10**int(shift_pressed)))
 		
 	# If this was the first item added, set the selected index
 	if len(_tiles) == 1:

@@ -9,7 +9,7 @@ const Item := preload("res://objects/item/item.gd")
 var _rows: Dictionary[StringName, InventoryRow]
 var _selected_idx: int = -1
 
-signal item_dropped(item: Item, quantity: int)
+signal item_dropped(inventory_row: InventoryRow, quantity: int)
 
 func stringname_sorter(a: StringName, b: StringName) -> bool:
 		if a.naturalnocasecmp_to(b) < 0:
@@ -27,13 +27,23 @@ func add(item: Item, quantity: int) -> void:
 		_rows[item.item_name] = row
 		
 		# Connect the new row's drop signal
-		row.drop_button_pressed.connect(func(shift_pressed: bool): item_dropped.emit(row.item, 10**int(Input.is_key_pressed(KEY_SHIFT))))
+		row.drop_button_pressed.connect(_on_row_drop_button_pressed)
 		
 	# If this was the first item added, set the selected index
 	if len(_rows) == 1:
 		_selected_idx = 0
 		
 	_sort()
+
+func _on_row_drop_button_pressed(inventory_row: InventoryRow, shift_pressed: bool): 
+	item_dropped.emit(inventory_row.item, 10**int(Input.is_key_pressed(KEY_SHIFT)))
+	if inventory_row.item_quantity > 0: # keep item selected after dropping it if there are more
+		_set_selected_row_selected(false)
+		_selected_idx = _get_idx_of_row(inventory_row)
+		if _selected_idx < 0:
+			_selected_idx = 0
+		_set_selected_row_selected(true)
+	
 
 func remove(item_name: String, quantity: int) -> void:
 	if item_name in _rows:
@@ -99,6 +109,18 @@ func get_selected_row() -> InventoryRow:
 		i += 1
 		
 	return _rows[_rows.keys()[0]]
+	
+func _get_idx_of_row(row: InventoryRow) -> int:
+	var item_names := _rows.keys()
+	item_names.sort_custom(stringname_sorter)
+	
+	var i := 0
+	for item_name in item_names:
+		var inv_row := _rows[item_name]
+		if inv_row == row:
+			return i
+		i += 1
+	return -1
 	
 func _set_selected_row_selected(selected: bool) -> void:
 	var selected_row := get_selected_row()

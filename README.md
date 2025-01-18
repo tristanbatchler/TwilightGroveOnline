@@ -122,9 +122,9 @@
 - [x] Compress the WASM and serve client over netlify
 - [x] Locked doors are still a bit bugged. Watching another player come out of a locked door makes it seem like they're stuck in the wall.
 - [x] Axe spawns outside the boundary in the mines? Item spawn should be broadcast just to people in level
-- [ ] Make inventory not scroll when you sell an item
-- [ ] Passwords don't match or profane username = disable line edits and won't let you register
-- [ ] Can't use cursor keys when 
+- [x] Make inventory not scroll when you sell an item
+- [x] Passwords don't match or profane username = disable line edits and won't let you register
+- [ ] Can't use cursor keys when typing
 - [ ] Have XP tooltip update while hovering
 - [ ] Spamming harvest like 10 times then move, then try to mine again normally, it mines without the animation 
 - [ ] Random variation in harvest time
@@ -132,3 +132,4 @@
 - [ ] Don't allow movement when talking to NPCs or shopping
 - [ ] Add server check to make sure player is close enough to NPC when buying/selling or interacting with them
 - [ ] Allow remap of movement keys
+- [ ] Add instructions
