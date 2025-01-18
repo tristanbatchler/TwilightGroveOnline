@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cn3josm57s4u"]
+[gd_scene load_steps=9 format=3 uid="uid://cn3josm57s4u"]
 
 [ext_resource type="Script" path="res://states/ingame/ingame.gd" id="1_5whee"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="2_mm4dv"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://b34vntdhsm4su" path="res://ui/inventory/inventory.tscn" id="4_wlbng"]
 [ext_resource type="Script" path="res://ui/log/log.gd" id="5_perjg"]
 [ext_resource type="PackedScene" uid="uid://cyrpw4ikfg6l5" path="res://ui/dialogue_box/dialogue_box.tscn" id="6_hysag"]
+[ext_resource type="PackedScene" uid="uid://cwcw8yu83dhi0" path="res://ui/help_dialogue/help_dialogue.tscn" id="8_s65o8"]
 
 [node name="InGame" type="Node"]
 script = ExtResource("1_5whee")
@@ -26,6 +27,11 @@ theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
+
+[node name="HelpDialogue" parent="CanvasLayer/MarginContainer" instance=ExtResource("8_s65o8")]
+initial_position = 1
+size = Vector2i(360, 360)
+visible = false
 
 [node name="GroundHintLabel" type="Label" parent="CanvasLayer/MarginContainer"]
 layout_mode = 2
@@ -50,7 +56,15 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 10
 
-[node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu"]
+layout_mode = 2
+
+[node name="HelpButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Help"
+
+[node name="LogoutButton" type="Button" parent="CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 10
 text = "Exit"

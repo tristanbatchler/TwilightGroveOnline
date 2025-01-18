@@ -12,10 +12,13 @@ const InventoryRow := preload("res://ui/inventory/inventory_row.gd")
 @export var download_destination_scene_path: String
 
 @onready var _ground_hint_label: Label = $CanvasLayer/MarginContainer/GroundHintLabel
-@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/LogoutButton
+@onready var _logout_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/HBoxContainer/LogoutButton
+@onready var _help_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/HBoxContainer/HelpButton
 @onready var _line_edit: LineEdit = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/LineEdit
 @onready var _send_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/TabContainer/Chat/HBoxContainer/SendButton
 @onready var _level_transition: ColorRect = $CanvasLayer/LevelTransition
+@onready var _help_dialogue: PopupPanel = $CanvasLayer/MarginContainer/HelpDialogue
+
 
 @onready var _shop: Shop = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/Shop
 @onready var _experience: Experience = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/RightMenu/Experience
@@ -48,6 +51,7 @@ func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
 	_logout_button.pressed.connect(_on_logout_button_pressed)
+	_help_button.pressed.connect(_on_help_button_pressed)
 	_shop.item_purchased.connect(_on_shop_item_purchased)
 	_line_edit.text_submitted.connect(func(_s): _on_send_button_pressed())
 	_line_edit.focus_entered.connect(func(): GameManager.is_typing = true)
@@ -189,6 +193,10 @@ func _on_logout_button_pressed() -> void:
 	packet.new_logout()
 	WS.send(packet)
 	GameManager.set_state(GameManager.State.CONNECTED)
+
+func _on_help_button_pressed() -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+	_help_dialogue.popup()
 
 func _on_send_button_pressed() -> void:
 	var entered_text := _line_edit.text

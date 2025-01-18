@@ -132,4 +132,4 @@
 - [ ] Don't allow movement when talking to NPCs or shopping
 - [ ] Add server check to make sure player is close enough to NPC when buying/selling or interacting with them
 - [ ] Allow remap of movement keys
-- [ ] Add instructions
+- [x] Add instructions

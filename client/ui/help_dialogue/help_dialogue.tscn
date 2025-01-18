@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwcw8yu83dhi0"]
+
+[ext_resource type="Script" path="res://ui/help_dialogue/help_dialogue.gd" id="1_d4enq"]
+
+[node name="HelpDialogue" type="PopupPanel"]
+size = Vector2i(358, 358)
+visible = true
+script = ExtResource("1_d4enq")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+custom_minimum_size = Vector2(350, 350)
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 354.0
+offset_bottom = 354.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+custom_minimum_size = Vector2(350, 350)
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "[p][color=#8AEBB5][center][u]Welcome to Twilight Grove Online![/u][/center][/color][/p]
+[p]Talk to Rickert to start the main quest. Explore the world for clues to help him.[/p]
+
+[p][color=#8AEBB5][center]~ CONTROLS ~[/center][/color][/p]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+columns = 2
+
+[node name="ModiferNote" type="RichTextLabel" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "[p]
+Navigate inventory and shop with keyboard by holding CTRL and using cursor keys.
+[/p]
+[p]
+Buy/sell/grab/drop in multiples of 10 by holding SHIFT.
+[/p]"
+fit_content = true
+scroll_active = false

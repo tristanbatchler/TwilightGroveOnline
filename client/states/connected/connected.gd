@@ -2,7 +2,8 @@ extends Node
 
 const Packets := preload("res://packets.gd")
 
-@onready var _settings_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/SettingsButton
+@onready var _settings_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/SettingsButton
+@onready var _help_button: Button = $CanvasLayer/MarginContainer/VBoxContainer/HBoxContainer/HelpButton
 @onready var _settings_form: SettingsForm = $CanvasLayer/MarginContainer/VBoxContainer/SettingsForm
 @onready var _login_form: LoginForm = $CanvasLayer/MarginContainer/VBoxContainer/LoginForm
 @onready var _register_form: RegisterForm = $CanvasLayer/MarginContainer/VBoxContainer/RegisterForm
@@ -10,11 +11,13 @@ const Packets := preload("res://packets.gd")
 @onready var _log: Log = $CanvasLayer/MarginContainer/VBoxContainer/Log
 @onready var _credits: RichTextLabel = $CanvasLayer/MarginContainer/VBoxContainer/Credits
 @onready var _attributions_popup_panel: PopupPanel = $CanvasLayer/MarginContainer/AttributionsPopupPanel
+@onready var _help_dialogue: PopupPanel = $CanvasLayer/MarginContainer/HelpDialogue
 @onready var _attributions_rich_text_label: RichTextLabel = $CanvasLayer/MarginContainer/AttributionsPopupPanel/AttributionsRichTextLabel
 
 
 func _ready() -> void:
 	_settings_button.pressed.connect(_on_settings_button_pressed)
+	_help_button.pressed.connect(_on_help_button_pressed)
 	_settings_form.form_closed.connect(_on_settings_form_closed)
 	_login_form.form_submitted.connect(_on_login_form_submitted)
 	_register_form.form_submitted.connect(_on_register_form_submitted)
@@ -33,6 +36,7 @@ func _on_settings_button_pressed() -> void:
 	_log.hide()
 	_credits.hide()
 	_settings_form.show()
+	
 	
 func _on_settings_form_closed() -> void:
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
@@ -59,6 +63,11 @@ func _on_register_prompt_meta_clicked(meta) -> void:
 		_register_prompt.hide()
 		_register_form.show()
 
+
+func _on_help_button_pressed() -> void:
+	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+	_help_dialogue.popup()
+
 func _on_credit_meta_clicked(meta) -> void:
 	if meta is not String:
 		return
@@ -70,6 +79,7 @@ func _on_credit_meta_clicked(meta) -> void:
 		"mywebsite":
 			url = "https://tbat.me"
 		"attributions":
+			GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 			_attributions_popup_panel.popup()
 		"sprites":
 			url = "https://kenney.nl/assets/micro-roguelike"
@@ -95,6 +105,7 @@ func _on_credit_meta_clicked(meta) -> void:
 			url = "https://tbat.me/projects/godot-golang-mmo-tutorial-series"
 		
 	if url != "":
+		GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
 		OS.shell_open(url)
 
 func _on_login_form_submitted(username: String, password: String) -> void:
