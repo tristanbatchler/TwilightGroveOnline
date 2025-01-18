@@ -42,6 +42,8 @@ var _move_down_held := false
 var _move_left_held := false
 var _move_up_held := false
 
+const INVISIBLE_COLLISION_ATLAS_COORDS := Vector2i(0, 10)
+
 func _ready() -> void:
 	WS.packet_received.connect(_on_ws_packet_received)
 	WS.connection_closed.connect(_on_ws_connection_closed)
@@ -248,11 +250,10 @@ func _handle_level_download(level_download: Packets.LevelDownload) -> void:
 			
 			# Hide cells that are just invisible collision points
 			for cell_pos in node.get_used_cells():
-				var tile_data: TileData = node.get_cell_tile_data(cell_pos)
-				const physics_layer := 0 # Safe to assume I'm only going to be using one physics layer...
-				if tile_data and tile_data.get_collision_polygons_count(physics_layer):
-					if node.get_cell_atlas_coords(cell_pos) == Vector2i(0, 10): # The placeholder sprite for an invisible collision point
-						node.erase_cell(cell_pos)
+				if cell_pos == Vector2i(-1, -1):
+					continue
+				if node.get_cell_atlas_coords(cell_pos) == INVISIBLE_COLLISION_ATLAS_COORDS:
+					node.erase_cell(cell_pos)
 		else:
 			# Remove everything exc_ept the tilemap because these will be sent to us from the server's dynamic data structure
 			node.queue_free()
