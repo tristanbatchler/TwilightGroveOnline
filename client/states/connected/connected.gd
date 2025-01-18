@@ -45,6 +45,7 @@ func _on_settings_form_closed() -> void:
 
 func _on_register_form_canceled() -> void:
 	GameManager.play_sound(GameManager.SingleSound.BUTTON_PRESSED)
+	_register_form.clear()
 	_register_form.hide()
 	_register_prompt.show()
 	_login_form.show()
@@ -110,6 +111,7 @@ func _on_register_form_submitted(username: String, password: String, confirm_pas
 	_register_form.disable_form()
 	if password != confirm_password:
 		_log.error("Passwords do not match")
+		_register_form.enable_form()
 		return
 	
 	_log.info("Sending registration...")

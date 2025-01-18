@@ -28,13 +28,21 @@ func disable_form() -> void:
 	_username_field.editable = false
 	_password_field.editable = false
 	_confirm_password_field.editable = false
+	_sprite_option_button.disabled = true
 	_confirm_button.disabled = true
 	
 func enable_form() -> void:
 	_username_field.editable = true
 	_password_field.editable = true
-	_confirm_password_field.editable = false
+	_confirm_password_field.editable = true
+	_sprite_option_button.disabled = false
 	_confirm_button.disabled = false
 	
 func _on_sprite_option_selected(index: int) -> void:
 	_sprite.region_rect.position.x = 32 + index * 8
+
+func clear() -> void:
+	_username_field.clear()
+	_password_field.clear()
+	_confirm_password_field.clear()
+	_sprite_option_button.select(0)
