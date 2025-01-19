@@ -277,7 +277,7 @@ func (g *InGame) handleActorMove(senderId uint32, message *packets.Packet_ActorM
 
 	go g.syncPlayerLocation(500 * time.Millisecond)
 
-	g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
+	// g.logger.Printf("Player moved to (%d, %d)", g.player.X, g.player.Y)
 
 	g.client.Broadcast(packets.NewActor(g.player), g.othersInLevel)
 }

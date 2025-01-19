@@ -6,13 +6,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/central"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/conn"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/npcs"
 	"github.com/tristanbatchler/TwilightGroveOnline/server/internal/states"
+)
+
+const (
+	dockerMountedCertsDir = "/gameserver/certs"
+	dockerMountedDataDir  = "/gameserver/data"
 )
 
 var (
@@ -35,18 +43,18 @@ type config struct {
 
 func loadConfig() *config {
 	cfg := &config{
-		PgHost:           os.Getenv("PG_HOST"),
-		PgPort:           5432,
-		PgUser:           os.Getenv("PG_USER"),
-		PgPassword:       os.Getenv("PG_PASSWORD"),
-		PgDatabase:       os.Getenv("PG_DATABASE"),
-		Port:             43200,
-		DataPath:         coalescePaths(os.Getenv("DATA_PATH"), "data", "."),
-		CertPath:         coalescePaths(os.Getenv("CERT_PATH"), "certs/cert.pem"),
-		KeyPath:          coalescePaths(os.Getenv("KEY_PATH"), "certs/key.pem"),
-		ClientExportPath: coalescePaths(os.Getenv("CLIENT_EXPORT_PATH"), "../exports/web"),
-		AdminPassword:    os.Getenv("ADMIN_PASSWORD"),
+		PgHost:        os.Getenv("PG_HOST"),
+		PgPort:        5432,
+		PgUser:        os.Getenv("PG_USER"),
+		PgPassword:    os.Getenv("PG_PASSWORD"),
+		PgDatabase:    os.Getenv("PG_DATABASE"),
+		Port:          43200,
+		DataPath:      coalescePaths(os.Getenv("DATA_PATH"), dockerMountedDataDir, "data", "."),
+		CertPath:      os.Getenv("CERT_PATH"),
+		KeyPath:       os.Getenv("KEY_PATH"),
+		AdminPassword: os.Getenv("ADMIN_PASSWORD"),
 	}
+	cfg.ClientExportPath = coalescePaths(path.Join(cfg.DataPath, "exports", "web"), "../exports/web")
 
 	port, err := strconv.Atoi(os.Getenv("PG_PORT"))
 	if err != nil {
@@ -62,6 +70,21 @@ func loadConfig() *config {
 	}
 	cfg.Port = port
 	return cfg
+}
+
+func resolveLiveCertsPath(certPath string) string {
+	normalizedPath := strings.ReplaceAll(certPath, "\\", "/")
+	pathComponents := strings.Split(normalizedPath, "/certs/")
+
+	if len(pathComponents) >= 2 {
+		pathTail := pathComponents[len(pathComponents)-1]
+
+		// Try to load the certificates exactly as they appear in the config,
+		// otherwise assume they are in the Docker-mounted folder for certs
+		return coalescePaths(certPath, filepath.Join(dockerMountedCertsDir, pathTail))
+	}
+
+	return certPath
 }
 
 func coalescePaths(fallbacks ...string) string {
@@ -142,6 +165,9 @@ func main() {
 	addr := fmt.Sprintf(":%d", cfg.Port)
 
 	log.Printf("Starting server on %s", addr)
+
+	cfg.CertPath = resolveLiveCertsPath(cfg.CertPath)
+	cfg.KeyPath = resolveLiveCertsPath(cfg.KeyPath)
 
 	// Actually start the server
 	log.Printf("Using cert at %s and key at %s", cfg.CertPath, cfg.KeyPath)

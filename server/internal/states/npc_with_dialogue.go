@@ -260,7 +260,7 @@ func (n *NpcWithDialogue) move(dx, dy int32) {
 	n.Npc.Actor.X = targetX
 	n.Npc.Actor.Y = targetY
 
-	n.logger.Printf("Actor moved to (%d, %d)", n.Npc.Actor.X, n.Npc.Actor.Y)
+	// n.logger.Printf("Actor moved to (%d, %d)", n.Npc.Actor.X, n.Npc.Actor.Y)
 
 	n.client.Broadcast(packets.NewActor(n.Npc.Actor), n.othersInLevel)
 }
