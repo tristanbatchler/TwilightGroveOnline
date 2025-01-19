@@ -1,8 +1,8 @@
 # Twilight Grove Online
 
-<div style="text-align:center">
+<p align="center">
   <img src="./client/icon.png" />
-</div>
+</p>
 
 *A tiny MUD*
 
@@ -11,9 +11,9 @@ The official game is live and can be played at [https://twilightgrove.tbat.me](h
 
 Twilight Grove is a persistent world in a multi-user dungeon made in under a month using Godot 4.4 and Golang for the server. It is completely server-authoritative (i.e. no peer connections) and cross-platform. Here is a demo of the game:
 
-<div style="text-align:center">
-  <video src="./.github/demo.webm" nocontrols autoplay loop></video>
-</div>
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/9678e4c6-8909-4150-bd23-ff7dc373a2d5" nocontrols autoplay loop />
+</p>
 
 The process used to create Twilight Grove Online is both in a written and video format:
 * [YouTube playlist](https://youtube.com/playlist?list=PLA1tuaTAYPbHAU2ISi_aMjSyZr-Ay7UTJ&si=vwm_yXkPAyqgSeOU)
