@@ -1,7 +1,27 @@
 # Twilight Grove Online
+
+<div style="text-align:center">
+  <img src="./client/icon.png" />
+</div>
+
 *A tiny MUD*
 
-## Setup
+The official game is live and can be played at [https://twilightgrove.tbat.me](https://twilightgrove.tbat.me).
+
+
+Twilight Grove is a persistent world in a multi-user dungeon made in under a month using Godot 4.4 and Golang for the server. It is completely server-authoritative (i.e. no peer connections) and cross-platform. Here is a demo of the game:
+
+<div style="text-align:center">
+  <video src="./.github/demo.webm" nocontrols autoplay loop></video>
+</div>
+
+The process used to create Twilight Grove Online is both in a written and video format:
+* [YouTube playlist](https://youtube.com/playlist?list=PLA1tuaTAYPbHAU2ISi_aMjSyZr-Ay7UTJ&si=vwm_yXkPAyqgSeOU)
+* [Companion blog posts](https://www.tbat.me/projects/godot-golang-mmo-tutorial-series)
+
+I have not stress tested it extensively, but I believe it can support 50 concurrent players with a modest desktop running the server executable. This would scale quite nicely with more compute power.
+
+## Setup if you want to run your own server
 1. Install Go and ensure `~/go/bin` is in your PATH.
 1. [Download Godot Engine 4.4 dev 3](https://godotengine.org/download/archive/4.4-dev3) and copy the console binary to the `/client/` directory of this project, renaming it to `godot`.
 1. [Download protoc](https://github.com/protocolbuffers/protobuf/releases/latest) and copy the binary to `~/go/bin`.
@@ -35,30 +55,40 @@
     volumes:
     pgdata:
     ```
-1. Create a `.env` file in the `/server/` directory with the following contents:
+
+1. Create a database named `twilightgrove`, and create a new user for the game to run as:
+  ```sql
+  CREATE USER game_admin WITH PASSWORD 'your_secure_password';
+  GRANT CONNECT ON DATABASE twilightgrove TO game_admin;
+  ALTER DATABASE twilightgrove OWNER TO game_admin;
+  ```
+
+1. Create a `.env` file in the `/server/` directory with the following contents, where `/path/to/your/data` is wherever you want the server to store its data like message of the day, profanity lists, etc.:
     ```
-    PG_HOST=localhost
+    PG_HOST=192.168.20.17 # or your local IP (I think host.docker.internal works too)
     PG_PORT=5432
-    PG_USER=XXXXXXXXX
-    PG_PASSWORD=XXXXXXXXX
+    PG_USER=game_admin
+    PG_PASSWORD=your_secure_password
     PG_DATABASE=twilightgrove
     PORT=43200
-    CERT_PATH=/home/t/certs/twilightgrove.tbat.me.fullchain.pem
-    KEY_PATH=/home/t/certs/twilightgrove.tbat.me.privkey.pem
-    DATA_PATH=./data
-    CLIENT_EXPORT_PATH=../client/export/web
-    ADMIN_PASSWORD=XXXXXXXXX
+    CERT_PATH=/path/to/your/cert.pem
+    KEY_PATH=/path/to/your/key.pem
+    DATA_PATH=/path/to/your/data
+    ADMIN_PASSWORD=choose_a_password_for_the_game_admin
     ```
 1. Optional: install the [vscode-proto3](https://marketplace.visualstudio.com/items?itemName=zxh404.vscode-proto3) extension for syntax highlighting and automatical go compilation on save.
 
 1. Edit the root `Entered` node in the `res://states/entered/entered.tscn` scene in Godot to have a server URL of `wss://dev.your.domain:43200/ws`.
 
-## TODO
+1. Press F5 in VSCode to run the server. This will generate the Go code from the protobuf files and start the server.
+
+1. Run the client from the Godot editor and login with the username `admin` and the password you set in the `.env` file.
+
+1. Choose **Upload level** from the admin menu and upload each level in the default levels directory (you can edit these however you like in `/client/admin_levels/` within the Godot editor)
+
+## Features / TODO:
 - [x] Items on the ground for the level
-- [x] Refactor level parsing code - ~add interface to implement `ToGameObject()`? `ToDB()`?~ 
-    - Added some structs in `/internal/central/levels` to help 
-        - importing to DB and memory from a packet message, and
-        - importing to memory from the DB
+- [x] Level parsing
 - [x] Press G to pick up items when standing on them
 - [x] Storing items in the player's inventory, both on the server and in the database
 - [x] Displaying the player's inventory on the client
@@ -82,7 +112,7 @@
 - [x] Add a special status symbol for players who have completed the quest
 - [x] Add spawn point in levels
 - [x] Speed up level uploading?
-- [ ] Translate to Japanese
+- [ ] Translate to Japanese (just for fun and an excuse to practice and see what it takes to localize the game)
 - [x] Use StringNames for inventory script?
 - [x] Allow customizing the player's appearance
 - [x] Allow support for multiple items in LevelPointMap stacked on top of each other
@@ -91,8 +121,6 @@
 - [x] Scroll down inventory when selecting items with the keyboard
 - [ ] Rearrange DB schema so that the tool_properties table has a foreign key to the items table instead of the other way around
 - [x] Fix bug where dropping a tool doesn't work
-    - Is going to require re-thinking how the inventory is stored in server memory
-    - Currently storing a map of objs.Item, but these don't hash well due to holding a pointer to a ToolsProps struct, which in turns holds a pointer to a Harvestable struct... Differing memory addresses for the same item in different maps. Need to think of a way to store the inventory in a way that can be hashed and compared, but can also communicate all the necessary information to the client.
 - [x] Fix bug where dropping an item on the ground causes some kind of null pointer exception in Godot because it seems the item is null before it goes into the InGame._drop_item method. I think it's getting garbage collected or something.
 - [x] Sort inventory items by name alphabetically
 - [x] Rate limit client actions
@@ -110,7 +138,6 @@
 - [x] Add keyboard control hints
 - [x] Add keyboard rebinds in settings
 - [x] Make NPCs move again, but only when not in range of a player (and refactor duplicated move logic)
-  - Didn't refactor the move logic... will do that later
 - [x] Figure out weird tools spawning with Harvestable_NONE set, messing up sync between inventory
 - [x] Figure out weird keyboard sometimes jumping 2x
 - [x] Hold shift while using keyboard controls to buy/sell in multiples of 10
