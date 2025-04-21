@@ -9,3 +9,4 @@ server/certs/
 *.tmp
 server/data/profanity.txt
 server/data/slurs.txt
+nohup.out

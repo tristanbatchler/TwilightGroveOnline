@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cwcw8yu83dhi0"]
 
-[ext_resource type="Script" path="res://ui/help_dialogue/help_dialogue.gd" id="1_d4enq"]
+[ext_resource type="Script" uid="uid://b4dcdglcuuia2" path="res://ui/help_dialogue/help_dialogue.gd" id="1_d4enq"]
 
 [node name="HelpDialogue" type="PopupPanel"]
 size = Vector2i(358, 358)

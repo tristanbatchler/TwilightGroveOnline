@@ -1,8 +1,8 @@
 [gd_scene load_steps=8 format=3 uid="uid://c5ewcm28nnahr"]
 
-[ext_resource type="Script" path="res://states/connected/connected.gd" id="1_whc4w"]
+[ext_resource type="Script" uid="uid://dws6wnxlv5bwn" path="res://states/connected/connected.gd" id="1_whc4w"]
 [ext_resource type="Theme" uid="uid://chlnkbertyww3" path="res://resources/theme/ornate-theme.tres" id="1_xi3ng"]
-[ext_resource type="Script" path="res://ui/log/log.gd" id="2_1p833"]
+[ext_resource type="Script" uid="uid://d1kyb16mp6p4o" path="res://ui/log/log.gd" id="2_1p833"]
 [ext_resource type="PackedScene" uid="uid://dkweaj281ywfm" path="res://ui/login_form/login_form.tscn" id="2_vvt47"]
 [ext_resource type="PackedScene" uid="uid://cxc5en8cac0x3" path="res://ui/settings_form/settings_form.tscn" id="3_act3l"]
 [ext_resource type="PackedScene" uid="uid://ck54gpx76tecr" path="res://ui/register_form/register_form.tscn" id="3_enitm"]
