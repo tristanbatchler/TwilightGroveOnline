@@ -228,8 +228,13 @@ destination_pos = Vector2i(0, -1)
 
 [node name="Door4" parent="." instance=ExtResource("3_xd47s")]
 position = Vector2(440, 112)
-destination_level_res_path = "uid://b34ddlokkvss0"
-destination_pos = Vector2i(0, -1)
+destination_level_res_path = "res://admin_levels/bar.tscn"
+destination_pos = Vector2i(-19, 42)
+
+[node name="Door5" parent="." instance=ExtResource("3_xd47s")]
+position = Vector2(440, 120)
+destination_level_res_path = "res://admin_levels/bar.tscn"
+destination_pos = Vector2i(-19, 43)
 
 [node name="GroundItem" parent="." node_paths=PackedStringArray("item") instance=ExtResource("4_di3mq")]
 position = Vector2(-32, 80)

@@ -248,14 +248,14 @@ destination_pos = Vector2i(21, 4)
 [node name="Door3" parent="." instance=ExtResource("2_bp8x4")]
 position = Vector2(-160, 328)
 destination_level_res_path = "res://admin_levels/forest.tscn"
-destination_pos = Vector2i(53, 15)
+destination_pos = Vector2i(54, 14)
 
 [node name="Door4" parent="." instance=ExtResource("2_bp8x4")]
 position = Vector2(-160, 336)
 destination_level_res_path = "res://admin_levels/forest.tscn"
-destination_pos = Vector2i(53, 15)
+destination_pos = Vector2i(54, 14)
 
 [node name="Door5" parent="." instance=ExtResource("2_bp8x4")]
 position = Vector2(-160, 344)
 destination_level_res_path = "res://admin_levels/forest.tscn"
-destination_pos = Vector2i(53, 15)
+destination_pos = Vector2i(54, 15)
